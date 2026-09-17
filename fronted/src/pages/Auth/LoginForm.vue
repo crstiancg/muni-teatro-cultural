@@ -191,7 +191,7 @@ const login = async () => {
 }
 
 body.body--dark .lc-form {
-  background: #1d1d1d;
+  background: #000000;
 }
 
 .lc-form-inner {
