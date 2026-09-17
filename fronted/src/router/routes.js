@@ -22,6 +22,26 @@ const routes = [
         name: 'Dashboard',
         component: () => import('@/pages/Dashboard/DashboardPage.vue'),
       },
+      {
+        path: 'usuarios',
+        name: 'Usuarios',
+        component: () => import('@/pages/Usuarios/UsuariosList.vue'),
+      },
+      {
+        path: 'roles',
+        name: 'Roles',
+        component: () => import('@/pages/Roles/RolesList.vue'),
+      },
+      {
+        path: 'permisos',
+        name: 'Permisos',
+        component: () => import('@/pages/Permisos/PermisosList.vue'),
+      },
+      {
+        path: 'personas',
+        name: 'Personas',
+        component: () => import('@/pages/Personas/PersonasList.vue'),
+      },
     ],
   },
 

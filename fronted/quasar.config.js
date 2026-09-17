@@ -56,18 +56,18 @@ export default defineConfig((/* ctx */) => {
       // https://v2.quasar.dev/quasar-cli-vite/handling-vite#jsx-tsx
       // vueJsx: true,
 
-      vitePlugins: [
-        [
-          'vite-plugin-checker',
-          {
-            eslint: {
-              lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
-              useFlatConfig: true,
-            },
-          },
-          { server: false },
-        ],
-      ],
+      // vitePlugins: [
+      //   [
+      //     'vite-plugin-checker',
+      //     {
+      //       eslint: {
+      //         lintCommand: 'eslint -c ./eslint.config.js "./src*/**/*.{js,mjs,cjs,vue}"',
+      //         useFlatConfig: true,
+      //       },
+      //     },
+      //     { server: false },
+      //   ],
+      // ],
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
@@ -80,7 +80,7 @@ export default defineConfig((/* ctx */) => {
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
       config: {
-        dark: 'auto',
+        dark: 'false',
       },
 
       // iconSet: 'material-icons', // Quasar icon set

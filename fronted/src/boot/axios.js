@@ -1,9 +1,15 @@
 import { defineBoot } from '#q-app'
 import axios from 'axios'
+import { client } from 'laravel-precognition-vue'
+import { axiosAdapter } from 'laravel-precognition/axios'
 import { Cookies, Notify } from 'quasar'
 import { useUserStore } from '@/stores/user-store'
 
-const api = axios.create({ baseURL: import.meta.env.QCLI_API_BACKEND_URL })
+const api = axios.create({
+  baseURL: import.meta.env.QCLI_API_BACKEND_URL,
+  headers: { Accept: 'application/json' },
+})
+client.useHttpClient(axiosAdapter(api))
 
 api.interceptors.request.use(
   (config) => {

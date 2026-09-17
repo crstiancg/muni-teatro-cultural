@@ -17,3 +17,39 @@
 body.body--light .q-page {
   background-color: #f0f0f0 !important;
 }
+
+// q-table con header sticky, usado en todas las pantallas de listado
+// (Usuarios, Roles, Permisos, y las que se agreguen después).
+.my-sticky-header-table {
+  height: 74vh;
+  border-radius: 10px;
+  overflow: hidden;
+
+  thead tr th {
+    position: sticky;
+    z-index: 1;
+    background-color: $primary;
+    color: white;
+  }
+
+  thead tr:first-child th {
+    top: 0;
+
+    &:first-child {
+      border-top-left-radius: 10px;
+    }
+    &:last-child {
+      border-top-right-radius: 10px;
+    }
+  }
+
+  /* cuando aparece el indicador de carga */
+  &.q-table--loading thead tr:last-child th {
+    top: 48px;
+  }
+
+  /* evita que el scroll quede detrás del header sticky al hacer foco */
+  tbody {
+    scroll-margin-top: 48px;
+  }
+}

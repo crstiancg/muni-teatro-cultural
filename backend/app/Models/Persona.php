@@ -34,4 +34,14 @@ class Persona extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function ubigeoNacimiento()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_cod_nacimiento', 'codigo');
+    }
+
+    public function ubigeoResidencia()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_cod_residencia', 'codigo');
+    }
 }

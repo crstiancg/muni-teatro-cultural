@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { LayoutDashboard } from 'lucide-vue-next'
+import { LayoutDashboard, Users, Shield, KeyRound, Contact } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
@@ -11,6 +11,24 @@ export function useMenu() {
       label: 'Dashboard',
       routeName: 'Dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      type: 'item',
+      label: 'Personas',
+      routeName: 'Personas',
+      icon: Contact,
+      permission: 'admin-personas-index',
+    },
+    {
+      type: 'group',
+      label: 'Administración',
+      caption: 'Usuarios y accesos',
+      icon: Shield,
+      children: [
+        { type: 'item', label: 'Usuarios', routeName: 'Usuarios', icon: Users, permission: 'admin-usuarios-index' },
+        { type: 'item', label: 'Roles', routeName: 'Roles', icon: Shield, permission: 'admin-roles-index' },
+        { type: 'item', label: 'Permisos', routeName: 'Permisos', icon: KeyRound, permission: 'admin-permisos-index' },
+      ],
     },
   ]
 
