@@ -25,6 +25,7 @@ class Persona extends Model
         'correo',
         'ubigeo_cod_nacimiento',
         'ubigeo_cod_residencia',
+        'codigo_comision',
         'user_id'
     ];
 
@@ -33,5 +34,20 @@ class Persona extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function ubigeoNacimiento()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_cod_nacimiento', 'codigo');
+    }
+
+    public function ubigeoResidencia()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_cod_residencia', 'codigo');
+    }
+
+    public function comision()
+    {
+        return $this->belongsTo(Comision::class, 'codigo_comision', 'codigo');
     }
 }

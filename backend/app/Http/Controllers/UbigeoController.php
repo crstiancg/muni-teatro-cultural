@@ -10,40 +10,22 @@ class UbigeoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        return $this->generateViewSetList(
+            $request,
+            Ubigeo::query(),
+            ['tipo', 'cod_dep', 'cod_prov'],
+            ['codigo', 'nombre'],
+            ['id', 'codigo', 'nombre']
+        );
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Display the specified resource by its código (no es la PK).
      */
-    public function store(Request $request)
+    public function show(string $codigo)
     {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Ubigeo $ubigeo)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Ubigeo $ubigeo)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Ubigeo $ubigeo)
-    {
-        //
+        return response()->json(Ubigeo::where('codigo', $codigo)->firstOrFail());
     }
 }

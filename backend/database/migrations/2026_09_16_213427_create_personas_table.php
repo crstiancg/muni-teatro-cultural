@@ -27,6 +27,8 @@ return new class extends Migration
             $table->string('correo')->nullable();
             $table->char('ubigeo_cod_nacimiento', 6)->nullable();
             $table->char('ubigeo_cod_residencia', 6)->nullable();
+            // apunta a comisions.codigo (tipo='familia')
+            $table->char('codigo_comision', 4)->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
