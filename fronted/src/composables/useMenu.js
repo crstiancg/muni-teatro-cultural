@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { LayoutDashboard, Users, Shield, KeyRound, Contact } from 'lucide-vue-next'
+import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
@@ -18,6 +18,13 @@ export function useMenu() {
       routeName: 'Personas',
       icon: Contact,
       permission: 'admin-personas-index',
+    },
+    {
+      type: 'item',
+      label: 'Comisiones',
+      routeName: 'Comisiones',
+      icon: FolderTree,
+      permission: 'admin-comisiones-index',
     },
     {
       type: 'group',

@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', {
       Cookies.remove('token', { path: '/' })
       const res = await api.post('oauth/token', {
         grant_type: 'password',
-        client_id: '01a0acde-012f-7122-a483-84f1e2043dc0',
+        client_id: '01a0b014-f3f5-71e2-8cbd-d8a9d0ca21b9',
         client_secret: import.meta.env.QCLI_APP_SECRET,
         username: email,
         password: password,

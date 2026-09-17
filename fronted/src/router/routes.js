@@ -42,6 +42,16 @@ const routes = [
         name: 'Personas',
         component: () => import('@/pages/Personas/PersonasList.vue'),
       },
+      {
+        path: 'comisiones',
+        name: 'Comisiones',
+        component: () => import('@/pages/Comisiones/ComisionesList.vue'),
+      },
+      {
+        path: 'perfil',
+        name: 'Perfil',
+        component: () => import('@/pages/Perfil/PerfilPage.vue'),
+      },
     ],
   },
 

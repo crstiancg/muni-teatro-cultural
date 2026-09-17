@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\ComisionController;
+use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\PersonaController;
 use App\Http\Controllers\RolController;
@@ -33,4 +35,16 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('personas', PersonaController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);
+
+    Route::get('comisiones', [ComisionController::class, 'index']);
+    Route::get('comisiones/{codigo}', [ComisionController::class, 'show'])->whereAlphaNumeric('codigo');
+    Route::post('grupos', [ComisionController::class, 'storeGrupo'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('familias', [ComisionController::class, 'storeFamilia'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('comisiones/{comision}', [ComisionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('comisiones/{comision}', [ComisionController::class, 'destroy']);
+
+    Route::get('mi-informacion', [MiInformacionController::class, 'show']);
+    Route::put('mi-informacion', [MiInformacionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-usuario', [MiInformacionController::class, 'updateUsuario'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-password', [MiInformacionController::class, 'updatePassword'])->middleware([HandlePrecognitiveRequests::class]);
 });

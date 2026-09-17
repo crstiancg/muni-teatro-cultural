@@ -37,6 +37,7 @@
         </q-item>
 
         <q-item
+          :to="{ name: 'Perfil' }"
           clickable
           v-ripple
           class="text-white q-ma-sm"
@@ -104,11 +105,15 @@
         <component :is="Component" :key="route.fullPath" />
       </router-view>
     </q-page-container>
+
+    <q-dialog v-model="mostrarMiInformacion">
+      <MiInformacionDialog :data-inicial="miInformacion" />
+    </q-dialog>
   </q-layout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user-store'
@@ -118,12 +123,17 @@ import MenuItem from '@/components/sidebar/MenuItem.vue'
 import MenuGroup from '@/components/sidebar/MenuGroup.vue'
 import AppClock from '@/components/AppClock.vue'
 import SwitchDarkMode from '@/components/SwitchDarkMode.vue'
+import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
+import MiInformacionService from '@/services/MiInformacionService'
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const { menu } = useMenu()
+
+const mostrarMiInformacion = ref(false)
+const miInformacion = ref(null)
 
 const drawer = ref(false)
 const currentRouteName = computed(() => route.name)
@@ -143,6 +153,16 @@ async function logout() {
   await userStore.logout()
   router.push({ name: 'Login' })
 }
+
+onMounted(async () => {
+  // se muestra siempre al loguearse (montar el layout admin) si el usuario
+  // tiene una ficha de persona vinculada; si es un admin sin persona, no sale
+  const datos = await MiInformacionService.get()
+  if (datos?.persona) {
+    miInformacion.value = datos
+    mostrarMiInformacion.value = true
+  }
+})
 </script>
 
 <style lang="scss">

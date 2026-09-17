@@ -1,6 +1,5 @@
-const formPersona = {
+const formPerfil = {
   persona: {
-    id: '',
     dni: '',
     nombre: '',
     apellido_paterno: '',
@@ -20,4 +19,12 @@ const formPersona = {
   },
 }
 
-export default formPersona
+export const formUsuarioPerfil = {
+  usuario: { name: '', email: '' },
+}
+
+export const formPasswordPerfil = {
+  password: { actual: '', nueva: '', nueva_confirmation: '' },
+}
+
+export default formPerfil

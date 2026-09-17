@@ -54,6 +54,7 @@
         </template>
         <template v-slot:header="props">
           <q-tr :props="props">
+            <q-th auto-width />
             <q-th v-for="col in props.cols" :key="col.name" :props="props">
               {{ col.label }}
             </q-th>
@@ -63,6 +64,12 @@
 
         <template v-slot:body="props">
           <q-tr :props="props">
+            <q-td auto-width>
+              <!-- TODO: cuando esté la tabla polimórfica de archivos, mostrar la foto real si existe -->
+              <q-avatar color="primary" text-color="white" size="32px">
+                {{ inicial(props.row.nombre_completo) }}
+              </q-avatar>
+            </q-td>
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
               {{ col.value }}
             </q-td>
@@ -123,6 +130,10 @@ const pagination = ref({
   rowsPerPage: 9,
   rowsNumber: 10,
 })
+
+function inicial(nombreCompleto) {
+  return (nombreCompleto?.charAt(0) || '?').toUpperCase()
+}
 
 function abrirCrear() {
   formPersona.value = true
@@ -191,9 +202,11 @@ async function editar(id) {
       correo_modificado: false,
       ubigeo_cod_nacimiento: persona.ubigeo_cod_nacimiento,
       ubigeo_cod_residencia: persona.ubigeo_cod_residencia,
+      codigo_comision: persona.codigo_comision,
     },
   })
   personasFormRef.value.initUbigeos(persona.ubigeo_cod_nacimiento, persona.ubigeo_cod_residencia)
+  personasFormRef.value.initComision(persona.codigo_comision)
 }
 
 async function eliminar(id) {

@@ -14,6 +14,7 @@ class PersonaController extends Controller
         'dni', 'nombre', 'apellido_paterno', 'apellido_materno', 'genero',
         'fecha_nacimiento', 'direccion', 'estado_civil', 'celular',
         'celular_emergencia', 'correo', 'ubigeo_cod_nacimiento', 'ubigeo_cod_residencia',
+        'codigo_comision',
     ];
 
     public function index(Request $request)
@@ -52,7 +53,7 @@ class PersonaController extends Controller
 
     public function show(Persona $persona)
     {
-        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia']));
+        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia', 'comision']));
     }
 
     public function update(StorePersonaRequest $request, Persona $persona)
