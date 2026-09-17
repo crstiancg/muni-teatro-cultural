@@ -1,1 +1,19 @@
 // app global css
+@import './inter';
+
+.q-btn,
+.q-card {
+  border-radius: 10px !important;
+}
+
+.q-field__control {
+  border-radius: 10px !important;
+}
+
+.q-dialog__backdrop {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+body.body--light .q-page {
+  background-color: #f0f0f0 !important;
+}
