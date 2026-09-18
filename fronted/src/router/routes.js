@@ -13,10 +13,15 @@ const routes = [
 
   {
     path: '/',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [{ path: '', name: 'Inicio', component: () => import('@/pages/Publico/LandingPage.vue') }],
+  },
+
+  {
+    path: '/',
     component: () => import('@/layouts/AdminLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      { path: '', redirect: '/dashboard' },
       {
         path: 'dashboard',
         name: 'Dashboard',
@@ -43,6 +48,11 @@ const routes = [
         component: () => import('@/pages/Personas/PersonasList.vue'),
       },
       {
+        path: 'personas/:id',
+        name: 'PersonaDetalle',
+        component: () => import('@/pages/Personas/PersonaDetallePage.vue'),
+      },
+      {
         path: 'comisiones',
         name: 'Comisiones',
         component: () => import('@/pages/Comisiones/ComisionesList.vue'),
@@ -52,6 +62,21 @@ const routes = [
         name: 'Perfil',
         component: () => import('@/pages/Perfil/PerfilPage.vue'),
       },
+      {
+        path: 'curriculum-vitae',
+        name: 'CurriculumVitae',
+        component: () => import('@/pages/Perfil/CurriculumVitaePage.vue'),
+      },
+    ],
+  },
+
+  {
+    path: '/consejeros',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [
+      { path: '', name: 'ConsejerosPublico', component: () => import('@/pages/Publico/ConsejerosPage.vue') },
+      { path: ':id', name: 'ConsejeroDetallePublico', component: () => import('@/pages/Publico/ConsejeroDetallePage.vue') },
+      { path: ':id/galeria', name: 'ConsejeroGaleriaPublico', component: () => import('@/pages/Publico/ConsejeroGaleriaPage.vue') },
     ],
   },
 

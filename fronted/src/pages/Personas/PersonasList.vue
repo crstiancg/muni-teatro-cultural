@@ -63,7 +63,7 @@
         </template>
 
         <template v-slot:body="props">
-          <q-tr :props="props">
+          <q-tr :props="props" class="cursor-pointer" @click="verDetalle(props.row.id)">
             <q-td auto-width>
               <!-- TODO: cuando esté la tabla polimórfica de archivos, mostrar la foto real si existe -->
               <q-avatar color="primary" text-color="white" size="32px">
@@ -80,7 +80,7 @@
                 color="cyan-1"
                 outline
                 round
-                @click="editar(props.row.id)"
+                @click.stop="editar(props.row.id)"
                 icon="edit"
                 class="q-mr-xs"
               />
@@ -90,7 +90,7 @@
                 color="red-1"
                 outline
                 round
-                @click="eliminar(props.row.id)"
+                @click.stop="eliminar(props.row.id)"
                 icon="delete"
               />
             </q-td>
@@ -104,10 +104,12 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 import PersonaService from '@/services/PersonaService'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 
 const $q = useQuasar()
+const router = useRouter()
 const columns = [
   { name: 'dni', label: 'DNI', aling: 'center', field: (row) => row.dni, sortable: true },
   { name: 'nombre_completo', label: 'Nombre completo', aling: 'center', field: (row) => row.nombre_completo, sortable: true },
@@ -133,6 +135,10 @@ const pagination = ref({
 
 function inicial(nombreCompleto) {
   return (nombreCompleto?.charAt(0) || '?').toUpperCase()
+}
+
+function verDetalle(id) {
+  router.push({ name: 'PersonaDetalle', params: { id } })
 }
 
 function abrirCrear() {
@@ -203,10 +209,9 @@ async function editar(id) {
       ubigeo_cod_nacimiento: persona.ubigeo_cod_nacimiento,
       ubigeo_cod_residencia: persona.ubigeo_cod_residencia,
       codigo_comision: persona.codigo_comision,
+      codigo_comision_alternativo: persona.codigo_comision_alternativo,
     },
   })
-  personasFormRef.value.initUbigeos(persona.ubigeo_cod_nacimiento, persona.ubigeo_cod_residencia)
-  personasFormRef.value.initComision(persona.codigo_comision)
 }
 
 async function eliminar(id) {

@@ -31,10 +31,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import ComisionService from '@/services/ComisionService'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: String, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
@@ -78,8 +78,8 @@ function onFamiliaChange(familia) {
   emit('update:modelValue', familia?.codigo ?? null)
 }
 
-// Se llama desde el form padre cuando llega el código guardado (el de la
-// familia), y hay que reconstruir hacia arriba a qué grupo pertenece.
+// Del código guardado solo conocemos la familia, así que hay que reconstruir
+// hacia arriba a qué grupo pertenece.
 async function initFromCodigo(codigo) {
   if (!codigo) return
   hydrating = true
@@ -98,9 +98,24 @@ async function initFromCodigo(codigo) {
   }
 }
 
-onMounted(() => {
-  cargarGrupos()
-})
+watch(
+  () => props.modelValue,
+  (codigo) => {
+    if (codigo === (selFamilia.value?.codigo ?? null)) return
 
-defineExpose({ initFromCodigo })
+    if (!codigo) {
+      selGrupo.value = null
+      selFamilia.value = null
+      familias.value = []
+      return
+    }
+
+    initFromCodigo(codigo)
+  },
+  { immediate: true },
+)
+
+onMounted(() => {
+  if (!props.modelValue) cargarGrupos()
+})
 </script>

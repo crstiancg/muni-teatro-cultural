@@ -16,6 +16,7 @@ const formPerfil = {
     ubigeo_cod_nacimiento: null,
     ubigeo_cod_residencia: null,
     codigo_comision: null,
+    codigo_comision_alternativo: null,
   },
 }
 

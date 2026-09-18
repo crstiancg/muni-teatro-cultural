@@ -29,6 +29,7 @@ return new class extends Migration
             $table->char('ubigeo_cod_residencia', 6)->nullable();
             // apunta a comisions.codigo (tipo='familia')
             $table->char('codigo_comision', 4)->nullable();
+            $table->char('codigo_comision_alternativo', 4)->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });

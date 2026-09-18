@@ -26,6 +26,7 @@ class Persona extends Model
         'ubigeo_cod_nacimiento',
         'ubigeo_cod_residencia',
         'codigo_comision',
+        'codigo_comision_alternativo',
         'user_id'
     ];
 
@@ -49,5 +50,25 @@ class Persona extends Model
     public function comision()
     {
         return $this->belongsTo(Comision::class, 'codigo_comision', 'codigo');
+    }
+
+    public function comisionAlternativo()
+    {
+        return $this->belongsTo(Comision::class, 'codigo_comision_alternativo', 'codigo');
+    }
+
+    public function formacionesAcademicas()
+    {
+        return $this->hasMany(FormacionAcademica::class);
+    }
+
+    public function capacitaciones()
+    {
+        return $this->hasMany(Capacitacion::class);
+    }
+
+    public function actividades()
+    {
+        return $this->hasMany(Actividad::class);
     }
 }

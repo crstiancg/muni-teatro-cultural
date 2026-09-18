@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree } from 'lucide-vue-next'
+import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
@@ -11,6 +11,12 @@ export function useMenu() {
       label: 'Dashboard',
       routeName: 'Dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      type: 'item',
+      label: 'Curriculum Vitae',
+      routeName: 'CurriculumVitae',
+      icon: GraduationCap,
     },
     {
       type: 'item',

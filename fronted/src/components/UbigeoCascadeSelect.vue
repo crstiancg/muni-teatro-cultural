@@ -45,10 +45,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import UbigeoService from '@/services/UbigeoService'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: String, default: null },
 })
 const emit = defineEmits(['update:modelValue'])
@@ -113,8 +113,7 @@ function onDistChange(dist) {
   emit('update:modelValue', dist?.codigo ?? null)
 }
 
-// Se llama desde el form padre cuando llegan los datos de edición, ya que
-// solo tenemos el código final (el del distrito) y hay que reconstruir
+// Del código guardado solo conocemos el distrito, así que hay que reconstruir
 // hacia arriba el departamento y la provincia a los que pertenece.
 async function initFromCodigo(codigo) {
   if (!codigo) return
@@ -142,9 +141,26 @@ async function initFromCodigo(codigo) {
   }
 }
 
-onMounted(() => {
-  cargarDepartamentos()
-})
+watch(
+  () => props.modelValue,
+  (codigo) => {
+    if (codigo === (selDist.value?.codigo ?? null)) return
 
-defineExpose({ initFromCodigo })
+    if (!codigo) {
+      selDep.value = null
+      selProv.value = null
+      selDist.value = null
+      provincias.value = []
+      distritos.value = []
+      return
+    }
+
+    initFromCodigo(codigo)
+  },
+  { immediate: true },
+)
+
+onMounted(() => {
+  if (!props.modelValue) cargarDepartamentos()
+})
 </script>

@@ -34,6 +34,7 @@ class StoreMiInformacionRequest extends FormRequest
             'persona.ubigeo_cod_nacimiento' => 'nullable|exists:ubigeos,codigo',
             'persona.ubigeo_cod_residencia' => 'nullable|exists:ubigeos,codigo',
             'persona.codigo_comision' => 'nullable|exists:comisions,codigo,tipo,familia',
+            'persona.codigo_comision_alternativo' => 'nullable|exists:comisions,codigo,tipo,familia|different:persona.codigo_comision',
         ];
     }
 }

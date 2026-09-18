@@ -14,8 +14,26 @@
   background-color: rgba(0, 0, 0, 0.8);
 }
 
-body.body--light .q-page {
+// gris de fondo solo para las pantallas internas (admin).
+// las páginas públicas llevan la clase "publico" y definen su propio fondo,
+// si no este !important les pisaría el negro de la portada.
+body.body--light .q-page:not(.publico) {
   background-color: #f0f0f0 !important;
+}
+
+// en el sitio público se oculta la barra de scroll pero se sigue pudiendo
+// scrollear (rueda, touch, teclado). La clase la pone/saca PublicoLayout,
+// así el admin conserva su barra donde sí hace falta para las tablas.
+html.sin-barra-scroll,
+html.sin-barra-scroll body {
+  scrollbar-width: none; // firefox
+  -ms-overflow-style: none; // edge viejo
+}
+
+html.sin-barra-scroll::-webkit-scrollbar,
+html.sin-barra-scroll body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 // q-table con header sticky, usado en todas las pantallas de listado

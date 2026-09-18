@@ -321,17 +321,22 @@
 
             <div class="col-12">
               <div class="text-caption text-grey-7 q-mb-xs">Lugar de nacimiento</div>
-              <UbigeoCascadeSelect ref="nacimientoRef" v-model="form.persona.ubigeo_cod_nacimiento" />
+              <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_nacimiento" />
             </div>
 
             <div class="col-12">
               <div class="text-caption text-grey-7 q-mb-xs">Lugar de residencia</div>
-              <UbigeoCascadeSelect ref="residenciaRef" v-model="form.persona.ubigeo_cod_residencia" />
+              <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_residencia" />
             </div>
 
             <div class="col-12">
               <div class="text-caption text-grey-7 q-mb-xs">Comisión</div>
-              <ComisionCascadeSelect ref="comisionRef" v-model="form.persona.codigo_comision" />
+              <ComisionCascadeSelect v-model="form.persona.codigo_comision" />
+            </div>
+
+            <div class="col-12">
+              <div class="text-caption text-grey-7 q-mb-xs">Comisión alternativa</div>
+              <ComisionCascadeSelect v-model="form.persona.codigo_comision_alternativo" />
             </div>
 
             <div class="col-12" align="right">
@@ -353,7 +358,7 @@
 
 <script setup>
 import { useForm } from 'laravel-precognition-vue'
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
@@ -409,10 +414,6 @@ const inicial = computed(
   () => (form.persona.nombre?.charAt(0) || formUsuario.usuario.name?.charAt(0) || '?').toUpperCase(),
 )
 
-const nacimientoRef = ref(null)
-const residenciaRef = ref(null)
-const comisionRef = ref(null)
-
 const submitUsuario = () => {
   formUsuario
     .submit()
@@ -464,7 +465,7 @@ const submit = () => {
     .catch(() => {})
 }
 
-async function hidratar({ usuario, persona }) {
+function hidratar({ usuario, persona }) {
   if (usuario) {
     formUsuario.setData({ usuario: { name: usuario.name, email: usuario.email } })
   }
@@ -490,15 +491,9 @@ async function hidratar({ usuario, persona }) {
       ubigeo_cod_nacimiento: persona.ubigeo_cod_nacimiento,
       ubigeo_cod_residencia: persona.ubigeo_cod_residencia,
       codigo_comision: persona.codigo_comision,
+      codigo_comision_alternativo: persona.codigo_comision_alternativo,
     },
   })
-
-  // el v-if="tienePersona" recién montó UbigeoCascadeSelect/ComisionCascadeSelect;
-  // hay que esperar el próximo tick para que los refs existan antes de hidratarlos
-  await nextTick()
-  if (persona.ubigeo_cod_nacimiento) nacimientoRef.value?.initFromCodigo(persona.ubigeo_cod_nacimiento)
-  if (persona.ubigeo_cod_residencia) residenciaRef.value?.initFromCodigo(persona.ubigeo_cod_residencia)
-  if (persona.codigo_comision) comisionRef.value?.initFromCodigo(persona.codigo_comision)
 }
 
 onMounted(async () => {

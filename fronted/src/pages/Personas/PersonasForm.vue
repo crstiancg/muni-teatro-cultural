@@ -152,17 +152,22 @@
 
           <div class="col-12">
             <div class="text-caption text-grey-7 q-mb-xs">Lugar de nacimiento</div>
-            <UbigeoCascadeSelect ref="nacimientoRef" v-model="form.persona.ubigeo_cod_nacimiento" />
+            <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_nacimiento" />
           </div>
 
           <div class="col-12">
             <div class="text-caption text-grey-7 q-mb-xs">Lugar de residencia</div>
-            <UbigeoCascadeSelect ref="residenciaRef" v-model="form.persona.ubigeo_cod_residencia" />
+            <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_residencia" />
           </div>
 
           <div class="col-12">
             <div class="text-caption text-grey-7 q-mb-xs">Comisión</div>
-            <ComisionCascadeSelect ref="comisionRef" v-model="form.persona.codigo_comision" />
+            <ComisionCascadeSelect v-model="form.persona.codigo_comision" />
+          </div>
+
+          <div class="col-12">
+            <div class="text-caption text-grey-7 q-mb-xs">Comisión alternativa</div>
+            <ComisionCascadeSelect v-model="form.persona.codigo_comision_alternativo" />
           </div>
         </div>
 
@@ -184,7 +189,6 @@
 
 <script setup>
 import { useForm } from 'laravel-precognition-vue'
-import { ref } from 'vue'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
 import formPersona from './FormPersona'
@@ -225,18 +229,5 @@ const submit = () => {
     .catch(() => {})
 }
 
-const nacimientoRef = ref(null)
-const residenciaRef = ref(null)
-const comisionRef = ref(null)
-
-const initUbigeos = (codNacimiento, codResidencia) => {
-  if (codNacimiento) nacimientoRef.value?.initFromCodigo(codNacimiento)
-  if (codResidencia) residenciaRef.value?.initFromCodigo(codResidencia)
-}
-
-const initComision = (codigoComision) => {
-  if (codigoComision) comisionRef.value?.initFromCodigo(codigoComision)
-}
-
-defineExpose({ form, initUbigeos, initComision })
+defineExpose({ form })
 </script>
