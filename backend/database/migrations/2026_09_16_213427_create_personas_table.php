@@ -18,6 +18,10 @@ return new class extends Migration
             $table->string('apellido_paterno');
             $table->string('apellido_materno');
             $table->string('nombre_completo');
+            // identificador para las URLs públicas (/consejeros/juan-perez-lopez).
+            // se genera una sola vez al crear y no se regenera aunque cambie el
+            // nombre, para no romper los enlaces ya compartidos.
+            $table->string('slug')->unique();
             $table->enum('genero', ['masculino', 'femenino', 'sin especificar'])->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->string('direccion')->nullable();
@@ -27,6 +31,9 @@ return new class extends Migration
             $table->string('correo')->nullable();
             $table->char('ubigeo_cod_nacimiento', 6)->nullable();
             $table->char('ubigeo_cod_residencia', 6)->nullable();
+            // apunta a comisions.codigo (tipo='familia')
+            $table->char('codigo_comision', 4)->nullable();
+            $table->char('codigo_comision_alternativo', 4)->nullable();
             $table->foreignId('user_id')->constrained();
             $table->timestamps();
         });
