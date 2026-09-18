@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap } from 'lucide-vue-next'
+import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap, Briefcase } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
