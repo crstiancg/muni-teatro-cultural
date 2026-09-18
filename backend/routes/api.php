@@ -7,6 +7,7 @@ use App\Http\Controllers\PersonaController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UbigeoController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\ProfesionController;
 use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,7 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('personas', PersonaController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);
+    Route::apiResource('profesiones', ProfesionController::class);
 
     Route::get('comisiones', [ComisionController::class, 'index']);
     Route::get('comisiones/{codigo}', [ComisionController::class, 'show'])->whereAlphaNumeric('codigo');
