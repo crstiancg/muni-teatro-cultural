@@ -124,7 +124,7 @@
         <router-link
           v-for="act in destacadas"
           :key="act.id"
-          :to="{ name: 'ConsejeroDetallePublico', params: { id: act.persona_id } }"
+          :to="{ name: 'ConsejeroDetallePublico', params: { slug: act.persona_slug } }"
           class="galeria-item"
         >
           <img :src="act.imagen_url" :alt="act.descripcion" loading="lazy" />

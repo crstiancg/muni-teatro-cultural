@@ -80,8 +80,8 @@ const routes = [
     component: () => import('@/layouts/PublicoLayout.vue'),
     children: [
       { path: '', name: 'ConsejerosPublico', component: () => import('@/pages/Publico/ConsejerosPage.vue') },
-      { path: ':id', name: 'ConsejeroDetallePublico', component: () => import('@/pages/Publico/ConsejeroDetallePage.vue') },
-      { path: ':id/galeria', name: 'ConsejeroGaleriaPublico', component: () => import('@/pages/Publico/ConsejeroGaleriaPage.vue') },
+      { path: ':slug', name: 'ConsejeroDetallePublico', component: () => import('@/pages/Publico/ConsejeroDetallePage.vue') },
+      { path: ':slug/galeria', name: 'ConsejeroGaleriaPublico', component: () => import('@/pages/Publico/ConsejeroGaleriaPage.vue') },
     ],
   },
 

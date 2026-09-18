@@ -73,7 +73,7 @@ class PersonaPublicaController extends Controller
             ->where('flag_activo', true)
             ->where('flag_publico', true)
             ->whereHas('persona', fn ($q) => $q->whereNotNull('codigo_comision'))
-            ->with('persona:id,nombre_completo')
+            ->with('persona:id,slug,nombre_completo')
             ->latest()
             ->limit(8)
             ->get();
@@ -82,7 +82,7 @@ class PersonaPublicaController extends Controller
             'id' => $a->id,
             'descripcion' => $a->descripcion,
             'imagen_url' => $a->imagen_url,
-            'persona_id' => $a->persona->id,
+            'persona_slug' => $a->persona->slug,
             'persona_nombre' => $a->persona->nombre_completo,
         ]));
     }
@@ -144,6 +144,7 @@ class PersonaPublicaController extends Controller
     {
         return [
             'id' => $persona->id,
+            'slug' => $persona->slug,
             'nombre' => $persona->nombre,
             'apellidos' => trim("{$persona->apellido_paterno} {$persona->apellido_materno}"),
             'nombre_completo' => $persona->nombre_completo,

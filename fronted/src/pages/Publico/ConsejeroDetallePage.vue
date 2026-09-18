@@ -49,7 +49,7 @@
             <div v-if="persona.actividades?.length" class="tarjeta">
               <div class="tarjeta-header entre">
                 <span><Images :size="16" /> Galería de Fotos</span>
-                <router-link :to="{ name: 'ConsejeroGaleriaPublico', params: { id: persona.id } }" class="ver-todas">
+                <router-link :to="{ name: 'ConsejeroGaleriaPublico', params: { slug: persona.slug } }" class="ver-todas">
                   Ver todas <ChevronRight :size="14" />
                 </router-link>
               </div>
@@ -97,7 +97,7 @@
                 <span><Newspaper :size="16" /> Actividades Recientes</span>
                 <router-link
                   v-if="persona.actividades?.length"
-                  :to="{ name: 'ConsejeroGaleriaPublico', params: { id: persona.id } }"
+                  :to="{ name: 'ConsejeroGaleriaPublico', params: { slug: persona.slug } }"
                   class="ver-todas"
                 >
                   Ver todas <ChevronRight :size="14" />
@@ -118,7 +118,7 @@
                 </div>
 
                 <router-link
-                  :to="{ name: 'ConsejeroGaleriaPublico', params: { id: persona.id } }"
+                  :to="{ name: 'ConsejeroGaleriaPublico', params: { slug: persona.slug } }"
                   class="boton-ver-todas"
                 >
                   Ver todas las actividades ({{ persona.actividades.length }}) <ChevronRight :size="16" />
@@ -153,7 +153,7 @@ function formatoFecha(fecha) {
 
 onMounted(async () => {
   try {
-    persona.value = await PersonaPublicaService.get(route.params.id)
+    persona.value = await PersonaPublicaService.get(route.params.slug)
   } catch {
     persona.value = null
   } finally {

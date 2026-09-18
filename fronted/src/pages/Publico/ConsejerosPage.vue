@@ -9,7 +9,7 @@
           :key="act.id"
           class="fan-card"
           :style="estiloFan(i)"
-          @click="verPerfil(act.persona_id)"
+          @click="verPerfil(act.persona_slug)"
         >
           <img :src="act.imagen_url" class="fan-img" loading="lazy" />
           <div class="fan-caption">
@@ -57,7 +57,7 @@
       </div>
 
       <div v-else class="grid">
-        <div v-for="persona in consejeros" :key="persona.id" class="tile" @click="verPerfil(persona.id)">
+        <div v-for="persona in consejeros" :key="persona.id" class="tile" @click="verPerfil(persona.slug)">
           <div class="tile-avatar">{{ inicial(persona.nombre_completo) }}</div>
           <div class="tile-info">
             <div class="tile-name">{{ persona.nombre_completo }}</div>
@@ -101,8 +101,8 @@ function estiloFan(i) {
   }
 }
 
-function verPerfil(id) {
-  router.push({ name: 'ConsejeroDetallePublico', params: { id } })
+function verPerfil(slug) {
+  router.push({ name: 'ConsejeroDetallePublico', params: { slug } })
 }
 
 let debounceId

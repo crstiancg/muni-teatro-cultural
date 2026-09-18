@@ -22,7 +22,8 @@ Route::get('publico/portada', [PersonaPublicaController::class, 'portada']);
 Route::get('publico/consejeros', [PersonaPublicaController::class, 'index']);
 Route::get('publico/consejeros/grupos', [PersonaPublicaController::class, 'grupos']);
 Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'actividadesDestacadas']);
-Route::get('publico/consejeros/{persona}', [PersonaPublicaController::class, 'show']);
+// resuelve por slug (no por id) solo en la parte pública; el admin sigue con id
+Route::get('publico/consejeros/{persona:slug}', [PersonaPublicaController::class, 'show']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user = $request->user();

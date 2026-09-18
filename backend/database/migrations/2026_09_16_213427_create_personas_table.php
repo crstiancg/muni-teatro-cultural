@@ -18,6 +18,10 @@ return new class extends Migration
             $table->string('apellido_paterno');
             $table->string('apellido_materno');
             $table->string('nombre_completo');
+            // identificador para las URLs públicas (/consejeros/juan-perez-lopez).
+            // se genera una sola vez al crear y no se regenera aunque cambie el
+            // nombre, para no romper los enlaces ya compartidos.
+            $table->string('slug')->unique();
             $table->enum('genero', ['masculino', 'femenino', 'sin especificar'])->nullable();
             $table->date('fecha_nacimiento')->nullable();
             $table->string('direccion')->nullable();

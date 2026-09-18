@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Persona extends Model
 {
@@ -16,6 +17,7 @@ class Persona extends Model
         'apellido_paterno',
         'apellido_materno',
         'nombre_completo',
+        'slug',
         'genero',
         'fecha_nacimiento',
         'direccion',
@@ -29,6 +31,31 @@ class Persona extends Model
         'codigo_comision_alternativo',
         'user_id'
     ];
+
+    // el slug se arma acá y no en el controller para que valga por cualquier vía
+    // de creación (admin, seeder, factory). Solo en "creating": si después
+    // corrigen el nombre, la URL ya compartida sigue funcionando.
+    protected static function booted(): void
+    {
+        static::creating(function (Persona $persona) {
+            $persona->slug ??= static::generarSlug($persona->nombre_completo);
+        });
+    }
+
+    public static function generarSlug(?string $nombreCompleto): string
+    {
+        $base = Str::slug($nombreCompleto ?? '') ?: 'artista';
+        $slug = $base;
+        $intento = 2;
+
+        // solo los homónimos pagan el sufijo; el resto queda con la URL limpia
+        while (static::where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$intento}";
+            $intento++;
+        }
+
+        return $slug;
+    }
 
     //relacion eloquent uno a uno
 

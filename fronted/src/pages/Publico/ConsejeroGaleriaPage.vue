@@ -4,7 +4,7 @@
 
     <template v-else-if="persona">
       <div class="cabecera">
-        <router-link :to="{ name: 'ConsejeroDetallePublico', params: { id: persona.id } }" class="volver">
+        <router-link :to="{ name: 'ConsejeroDetallePublico', params: { slug: persona.slug } }" class="volver">
           <ArrowLeft :size="18" /> Volver
         </router-link>
 
@@ -63,7 +63,7 @@ function verImagen(act) {
 
 onMounted(async () => {
   try {
-    persona.value = await PersonaPublicaService.get(route.params.id)
+    persona.value = await PersonaPublicaService.get(route.params.slug)
   } catch {
     persona.value = null
   } finally {
