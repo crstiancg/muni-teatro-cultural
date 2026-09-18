@@ -10,10 +10,15 @@ class ProfesionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $profesiones = Profesion::paginate(10);
-        return response()->json($profesiones);
+        return $this->generateViewSetList(
+            $request,
+            Profesion::query(),
+            [],
+            ['dni', 'nombre'],
+            ['id']
+        );
     }
 
     /**
@@ -21,14 +26,14 @@ class ProfesionController extends Controller
      */
     public function store(Request $request)
     {
-        $profesion = Profesion::create($request->all());
+        $profesion = Profesion::create($request['profesion']);
         return response()->json($profesion, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Profesion $profesion)
+    public function show(Profesion $profesione)
     {
         return response()->json($profesione);
     }
@@ -36,16 +41,16 @@ class ProfesionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Profesion $profesion)
+    public function update(Request $request, Profesion $profesione)
     {
-        $profesione->update($request->all());
+        $profesione->update($request['profesion']);
         return response()->json($profesione);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Profesion $profesion)
+    public function destroy(Profesion $profesione)
     {
         $profesione->delete();
         return response()->json(null, 204);
