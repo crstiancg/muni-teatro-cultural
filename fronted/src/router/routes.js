@@ -43,6 +43,11 @@ const routes = [
         component: () => import('@/pages/Permisos/PermisosList.vue'),
       },
       {
+        path: 'profesiones',
+        name: 'Profesiones',
+        component: () => import('@/pages/Profesiones/ProfesionesList.vue'),
+      },
+      {
         path: 'personas',
         name: 'Personas',
         component: () => import('@/pages/Personas/PersonasList.vue'),

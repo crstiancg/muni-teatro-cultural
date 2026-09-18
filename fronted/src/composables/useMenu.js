@@ -33,6 +33,13 @@ export function useMenu() {
       permission: 'admin-comisiones-index',
     },
     {
+      type: 'item',
+      label: 'Profesiones',
+      routeName: 'Profesiones',
+      icon: Briefcase,
+      permission: 'admin-profesiones-index',
+    },
+    {
       type: 'group',
       label: 'Administración',
       caption: 'Usuarios y accesos',
