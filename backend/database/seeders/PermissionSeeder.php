@@ -22,6 +22,9 @@ class PermissionSeeder extends Seeder
             'permisos' => 'Permisos',
             'personas' => 'Personas',
             'comisiones' => 'Comisiones',
+            'profesiones' => 'Profesiones',
+            'universidades' => 'Universidades',
+            'carreras' => 'Carreras',
         ];
 
         $acciones = [

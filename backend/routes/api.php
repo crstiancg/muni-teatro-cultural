@@ -16,6 +16,8 @@ use Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NivelController;
+use App\Http\Controllers\UniversidadController;
+use App\Http\Controllers\CarreraController;
 
 // endpoints públicos, sin auth: solo datos seguros para la galería de consejeros
 Route::get('publico/portada', [PersonaPublicaController::class, 'portada']);
@@ -50,6 +52,8 @@ Route::middleware('auth:api')->group(function () {
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);
     Route::apiResource('profesiones', ProfesionController::class);
+    Route::apiResource('universidades', UniversidadController::class);
+    Route::apiResource('carreras', CarreraController::class);
 
     Route::get('comisiones', [ComisionController::class, 'index']);
     Route::get('comisiones/{codigo}', [ComisionController::class, 'show'])->whereAlphaNumeric('codigo');

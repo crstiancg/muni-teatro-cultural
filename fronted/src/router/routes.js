@@ -48,6 +48,16 @@ const routes = [
         component: () => import('@/pages/Profesiones/ProfesionesList.vue'),
       },
       {
+        path: 'universidades',
+        name: 'Universidades',
+        component: () => import('@/pages/Universidades/UniversidadesList.vue'),
+      },
+      {
+        path: 'carreras',
+        name: 'Carreras',
+        component: () => import('@/pages/Carreras/CarrerasList.vue'),
+      },
+      {
         path: 'personas',
         name: 'Personas',
         component: () => import('@/pages/Personas/PersonasList.vue'),

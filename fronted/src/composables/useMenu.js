@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap, Briefcase } from 'lucide-vue-next'
+import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap, Briefcase, School, BookOpen } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
@@ -38,6 +38,20 @@ export function useMenu() {
       routeName: 'Profesiones',
       icon: Briefcase,
       permission: 'admin-profesiones-index',
+    },
+    {
+      type: 'item',
+      label: 'Universidades',
+      routeName: 'Universidades',
+      icon: School,
+      permission: 'admin-universidades-index',
+    },
+    {
+      type: 'item',
+      label: 'Carreras',
+      routeName: 'Carreras',
+      icon: BookOpen,
+      permission: 'admin-carreras-index',
     },
     {
       type: 'group',
