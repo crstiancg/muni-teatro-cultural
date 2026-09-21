@@ -1,195 +1,387 @@
 <template>
   <q-page class="landing publico">
-    <!-- ============ HERO ============ -->
-    <section class="hero">
-      <!-- el poster ocupa toda la pantalla; los dos img se superponen
-           durante el cambio, por eso el fundido cruzado -->
-      <div class="hero-fondo">
-        <Transition name="poster">
+    <!-- ══════════ ① PORTADA ══════════ -->
+    <section class="portada">
+      <div class="portada-fondo">
+        <Transition name="fundido">
           <img
-            v-if="posterActual"
-            :key="posterActual.id"
-            :src="posterActual.imagen_url"
-            :alt="posterActual.descripcion"
-            class="hero-img"
+            v-if="fotoActual"
+            :key="fotoActual.id"
+            :src="fotoActual.imagen_url"
+            :alt="fotoActual.descripcion"
           />
         </Transition>
-      </div>
-      <div class="hero-velo" />
-
-      <div class="hero-contenido">
-        <div class="hero-texto">
-          <p class="kicker">
-            ARTE QUE NOS IDENTIFICA.<br />
-            CULTURA QUE NOS UNE.
-          </p>
-
-          <h1 class="titulo">
-            IMPULSAMOS<br />
-            <span class="oro">NUESTRA CULTURA</span>
-          </h1>
-          <span class="barra-oro" />
-
-          <p class="bajada">
-            Somos una comunidad de artistas, gestores y portadores de tradición que trabajan por
-            mantener viva la identidad cultural de nuestra región.
-          </p>
-
-          <div class="hero-botones">
-            <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-oro">
-              Ver artistas <ArrowRight :size="16" />
-            </router-link>
-
-            <button class="btn-fantasma" @click="irA('comisiones')">
-              <span class="play"><Play :size="13" fill="currentColor" /></span>
-              Conocer más
-            </button>
-          </div>
-        </div>
-
-        <div v-if="posters.length > 1" class="poster-puntos">
-          <button
-            v-for="(p, i) in posters"
-            :key="p.id"
-            class="poster-punto"
-            :class="{ activo: i === posterIndex }"
-            :aria-label="`Poster ${i + 1}`"
-            @click="posterIndex = i"
-          />
-        </div>
+        <div class="portada-velo" />
       </div>
 
-      <!-- franja de datos reales -->
-      <div class="stats">
-        <div v-for="dato in datos" :key="dato.label" class="stat">
-          <component :is="dato.icono" :size="26" class="stat-icono" />
-          <div>
-            <div class="stat-numero">{{ dato.valor }}</div>
-            <div class="stat-label">{{ dato.label }}</div>
-            <div class="stat-desc">{{ dato.desc }}</div>
+      <div class="portada-cuerpo">
+        <p class="portada-sello">
+          <span class="sello-linea" />
+          {{ INSTITUCION.lema }}
+        </p>
+
+        <h1 class="portada-titulo">
+          Conoce a quienes<br />
+          <em>hacen la fiesta</em>
+        </h1>
+
+        <p class="portada-bajada">
+          El registro vivo de artistas, comisiones y familias culturales de
+          {{ INSTITUCION.ciudad }}.
+        </p>
+
+        <!-- buscador segmentado: a quién busco + en qué disciplina -->
+        <form class="buscador" @submit.prevent="buscarArtistas">
+          <div class="segmento">
+            <label for="q-artista">Artista</label>
+            <input
+              id="q-artista"
+              v-model="termino"
+              type="search"
+              placeholder="Nombre, familia o disciplina"
+              autocomplete="off"
+              @focus="sugerenciasVisibles = true"
+              @blur="ocultarSugerencias"
+            />
           </div>
-        </div>
+
+          <span class="divisor" aria-hidden="true" />
+
+          <div class="segmento segmento-select">
+            <label for="q-disciplina">Disciplina</label>
+            <div class="select-caja">
+              <select id="q-disciplina" v-model="grupoElegido">
+                <option value="">Todas</option>
+                <option v-for="g in grupos" :key="g.cod_grupo" :value="g.cod_grupo">
+                  {{ comisionDe(g.cod_grupo).corto }}
+                </option>
+              </select>
+              <ChevronDown :size="16" />
+            </div>
+          </div>
+
+          <button type="submit" class="buscador-btn" aria-label="Buscar">
+            <Search :size="20" />
+          </button>
+
+          <!-- sugerencias al enfocar, como en los buscadores de viaje -->
+          <Transition name="caer">
+            <div v-if="sugerenciasVisibles" class="sugerencias">
+              <p class="sugerencias-titulo">Búsquedas frecuentes</p>
+              <ul>
+                <li v-for="a in atajos" :key="a">
+                  <button type="button" @mousedown.prevent="buscarRapido(a)">
+                    <TrendingUp :size="15" />
+                    {{ a }}
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </Transition>
+        </form>
+      </div>
+
+      <button class="portada-scroll" aria-label="Ver más" @click="irA('comisiones')">
+        <span>Descubre</span>
+        <ChevronDown :size="18" />
+      </button>
+
+      <div v-if="fotos.length > 1" class="portada-puntos">
+        <button
+          v-for="(f, i) in fotos"
+          :key="f.id"
+          :class="{ activo: i === fotoIndex }"
+          :aria-label="`Fotografía ${i + 1}`"
+          @click="fotoIndex = i"
+        />
       </div>
     </section>
 
-    <!-- ============ COMISIONES ============ -->
-    <section id="comisiones" class="seccion">
-      <p class="kicker-oro">Nuestras comisiones</p>
-      <h2 class="titulo-seccion con-sub">CREAR. PRESERVAR. COMPARTIR.</h2>
-      <p class="subtitulo-seccion">
-        Cada comisión especializada reúne y acompaña el trabajo de los artistas de su disciplina.
-      </p>
+    <!-- ══════════ ② FRANJA DE DANZAS ══════════ -->
+    <div class="franja" aria-hidden="true">
+      <div class="franja-pista">
+        <span v-for="n in 2" :key="n" class="franja-grupo">
+          <template v-for="d in danzas" :key="`${n}-${d}`">
+            <span class="franja-item">{{ d }}</span>
+            <span class="franja-sep">◆</span>
+          </template>
+        </span>
+      </div>
+    </div>
 
-      <div class="grid-comisiones">
-        <router-link
-          v-for="g in grupos"
-          :key="g.cod_grupo"
-          :to="{ name: 'ConsejerosPublico', query: { grupo: g.cod_grupo } }"
-          class="tarjeta"
-        >
-          <img v-if="g.imagen_url" :src="g.imagen_url" :alt="g.nombre" class="tarjeta-foto" loading="lazy" />
-          <div v-else class="tarjeta-foto tarjeta-foto-vacia"><Images :size="30" /></div>
+    <!-- ══════════ ③ COMISIONES — acordeón ══════════ -->
+    <section id="comisiones" class="comisiones">
+      <span class="cenefa cenefa-arriba" aria-hidden="true" />
 
-          <span class="tarjeta-velo" />
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Explora por disciplina</p>
+            <h2 class="titulo">Ocho comisiones,<br />una sola fiesta</h2>
+          </div>
 
-          <div class="tarjeta-info">
-            <h3 class="tarjeta-titulo">
-              <component :is="iconoDe(g.cod_grupo)" :size="18" class="tarjeta-icono" />
-              {{ nombreCorto(g.nombre) }}
-            </h3>
-            <p class="tarjeta-desc">
-              {{ g.consejeros }}
-              {{ g.consejeros === 1 ? 'artista registrado' : 'artistas registrados' }} en esta comisión.
+          <div class="head-lado">
+            <p class="subtitulo">
+              Desde las bandas de sikuris hasta quienes bordan los trajes de luces: cada comisión
+              reúne el trabajo de los artistas de su disciplina.
+            </p>
+            <p class="head-dato">
+              <strong>{{ grupos.length || 8 }}</strong> disciplinas
+              <span aria-hidden="true">·</span>
+              <strong>{{ stats.consejeros }}</strong> artistas
             </p>
           </div>
+        </header>
 
-          <span class="tarjeta-flecha"><ArrowRight :size="18" /></span>
-        </router-link>
-      </div>
-    </section>
-
-    <!-- ============ GALERIA ============ -->
-    <section v-if="destacadas.length" class="seccion seccion-galeria">
-      <div class="galeria-encabezado">
-        <div>
-          <p class="kicker-oro">Galería</p>
-          <h2 class="titulo-seccion">LO QUE ESTAMOS HACIENDO</h2>
-        </div>
-        <router-link :to="{ name: 'ConsejerosPublico' }" class="link-simple">
-          Ver todo <ArrowRight :size="14" />
-        </router-link>
-      </div>
-
-      <div class="galeria-grid">
-        <router-link
-          v-for="act in destacadas"
-          :key="act.id"
-          :to="{ name: 'ConsejeroDetallePublico', params: { slug: act.persona_slug } }"
-          class="galeria-item"
+        <!-- Las ocho caben en una sola vista: la activa se abre y muestra su
+             foto, las demás quedan como lomos con el nombre en vertical. -->
+        <div
+          v-revelar
+          class="acordeon"
+          @mouseleave="acordeonPausado = false"
+          @mouseenter="acordeonPausado = true"
         >
-          <img :src="act.imagen_url" :alt="act.descripcion" loading="lazy" />
-          <div class="galeria-velo">
-            <div class="galeria-nombre">{{ act.persona_nombre }}</div>
-          </div>
-        </router-link>
-      </div>
-    </section>
+          <template v-if="grupos.length">
+            <router-link
+              v-for="(g, i) in grupos"
+              :key="g.cod_grupo"
+              :to="{ name: 'ConsejerosPublico', query: { grupo: g.cod_grupo } }"
+              class="hoja"
+              :class="{ abierta: i === hojaActiva }"
+              :style="{ '--acento': comisionDe(g.cod_grupo).color }"
+              :aria-label="`${comisionDe(g.cod_grupo).corto}: ${g.consejeros} artistas`"
+              @mouseenter="hojaActiva = i"
+              @focus="hojaActiva = i"
+            >
+              <img v-if="g.imagen_url" :src="g.imagen_url" alt="" loading="lazy" />
+              <div v-else class="hoja-sin-foto">
+                <component :is="iconoDe(g.cod_grupo)" :size="30" />
+              </div>
 
-    <!-- ============ NOSOTROS ============ -->
-    <section id="nosotros" class="seccion seccion-nosotros">
-      <div class="nosotros-foto">
-        <img v-if="fotoNosotros" :src="fotoNosotros" alt="Actividad cultural" loading="lazy" />
-        <div v-else class="nosotros-foto-vacia"><Sparkles :size="34" /></div>
-      </div>
+              <span class="hoja-velo" />
 
-      <div class="nosotros-texto">
-        <p class="kicker-oro">Nosotros</p>
-        <h2 class="titulo-seccion alineado">
-          MÁS QUE UNA INSTITUCIÓN,<br />
-          SOMOS COMUNIDAD.
-        </h2>
-        <p class="parrafo">
-          Reunimos a las comisiones especializadas que sostienen la música, la danza, el teatro, la
-          literatura, las artes plásticas y los saberes tradicionales de nuestra región.
-        </p>
-        <p class="parrafo">
-          Cada artista registrado suma su trabajo a una memoria colectiva que se construye todos los días.
-        </p>
-        <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-oro">
-          Conocer a la comunidad <ArrowRight :size="16" />
-        </router-link>
-      </div>
-    </section>
+              <!-- lomo: lo que se ve cuando está cerrada -->
+              <span class="hoja-lomo">
+                <span class="hoja-num">{{ String(i + 1).padStart(2, '0') }}</span>
+                <span class="hoja-vertical">{{ comisionDe(g.cod_grupo).corto }}</span>
+              </span>
 
-    <!-- ============ CONTACTO ============ -->
-    <section class="contacto">
-      <div v-for="item in contacto" :key="item.label" class="contacto-item">
-        <component :is="item.icono" :size="20" class="contacto-icono" />
-        <div>
-          <div class="contacto-label">{{ item.label }}</div>
-          <div class="contacto-valor">
-            <div v-for="linea in item.valor" :key="linea">{{ linea }}</div>
+              <!-- contenido: lo que aparece al abrirse -->
+              <span class="hoja-cara">
+                <span class="hoja-icono">
+                  <component :is="iconoDe(g.cod_grupo)" :size="18" />
+                </span>
+                <span class="hoja-nombre">{{ comisionDe(g.cod_grupo).corto }}</span>
+                <span class="hoja-dato">
+                  {{ g.consejeros }} {{ g.consejeros === 1 ? 'artista' : 'artistas' }}
+                </span>
+                <span class="hoja-cta">Ver artistas <ArrowRight :size="15" /></span>
+              </span>
+            </router-link>
+          </template>
+
+          <div v-else class="acordeon-cargando">
+            <div v-for="n in 8" :key="n" class="esqueleto-hoja" />
           </div>
         </div>
+      </div>
+
+      <span class="cenefa cenefa-abajo" aria-hidden="true" />
+    </section>
+
+    <!-- ══════════ ④ ARTISTAS ══════════ -->
+    <section v-if="artistas.length" class="artistas">
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Portadores de tradición</p>
+            <h2 class="titulo">Artistas del registro</h2>
+          </div>
+
+          <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-linea">
+            Ver los {{ stats.consejeros }} artistas <ArrowRight :size="16" />
+          </router-link>
+        </header>
+
+        <div class="artistas-layout">
+          <router-link
+            v-if="destacado"
+            v-revelar
+            :to="{ name: 'ConsejeroDetallePublico', params: { slug: destacado.slug } }"
+            class="destacado"
+            :style="{ '--acento': comisionDe(destacado.cod_grupo).color }"
+          >
+            <img v-if="destacado.imagen_url" :src="destacado.imagen_url" alt="" loading="lazy" />
+            <span class="destacado-velo" />
+            <div class="destacado-texto">
+              <span class="destacado-etiqueta">{{ comisionDe(destacado.cod_grupo).corto }}</span>
+              <h3>{{ destacado.nombre_completo }}</h3>
+              <p>{{ destacado.comision }}</p>
+              <span class="destacado-cta">Ver su trabajo <ArrowRight :size="16" /></span>
+            </div>
+          </router-link>
+
+          <div class="artistas-lista">
+            <ArtistaTarjeta
+              v-for="(a, i) in acompanan"
+              :key="a.id"
+              v-revelar="i * 60"
+              :artista="a"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ⑤ CANDELARIA — pantalla completa, en claro ══════════ -->
+    <section class="candelaria">
+      <span class="cenefa cenefa-arriba" aria-hidden="true" />
+
+      <div class="candelaria-inner">
+        <div v-revelar class="candelaria-texto">
+          <p class="kicker">Febrero en {{ INSTITUCION.ciudad }}</p>
+          <h2>La Candelaria es <em>Patrimonio</em> de la Humanidad</h2>
+          <p class="parrafo">
+            Cada febrero más de doscientos conjuntos salen a las calles. La UNESCO la declaró
+            Patrimonio Cultural Inmaterial en 2014 — para nosotros es el trabajo de todo un año.
+          </p>
+
+          <dl class="datos">
+            <div>
+              <dt>2014</dt>
+              <dd>Declaratoria UNESCO</dd>
+            </div>
+            <div>
+              <dt>+200</dt>
+              <dd>Conjuntos en la parada</dd>
+            </div>
+            <div>
+              <dt>18</dt>
+              <dd>Días de festividad</dd>
+            </div>
+          </dl>
+
+          <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-rojo">
+            Conocer a la comunidad <ArrowRight :size="17" />
+          </router-link>
+        </div>
+
+        <figure v-revelar="120" class="candelaria-foto">
+          <img
+            :src="fotoCandelaria"
+            alt="Danzantes de la Festividad de la Virgen de la Candelaria junto al lago Titicaca"
+            loading="lazy"
+          />
+        </figure>
+      </div>
+
+      <span class="cenefa cenefa-abajo" aria-hidden="true" />
+    </section>
+
+    <!-- ══════════ ⑥ GALERÍA ══════════ -->
+    <section v-if="destacadas.length" class="galeria-zona">
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Galería</p>
+            <h2 class="titulo">Lo que estamos haciendo</h2>
+          </div>
+          <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-linea">
+            Ver todo <ArrowRight :size="16" />
+          </router-link>
+        </header>
+
+        <div class="mosaico">
+          <router-link
+            v-for="(act, i) in destacadas"
+            :key="act.id"
+            v-revelar="i * 50"
+            :to="{ name: 'ConsejeroDetallePublico', params: { slug: act.persona_slug } }"
+            class="mosaico-item"
+            :class="`m-${i}`"
+          >
+            <img :src="act.imagen_url" :alt="act.descripcion || ''" loading="lazy" />
+            <span class="mosaico-pie">{{ act.persona_nombre }}</span>
+          </router-link>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ⑦ CIERRE ══════════ -->
+    <section class="cierre">
+      <img src="/images/wall3.jpg" alt="" loading="lazy" />
+      <span class="cierre-velo" />
+      <span class="cenefa cenefa-arriba" aria-hidden="true" />
+
+      <div v-revelar class="cierre-texto">
+        <p class="cierre-sello">Registro abierto</p>
+        <h2>¿Eres artista<br />en {{ INSTITUCION.ciudad }}?</h2>
+        <p class="cierre-bajada">
+          Súmate al registro y publica tu trabajo para que la comunidad y quienes visitan
+          {{ INSTITUCION.ciudad }} puedan encontrarte.
+        </p>
+
+        <router-link :to="{ name: 'Login' }" class="cierre-btn">
+          Acceder al registro <ArrowRight :size="18" />
+        </router-link>
+
+        <p v-if="stats.consejeros" class="cierre-dato">
+          <strong>{{ stats.consejeros }}</strong> artistas ya forman parte
+        </p>
       </div>
     </section>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  ArrowRight, Play, Users, Layers, Images, Sparkles,
-  Music, PersonStanding, Drama, BookOpen, Shirt, Video, Palette, Megaphone,
-  MapPin, Phone, Mail, Clock,
+  ArrowRight,
+  ChevronDown,
+  Search,
+  TrendingUp,
+  Sparkles,
+  Music,
+  PersonStanding,
+  Drama,
+  BookOpen,
+  Shirt,
+  Video,
+  Palette,
+  Megaphone,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
+import { INSTITUCION, FOTOS_CARTEL, comisionDe } from '@/config/institucion'
+import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
+
+const router = useRouter()
 
 const stats = ref({ consejeros: 0, comisiones: 0, grupos: 0, actividades: 0 })
 const grupos = ref([])
 const destacadas = ref([])
+const artistas = ref([])
+const termino = ref('')
+const grupoElegido = ref('')
+const sugerenciasVisibles = ref(false)
 
-// cada grupo tiene su ícono según su disciplina; si aparece uno nuevo, cae en Sparkles
+const danzas = [
+  'Sikuris',
+  'Diablada',
+  'Morenada',
+  'Caporales',
+  'Llamerada',
+  'Waca Waca',
+  'Kullawada',
+  'Tinkus',
+  'Pinkillada',
+  'Estudiantina',
+  'Rey Moreno',
+  'Tobas',
+]
+
+const atajos = ['Sikuris', 'Bordadores', 'Danza de luces', 'Mascareros', 'Estudiantina']
+
 const iconosPorGrupo = {
   '01': Music,
   '02': PersonStanding,
@@ -205,703 +397,1299 @@ function iconoDe(codGrupo) {
   return iconosPorGrupo[codGrupo] || Sparkles
 }
 
-// los nombres vienen como "Comision especializada de danza" — en las tarjetas
-// sobra el prefijo, ocupa toda la línea y se repite en las 8
-function nombreCorto(nombre) {
-  return (nombre || '').replace(/^comisi[oó]n\s+especializada\s+de\s+/i, '').trim() || nombre
+function buscarArtistas() {
+  const query = {}
+  if (termino.value.trim()) query.buscar = termino.value.trim()
+  if (grupoElegido.value) query.grupo = grupoElegido.value
+  router.push({ name: 'ConsejerosPublico', query })
 }
 
-const datos = computed(() => [
-  {
-    icono: Layers,
-    valor: stats.value.grupos,
-    label: 'Comisiones especializadas',
-    desc: 'Una por cada disciplina artística.',
-  },
-  {
-    icono: Users,
-    valor: stats.value.consejeros,
-    label: 'Artistas registrados',
-    desc: 'Portadores de nuestra identidad cultural.',
-  },
-  {
-    icono: Images,
-    valor: stats.value.actividades,
-    label: 'Actividades publicadas',
-    desc: 'Trabajo cultural documentado y abierto.',
-  },
-  {
-    icono: Sparkles,
-    valor: stats.value.comisiones,
-    label: 'Familias culturales',
-    desc: 'Agrupaciones dentro de cada comisión.',
-  },
-])
-
-// posters del hero: se muestran completos en su marco y el mismo
-// archivo se reusa, borroso, como fondo de la sección
-const posters = computed(() => destacadas.value.slice(0, 5))
-const posterIndex = ref(0)
-const posterActual = computed(() => posters.value[posterIndex.value] || null)
-
-let posterTimer
-function rotarPosters() {
-  clearInterval(posterTimer)
-  if (posters.value.length < 2) return
-  posterTimer = setInterval(() => {
-    posterIndex.value = (posterIndex.value + 1) % posters.value.length
-  }, 6000)
+function buscarRapido(texto) {
+  termino.value = texto
+  sugerenciasVisibles.value = false
+  buscarArtistas()
 }
 
-onBeforeUnmount(() => clearInterval(posterTimer))
+// el blur llega antes que el click de la sugerencia: se espera un instante
+function ocultarSugerencias() {
+  setTimeout(() => (sugerenciasVisibles.value = false), 120)
+}
 
-const fotoNosotros = computed(() => destacadas.value[3]?.imagen_url || destacadas.value[0]?.imagen_url || null)
+const destacado = computed(() => artistas.value[0] || null)
+const acompanan = computed(() => artistas.value.slice(1, 7))
 
-// TODO: reemplazar por los datos institucionales reales
-const contacto = [
-  { icono: MapPin, label: 'Dirección', valor: ['Completar dirección', 'Puno, Perú'] },
-  { icono: Phone, label: 'Teléfono', valor: ['Completar teléfono'] },
-  { icono: Mail, label: 'Correo', valor: ['Completar correo'] },
-  { icono: Clock, label: 'Atención', valor: ['Lun - Vie: 8:00 - 16:00', 'Sábado: 8:00 - 12:00'] },
-]
+// ---------- portada ----------
+const fotos = computed(() => FOTOS_CARTEL)
+const fotoIndex = ref(0)
+const fotoActual = computed(() => fotos.value[fotoIndex.value] || null)
+const fotoCandelaria = '/images/wallpaper_puno.png'
+
+let temporizador
+
+function rotarFotos() {
+  clearInterval(temporizador)
+  if (fotos.value.length < 2) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  temporizador = setInterval(() => {
+    fotoIndex.value = (fotoIndex.value + 1) % fotos.value.length
+  }, 7000)
+}
+
+// ---------- acordeón de comisiones ----------
+// La hoja abierta va rotando sola; se detiene con el mouse encima o cuando
+// alguien navega con el teclado, y no arranca si el sistema pide menos
+// animación (ahí queda abierta la primera).
+const hojaActiva = ref(0)
+const acordeonPausado = ref(false)
+let acordeonTimer
+
+function girarAcordeon() {
+  clearInterval(acordeonTimer)
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+  acordeonTimer = setInterval(() => {
+    if (acordeonPausado.value || !grupos.value.length) return
+    hojaActiva.value = (hojaActiva.value + 1) % grupos.value.length
+  }, 3600)
+}
 
 function irA(id) {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+onBeforeUnmount(() => {
+  clearInterval(temporizador)
+  clearInterval(acordeonTimer)
+})
 
 onMounted(async () => {
   const data = await PersonaPublicaService.getPortada()
   stats.value = data.stats
   grupos.value = data.grupos
   destacadas.value = data.destacadas
-  rotarPosters()
+  artistas.value = data.artistas || []
+  rotarFotos()
+  await nextTick()
+  girarAcordeon()
 })
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .landing {
-  background: #000;
-  color: #fff;
-  font-family: 'Inter', sans-serif;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
 }
 
-.oro {
-  color: #00a7e5;
+/* ═══════════ piezas compartidas ═══════════ */
+.kicker {
+  @include kicker;
+  margin: 0 0 12px;
 }
 
-/* ============ HERO ============ */
-.hero {
-  position: relative;
-  /* ocupa toda la pantalla descontando la altura del header fijo */
-  min-height: calc(100vh - 72px);
-  min-height: calc(100svh - 72px);
+.titulo {
+  @include display(800);
+  font-size: var(--t-xl);
+  line-height: 1;
+  color: var(--tinta);
+  margin: 0;
+}
+
+.subtitulo {
+  color: var(--tinta-suave);
+  font-size: var(--t-md);
+  line-height: 1.7;
+  max-width: 46ch;
+  margin: 0;
+}
+
+.seccion {
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+.seccion-head {
   display: flex;
-  flex-direction: column;
-  padding: 48px 28px 0;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.head-lado {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.btn-linea,
+.btn-rojo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--fuente-texto);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 14px 26px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transicion);
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.btn-linea {
+  border: 1px solid var(--borde-fuerte);
+  color: var(--tinta);
+  background: var(--blanco);
+
+  &:hover {
+    border-color: var(--rojo);
+    color: var(--rojo);
+  }
+}
+
+.btn-rojo {
+  background: var(--rojo);
+  color: #fff;
+  border: none;
+
+  &:hover {
+    background: var(--rojo-hondo);
+    transform: translateY(-2px);
+  }
+}
+
+/* ═══════════ ① PORTADA ═══════════ */
+.portada {
+  position: relative;
+  min-height: calc(100vh - 66px);
+  min-height: calc(100svh - 66px);
+  display: flex;
+  align-items: center;
+  padding: clamp(64px, 8vw, 96px) var(--gutter) clamp(104px, 13vh, 150px);
   overflow: hidden;
 }
 
-/* el poster cubre toda la pantalla */
-.hero-fondo {
+.portada-fondo {
   position: absolute;
   inset: 0;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
-.hero-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  display: block;
-}
-
-/* oscurece lo justo: fuerte donde va el texto y en los bordes (header y
-   franja de datos), liviano a la derecha para que el poster se vea */
-.hero-velo {
+.portada-velo {
   position: absolute;
   inset: 0;
   background:
     linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.94) 0%,
-      rgba(0, 0, 0, 0.82) 32%,
-      rgba(0, 0, 0, 0.45) 62%,
-      rgba(0, 0, 0, 0.3) 100%
+      to right,
+      rgba(22, 32, 46, 0.88) 0%,
+      rgba(22, 32, 46, 0.5) 52%,
+      rgba(22, 32, 46, 0.2) 100%
     ),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.1) 30%, rgba(0, 0, 0, 0.75) 100%);
+    linear-gradient(to top, rgba(22, 32, 46, 0.62) 0%, transparent 42%);
 }
 
-/* el margin auto (arriba y abajo) centra el bloque en el espacio libre
-   y empuja la franja de datos contra el borde inferior del hero */
-.hero-contenido {
-  position: relative;
-  width: 100%;
-  max-width: 1180px;
-  margin: auto;
-  padding: 32px 0 56px;
+.fundido-enter-active,
+.fundido-leave-active {
+  transition: opacity 1.2s ease;
 }
 
-.hero-texto {
-  max-width: 620px;
-}
-
-.poster-enter-active,
-.poster-leave-active {
-  transition: opacity 0.9s ease;
-}
-
-.poster-enter-from,
-.poster-leave-to {
+.fundido-enter-from,
+.fundido-leave-to {
   opacity: 0;
 }
 
-.poster-puntos {
-  display: flex;
-  gap: 8px;
-  margin-top: 40px;
+.portada-cuerpo {
+  position: relative;
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
 }
 
-.poster-punto {
-  width: 7px;
-  height: 7px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.poster-punto.activo {
-  background: #00a7e5;
-  transform: scale(1.3);
-}
-
-.kicker {
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.7;
-  letter-spacing: 0.04em;
-  color: #e9e9e9;
-  margin: 0 0 18px;
-}
-
-.titulo {
-  font-size: clamp(2.6rem, 7vw, 5rem);
-  font-weight: 900;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-
-.barra-oro {
-  display: block;
-  width: 96px;
-  height: 5px;
-  background: #00a7e5;
-  margin: 26px 0 26px;
-}
-
-.bajada {
-  max-width: 440px;
-  color: #b4b4b4;
-  font-size: 0.95rem;
-  line-height: 1.75;
-  margin: 0 0 32px;
-}
-
-.hero-botones {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-
-.btn-oro {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  background: #00a7e5;
-  color: #101010;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 15px 26px;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.btn-oro:hover {
-  background: #00a8e5ce;
-  transform: translateY(-2px);
-}
-
-.btn-fantasma {
+.portada-sello {
+  @include kicker(var(--oro-vivo));
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  margin: 0 0 20px;
+}
+
+.sello-linea {
+  width: 34px;
+  height: 2px;
+  background: var(--oro-vivo);
+}
+
+.portada-titulo {
+  @include display(900);
+  font-size: var(--t-3xl);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  color: var(--sobre-foto);
+  margin: 0 0 20px;
+  max-width: 15ch;
+  text-shadow: 0 2px 40px rgba(22, 32, 46, 0.35);
+
+  em {
+    font-style: italic;
+    color: var(--oro-vivo);
+    font-variation-settings:
+      'SOFT' 40,
+      'WONK' 1;
+  }
+}
+
+.portada-bajada {
+  color: rgba(253, 251, 247, 0.9);
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  line-height: 1.6;
+  max-width: 46ch;
+  margin: 0 0 36px;
+}
+
+/* ── buscador segmentado ── */
+.buscador {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  background: var(--blanco);
+  border-radius: var(--r-full);
+  padding: 8px 8px 8px 24px;
+  max-width: 660px;
+  box-shadow: var(--sombra-alta);
+}
+
+.segmento {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+
+  label {
+    @include kicker(var(--tinta));
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    margin-bottom: 2px;
+  }
+
+  input,
+  select {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: var(--fuente-texto);
+    font-size: var(--t-base);
+    color: var(--tinta);
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    cursor: pointer;
+
+    &::placeholder {
+      color: var(--tinta-tenue);
+    }
+  }
+}
+
+.segmento-select {
+  flex: 0 0 34%;
+}
+
+.select-caja {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  select {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  svg {
+    color: var(--tinta-suave);
+    flex: none;
+  }
+}
+
+.divisor {
+  width: 1px;
+  background: var(--borde);
+  margin: 6px 12px;
+  flex: none;
+}
+
+.buscador-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: none;
+  border-radius: 50%;
+  background: var(--rojo);
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background var(--transicion),
+    transform var(--transicion);
+
+  &:hover {
+    background: var(--rojo-hondo);
+    transform: scale(1.05);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.sugerencias {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  box-shadow: var(--sombra-alta);
+  padding: 14px 10px 10px;
+  z-index: 20;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--crema);
+    border: none;
+    border-radius: var(--r-full);
+    color: var(--tinta);
+    font-family: var(--fuente-texto);
+    font-size: var(--t-sm);
+    font-weight: 600;
+    padding: 9px 15px;
+    cursor: pointer;
+    transition: background var(--transicion);
+
+    svg {
+      color: var(--rojo);
+    }
+
+    &:hover {
+      background: var(--crema-hondo);
+    }
+  }
+}
+
+.sugerencias-titulo {
+  @include kicker(var(--tinta-suave));
+  font-size: 0.6rem;
+  margin: 0 8px 10px;
+}
+
+.caer-enter-active,
+.caer-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+.caer-enter-from,
+.caer-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+.portada-scroll {
+  position: absolute;
+  left: 50%;
+  bottom: 52px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
-  color: #fff;
-  font-family: inherit;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   cursor: pointer;
-  padding: 8px 0;
-}
+  color: rgba(253, 251, 247, 0.82);
+  font-family: var(--fuente-texto);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 
-.play {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid #4a4a4a;
-  color: #fff;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
+  svg {
+    animation: flotar 2.2s ease-in-out infinite;
+  }
 
-.btn-fantasma:hover .play {
-  border-color: #00a7e5;
-  color: #00a7e5;
-}
+  &:hover {
+    color: var(--oro-vivo);
+  }
 
-/* franja de stats */
-.stats {
-  position: relative;
-  max-width: 1180px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  background: rgba(20, 20, 20, 0.92);
-  border: 1px solid #262626;
-  border-radius: 6px;
-  transform: translateY(1px);
-}
-
-@media (min-width: 640px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
+  &:focus-visible {
+    @include foco;
   }
 }
 
-@media (min-width: 1000px) {
-  .stats {
-    grid-template-columns: repeat(4, 1fr);
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(5px);
   }
 }
 
-.stat {
+.portada-puntos {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 54px;
   display: flex;
-  gap: 14px;
-  padding: 26px 24px;
-  border-bottom: 1px solid #262626;
-}
+  gap: 8px;
+  z-index: 2;
 
-.stat:last-child {
-  border-bottom: none;
-}
+  button {
+    width: 26px;
+    height: 4px;
+    padding: 0;
+    border: none;
+    border-radius: var(--r-full);
+    background: rgba(253, 251, 247, 0.4);
+    cursor: pointer;
+    transition: all var(--transicion);
 
-@media (min-width: 1000px) {
-  .stat {
-    border-bottom: none;
-    border-right: 1px solid #262626;
-  }
-  .stat:last-child {
-    border-right: none;
-  }
-}
+    &.activo {
+      background: var(--oro-vivo);
+      width: 42px;
+    }
 
-.stat-icono {
-  color: #00a7e5;
-  flex: none;
-  margin-top: 2px;
-}
-
-.stat-numero {
-  font-size: 1.6rem;
-  font-weight: 800;
-  line-height: 1;
-  color: #fff;
-}
-
-.stat-label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #00a7e5;
-  margin-top: 5px;
-}
-
-.stat-desc {
-  font-size: 0.78rem;
-  color: #949494;
-  line-height: 1.5;
-  margin-top: 5px;
-}
-
-/* ============ secciones ============ */
-.seccion {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 88px 28px;
-}
-
-.kicker-oro {
-  color: #00a7e5;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  text-align: center;
-  margin: 0 0 12px;
-}
-
-.titulo-seccion {
-  font-size: clamp(1.5rem, 3.4vw, 2.2rem);
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  text-align: center;
-  margin: 0 0 48px;
-}
-
-.titulo-seccion.alineado {
-  text-align: left;
-  margin-bottom: 22px;
-}
-
-/* cuando debajo va un subtítulo, el título no necesita todo ese aire */
-.titulo-seccion.con-sub {
-  margin-bottom: 14px;
-}
-
-/* comisiones */
-.subtitulo-seccion {
-  text-align: center;
-  color: #9a9a9a;
-  font-size: 0.9rem;
-  line-height: 1.7;
-  max-width: 440px;
-  margin: 0 auto 46px;
-}
-
-.grid-comisiones {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 22px;
-}
-
-@media (min-width: 880px) {
-  .grid-comisiones {
-    grid-template-columns: repeat(2, 1fr);
+    &:focus-visible {
+      @include foco;
+    }
   }
 }
 
-/* tarjeta grande: la foto ocupa todo y el texto va encima */
-.tarjeta {
+@media (max-width: 760px) {
+  .buscador {
+    flex-wrap: wrap;
+    border-radius: var(--r-lg);
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .segmento,
+  .segmento-select {
+    flex: 1 1 100%;
+    border: 1px solid var(--borde);
+    border-radius: var(--r-sm);
+    padding: 8px 12px;
+  }
+
+  .divisor {
+    display: none;
+  }
+
+  .buscador-btn {
+    width: 100%;
+    height: 48px;
+    border-radius: var(--r-sm);
+  }
+
+  .portada-puntos,
+  .portada-scroll {
+    display: none;
+  }
+}
+
+@media (max-height: 680px) {
+  .portada-scroll {
+    display: none;
+  }
+}
+
+/* ═══════════ ② FRANJA ═══════════ */
+.franja {
+  background: var(--tinta);
+  color: var(--sobre-foto);
+  padding: 14px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.franja-pista {
+  display: inline-flex;
+  animation: correr 48s linear infinite;
+}
+
+.franja-grupo {
+  display: inline-flex;
+  align-items: center;
+}
+
+.franja-item {
+  @include display(700);
+  font-size: 1.05rem;
+  padding: 0 18px;
+  font-style: italic;
+}
+
+.franja-sep {
+  font-size: 0.5rem;
+  color: var(--oro-vivo);
+}
+
+@keyframes correr {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .franja-pista {
+    animation: none;
+  }
+
+  .portada-scroll svg {
+    animation: none;
+  }
+}
+
+/* ═══════════ ③ COMISIONES ═══════════ */
+.comisiones {
   position: relative;
-  display: block;
-  aspect-ratio: 4/3;
-  border-radius: 12px;
+  padding: calc(var(--seccion-y) + 20px) 0;
+  background-color: var(--papel);
+  background-image: var(--patron);
+  /* el velo del encabezado se extiende hacia los lados: se recorta acá para
+     que no genere scroll horizontal en pantallas chicas */
+  overflow: hidden;
+}
+
+/* el encabezado se apoya en un velo del color del papel: el aguayo sigue ahí,
+   pero deja de competir con el texto */
+.comisiones .seccion-head {
+  position: relative;
+  z-index: 1;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -28px -20px;
+    background: radial-gradient(ellipse at center, var(--papel) 56%, transparent 100%);
+    z-index: -1;
+  }
+}
+
+.head-dato {
+  font-size: var(--t-sm);
+  color: var(--tinta-suave);
+  margin: 0;
+  white-space: nowrap;
+
+  strong {
+    @include display(800);
+    font-size: 1.5rem;
+    color: var(--rojo);
+    margin-right: 4px;
+  }
+
+  span {
+    margin: 0 8px;
+    color: var(--borde-fuerte);
+  }
+}
+
+/* ── acordeón ── */
+.acordeon {
+  display: flex;
+  gap: 10px;
+  height: clamp(320px, 46vh, 440px);
+}
+
+.hoja {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: var(--r-lg);
   overflow: hidden;
   text-decoration: none;
-  transition: border-color 0.25s ease, transform 0.25s ease;
-}
+  background: var(--crema);
+  transition: flex-grow 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
 
-@media (min-width: 880px) {
-  .tarjeta {
-    aspect-ratio: 16/9;
+  > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+
+  &.abierta {
+    flex-grow: 5;
   }
 }
 
-.tarjeta:hover {
-  border-color: #00a7e5;
-  transform: translateY(-4px);
-}
-
-.tarjeta-foto {
+.hoja-sin-foto {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: grayscale(35%);
-  transition: transform 0.5s ease, filter 0.3s ease;
-}
-
-.tarjeta:hover .tarjeta-foto {
-  transform: scale(1.05);
-  filter: grayscale(0);
-}
-
-.tarjeta-foto-vacia {
   display: grid;
   place-items: center;
-  background: #1c1c1c;
-  color: #3d3d3d;
+  color: var(--tinta-tenue);
 }
 
-.tarjeta-velo {
+.hoja-velo {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.93) 0%,
-    rgba(0, 0, 0, 0.7) 32%,
-    rgba(0, 0, 0, 0.2) 62%,
+    rgba(22, 32, 46, 0.94) 0%,
+    rgba(22, 32, 46, 0.62) 40%,
+    rgba(22, 32, 46, 0.34) 100%
+  );
+  transition: background 0.5s ease;
+}
+
+.hoja.abierta .hoja-velo {
+  background: linear-gradient(
+    to top,
+    rgba(22, 32, 46, 0.92) 2%,
+    rgba(22, 32, 46, 0.42) 46%,
+    rgba(22, 32, 46, 0.1) 100%
+  );
+}
+
+/* lomo: el nombre en vertical mientras la hoja está cerrada */
+.hoja-lomo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.hoja.abierta .hoja-lomo {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hoja-num {
+  @include display(900);
+  font-size: 1.1rem;
+  color: rgba(253, 251, 247, 0.5);
+}
+
+.hoja-vertical {
+  @include display(700);
+  font-size: 1.05rem;
+  color: var(--sobre-foto);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 74%;
+}
+
+/* cara: lo que aparece al abrirse */
+.hoja-cara {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 24px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.45s ease 0.12s,
+    transform 0.45s ease 0.12s;
+}
+
+.hoja.abierta .hoja-cara {
+  opacity: 1;
+  transform: none;
+}
+
+.hoja-icono {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--acento);
+  color: #fff;
+  margin-bottom: 14px;
+}
+
+.hoja-nombre {
+  @include display(800);
+  font-size: clamp(1.4rem, 2vw, 1.85rem);
+  line-height: 1.04;
+  color: var(--sobre-foto);
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.hoja-dato {
+  font-size: var(--t-sm);
+  color: rgba(253, 251, 247, 0.82);
+  margin-bottom: 16px;
+  white-space: nowrap;
+}
+
+.hoja-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--noche);
+  background: var(--oro-vivo);
+  padding: 11px 20px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  transition: transform var(--transicion);
+}
+
+.hoja:hover .hoja-cta {
+  transform: translateX(3px);
+}
+
+.acordeon-cargando {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.esqueleto-hoja {
+  flex: 1;
+  border-radius: var(--r-lg);
+  background: linear-gradient(100deg, var(--crema) 30%, var(--crema-hondo) 50%, var(--crema) 70%);
+  background-size: 220% 100%;
+  animation: brillo 1.5s ease-in-out infinite;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -40% 0;
+  }
+}
+
+/* en pantallas chicas el acordeón se acuesta: las hojas se apilan y la activa
+   crece hacia abajo */
+@media (max-width: 900px) {
+  .acordeon {
+    flex-direction: column;
+    height: auto;
+    gap: 8px;
+  }
+
+  .hoja {
+    flex: none;
+    height: 74px;
+    transition: height 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+
+    &.abierta {
+      height: 260px;
+    }
+  }
+
+  .hoja-lomo {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 0 20px;
+  }
+
+  .hoja-vertical {
+    writing-mode: horizontal-tb;
+    transform: none;
+    max-height: none;
+  }
+
+  .hoja-cara {
+    padding: 18px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoja,
+  .hoja-velo,
+  .hoja-lomo,
+  .hoja-cara {
+    transition: none;
+  }
+
+  .esqueleto-hoja {
+    animation: none;
+  }
+}
+
+/* ═══════════ ④ ARTISTAS ═══════════ */
+.artistas {
+  padding: var(--seccion-y) 0;
+  background: var(--crema);
+  border-block: 1px solid var(--borde);
+}
+
+.artistas-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(16px, 2vw, 22px);
+}
+
+@media (min-width: 900px) {
+  .artistas-layout {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.destacado {
+  position: relative;
+  display: block;
+  min-height: 360px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  text-decoration: none;
+  transition:
+    transform var(--transicion),
+    box-shadow var(--transicion);
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--sombra-alta);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+
+  > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    inset: 0;
+    transition: transform 0.9s ease;
+  }
+
+  &:hover > img {
+    transform: scale(1.05);
+  }
+}
+
+.destacado-velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(22, 32, 46, 0.94) 4%,
+    rgba(22, 32, 46, 0.4) 46%,
     transparent 100%
   );
 }
 
-.tarjeta-info {
+.destacado-texto {
   position: absolute;
-  left: 22px;
-  right: 82px;
-  bottom: 20px;
-}
+  inset: auto 0 0 0;
+  padding: clamp(22px, 3vw, 32px);
 
-.tarjeta-titulo {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #fff;
-  line-height: 1.3;
-  margin: 0 0 7px;
-}
+  h3 {
+    @include display(800);
+    font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+    color: var(--sobre-foto);
+    margin: 0 0 6px;
+    line-height: 1.05;
+  }
 
-.tarjeta-icono {
-  color: #00a7e5;
-  flex: none;
-}
-
-.tarjeta-desc {
-  font-size: 0.82rem;
-  color: #c2c2c2;
-  line-height: 1.55;
-  margin: 0;
-}
-
-.tarjeta-flecha {
-  position: absolute;
-  right: 20px;
-  bottom: 20px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #00a7e5;
-  color: #fff;
-  display: grid;
-  place-items: center;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.tarjeta:hover .tarjeta-flecha {
-  background: #00a8e5ce;
-  transform: translateX(3px);
-}
-
-/* galeria */
-.seccion-galeria {
-  border-top: 1px solid #1a1a1a;
-}
-
-.galeria-encabezado {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 40px;
-}
-
-.galeria-encabezado .kicker-oro,
-.galeria-encabezado .titulo-seccion {
-  text-align: left;
-  margin-bottom: 0;
-}
-
-.link-simple {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #b4b4b4;
-  text-decoration: none;
-  font-size: 0.73rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.link-simple:hover {
-  color: #00a7e5;
-}
-
-.galeria-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-
-@media (min-width: 700px) {
-  .galeria-grid {
-    grid-template-columns: repeat(4, 1fr);
+  p {
+    color: rgba(253, 251, 247, 0.85);
+    font-size: var(--t-sm);
+    margin: 0 0 16px;
   }
 }
 
-.galeria-item {
-  position: relative;
-  aspect-ratio: 1;
-  overflow: hidden;
-  border-radius: 4px;
-  display: block;
-}
-
-.galeria-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: grayscale(40%);
-  transition: transform 0.45s ease, filter 0.3s ease;
-}
-
-.galeria-item:hover img {
-  transform: scale(1.07);
-  filter: grayscale(0);
-}
-
-.galeria-velo {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  padding: 12px;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent 55%);
-}
-
-.galeria-nombre {
-  font-size: 0.7rem;
+.destacado-etiqueta {
+  display: inline-block;
+  background: var(--blanco);
+  color: var(--acento);
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #fff;
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  margin-bottom: 12px;
 }
 
-/* nosotros */
-.seccion-nosotros {
-  border-top: 1px solid #1a1a1a;
+.destacado-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--oro-vivo);
+}
+
+.artistas-lista {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(12px, 1.6vw, 18px);
+}
+
+@media (min-width: 620px) {
+  .artistas-lista {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ═══════════ ⑤ CANDELARIA ═══════════ */
+/* Sección completa, en claro: ocupa la pantalla entera y se enmarca con dos
+   cenefas de aguayo, arriba y abajo. */
+.candelaria {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  background: var(--blanco);
+  border-block: 1px solid var(--borde);
+  padding: clamp(56px, 8vh, 96px) var(--gutter);
+}
+
+.cenefa {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background-image: var(--patron-cenefa);
+  /* el desplazamiento encuadra justo la franja de llamas del aguayo */
+  background-position: 0 -6px;
+  background-repeat: repeat-x;
+}
+
+.cenefa-arriba {
+  top: 0;
+}
+
+.cenefa-abajo {
+  bottom: 0;
+}
+
+.candelaria-inner {
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 44px;
+  gap: clamp(32px, 5vw, 64px);
   align-items: center;
 }
 
 @media (min-width: 900px) {
-  .seccion-nosotros {
+  .candelaria-inner {
     grid-template-columns: 1fr 1fr;
-    gap: 64px;
   }
 }
 
-.nosotros-foto {
-  aspect-ratio: 4/3;
-  border-radius: 6px;
-  overflow: hidden;
-  border: 1px solid #232323;
-  background: #141414;
-}
+.candelaria-texto {
+  .kicker {
+    color: var(--rojo);
+  }
 
-.nosotros-foto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: grayscale(25%);
-}
+  h2 {
+    @include display(800);
+    font-size: var(--t-xl);
+    line-height: 1.02;
+    color: var(--tinta);
+    margin: 0 0 20px;
 
-.nosotros-foto-vacia {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  color: #3d3d3d;
-}
-
-.nosotros-texto .kicker-oro {
-  text-align: left;
+    em {
+      font-style: italic;
+      color: var(--rojo);
+      font-variation-settings:
+        'SOFT' 40,
+        'WONK' 1;
+    }
+  }
 }
 
 .parrafo {
-  color: #a8a8a8;
-  font-size: 0.93rem;
+  font-size: var(--t-md);
   line-height: 1.8;
-  margin: 0 0 16px;
+  color: var(--tinta-suave);
+  max-width: 48ch;
+  margin: 0 0 32px;
 }
 
-.nosotros-texto .btn-oro {
-  margin-top: 14px;
-}
-
-/* contacto */
-.contacto {
-  border-top: 1px solid #1a1a1a;
-  background: #0d0d0d;
+.datos {
   display: grid;
-  grid-template-columns: 1fr;
-  max-width: 1180px;
-  margin: 0 auto;
-}
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 0 0 34px;
+  border-top: 1px solid var(--borde);
+  padding-top: 24px;
 
-@media (min-width: 640px) {
-  .contacto {
-    grid-template-columns: repeat(2, 1fr);
+  dt {
+    @include display(800);
+    font-size: clamp(1.7rem, 3vw, 2.4rem);
+    color: var(--rojo);
+    line-height: 1;
+  }
+
+  dd {
+    margin: 8px 0 0;
+    font-size: var(--t-xs);
+    color: var(--tinta-suave);
+    line-height: 1.4;
   }
 }
 
-@media (min-width: 1000px) {
-  .contacto {
+/* La foto se recorta con una máscara de papel arrancado: sin marco ni sombra,
+   el borde mordido hace todo el trabajo. */
+.candelaria-foto {
+  margin: 0;
+  position: relative;
+  aspect-ratio: 4 / 3;
+  max-height: 70svh;
+  /* sin sombra ni marco: el recorte hace todo el trabajo */
+
+  img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 58% center;
+    display: block;
+    -webkit-mask: var(--rasgado-foto) center / 100% 100% no-repeat;
+    mask: var(--rasgado-foto) center / 100% 100% no-repeat;
+  }
+}
+
+@media (min-width: 900px) {
+  .candelaria-foto {
+    aspect-ratio: 5 / 6;
+  }
+}
+
+/* ═══════════ ⑥ GALERÍA ═══════════ */
+.galeria-zona {
+  padding: var(--seccion-y) 0;
+  background-color: var(--papel);
+  background-image: var(--patron);
+}
+
+.mosaico {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: 150px;
+  gap: 12px;
+}
+
+@media (min-width: 760px) {
+  .mosaico {
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 185px;
+    grid-auto-flow: dense;
+  }
+
+  .m-0,
+  .m-5 {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  .m-3 {
+    grid-column: span 2;
+  }
+  .m-4 {
+    grid-row: span 2;
   }
 }
 
-.contacto-item {
+.mosaico-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  display: block;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.07);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.mosaico-pie {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 28px 13px 12px;
+  background: linear-gradient(to top, rgba(22, 32, 46, 0.92), transparent);
+  color: var(--sobre-foto);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+/* ═══════════ ⑦ CIERRE ═══════════ */
+/* Una banda a sangre completa, sin caja ni tarjetas: la foto llega a los dos
+   bordes de la pantalla y el mensaje va encima. */
+.cierre {
+  position: relative;
+  min-height: clamp(420px, 62vh, 560px);
   display: flex;
-  gap: 13px;
-  padding: 30px 26px;
+  align-items: center;
+  overflow: hidden;
+
+  > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 }
 
-.contacto-icono {
-  color: #00a7e5;
-  flex: none;
-  margin-top: 2px;
+.cierre-velo {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to right,
+      rgba(22, 32, 46, 0.93) 0%,
+      rgba(22, 32, 46, 0.6) 58%,
+      rgba(22, 32, 46, 0.35) 100%
+    ),
+    linear-gradient(to top, rgba(22, 32, 46, 0.5) 0%, transparent 46%);
 }
 
-.contacto-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: #fff;
-  margin-bottom: 6px;
+.cierre-texto {
+  position: relative;
+  width: 100%;
+  max-width: var(--ancho);
+  margin: 0 auto;
+  padding: clamp(48px, 7vw, 80px) var(--gutter);
+
+  h2 {
+    @include display(800);
+    font-size: var(--t-xl);
+    line-height: 1;
+    color: var(--sobre-foto);
+    margin: 0 0 16px;
+  }
 }
 
-.contacto-valor {
-  font-size: 0.83rem;
-  color: #949494;
-  line-height: 1.6;
+.cierre-sello {
+  @include kicker(var(--oro-vivo));
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+
+  &::before {
+    content: '';
+    width: 30px;
+    height: 2px;
+    background: var(--oro-vivo);
+  }
+}
+
+.cierre-bajada {
+  color: rgba(253, 251, 247, 0.88);
+  font-size: var(--t-md);
+  line-height: 1.7;
+  max-width: 46ch;
+  margin: 0 0 30px;
+}
+
+.cierre-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--oro-vivo);
+  color: var(--noche);
+  font-family: var(--fuente-texto);
+  font-size: var(--t-base);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 16px 30px;
+  border-radius: var(--r-full);
+  transition:
+    transform var(--transicion),
+    box-shadow var(--transicion);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(22, 32, 46, 0.3);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.cierre-dato {
+  margin: 22px 0 0;
+  font-size: var(--t-sm);
+  color: rgba(253, 251, 247, 0.78);
+
+  strong {
+    @include display(800);
+    font-size: 1.35rem;
+    color: var(--oro-vivo);
+    margin-right: 6px;
+  }
 }
 </style>

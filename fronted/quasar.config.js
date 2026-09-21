@@ -11,7 +11,7 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['axios', 'authGuard'],
+    boot: ['axios', 'authGuard', 'animaciones'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -75,6 +75,14 @@ export default defineConfig((/* ctx */) => {
       // vueDevtools: true,
       // https: true,
       open: true, // opens browser window automatically
+
+      // En Docker sobre Windows/macOS los eventos de archivo no llegan al
+      // contenedor a través del bind mount, así que Vite no se entera de los
+      // cambios y sigue sirviendo la versión anterior. Con polling sí los ve.
+      watch: {
+        usePolling: true,
+        interval: 300,
+      },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework

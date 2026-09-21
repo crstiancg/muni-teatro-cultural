@@ -3,7 +3,7 @@
     <q-card-section class="row items-center">
       <div class="text-h6">{{ props.item ? 'Editar' : 'Agregar' }} Capacitación</div>
       <q-space />
-      <q-btn v-close-popup flat round dense size="sm" style="border-radius: 100% !important;">
+      <q-btn v-close-popup flat round dense size="sm" style="border-radius: 100% !important">
         <X size="16" />
       </q-btn>
     </q-card-section>
@@ -30,7 +30,14 @@
             <q-input dense outlined v-model="form.capacitacion.fecha" type="date" label="Fecha" />
           </div>
           <div class="col-12 col-sm-4">
-            <q-input dense outlined v-model="form.capacitacion.horas" type="number" min="0" label="Horas" />
+            <q-input
+              dense
+              outlined
+              v-model="form.capacitacion.horas"
+              type="number"
+              min="0"
+              label="Horas"
+            />
           </div>
           <div class="col-12">
             <q-input
@@ -86,8 +93,8 @@
           v-if="props.item && !form.capacitacion.archivo && props.item.archivo_nombre_original"
           class="text-caption text-grey-7"
         >
-          Ya tiene un archivo: {{ props.item.archivo_nombre_original }}. Si no seleccionás uno nuevo, se conserva el
-          actual.
+          Ya tiene un archivo: {{ props.item.archivo_nombre_original }}. Si no seleccionás uno
+          nuevo, se conserva el actual.
         </div>
       </q-card-section>
 
@@ -169,10 +176,13 @@ onBeforeUnmount(() => {
   if (objectUrl.value) URL.revokeObjectURL(objectUrl.value)
 })
 
-const previewUrl = computed(() => objectUrl.value || (!form.capacitacion.archivo ? props.item?.archivo_url : null))
+const previewUrl = computed(
+  () => objectUrl.value || (!form.capacitacion.archivo ? props.item?.archivo_url : null),
+)
 
 const esPdf = computed(() => {
-  if (form.capacitacion.archivo instanceof File) return form.capacitacion.archivo.type === 'application/pdf'
+  if (form.capacitacion.archivo instanceof File)
+    return form.capacitacion.archivo.type === 'application/pdf'
   return !!previewUrl.value && previewUrl.value.toLowerCase().endsWith('.pdf')
 })
 </script>

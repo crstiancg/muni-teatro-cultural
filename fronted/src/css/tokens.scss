@@ -1,0 +1,112 @@
+// ============================================================================
+// Sistema de diseño del sitio público
+// ----------------------------------------------------------------------------
+// Base clara, como los portales de turismo (peru.travel y compañía): el fondo
+// no compite y las fotos mandan. La identidad de Puno entra por los acentos,
+// que son los colores del bordado de los trajes de luces de la Candelaria.
+//
+// Todos los contrastes están verificados contra WCAG 2.1 AA; el ratio va
+// anotado al lado de cada color. Si cambiás un valor, revisá el ratio.
+// ============================================================================
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('./fonts/Fraunces-latin.woff2') format('woff2');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('./fonts/Fraunces-latin-ext.woff2') format('woff2');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+:root {
+  // ---------- superficies ----------
+  --papel: #fbf8f3; // fondo base, hueso cálido
+  --blanco: #ffffff; // tarjetas
+  --crema: #f3ece1; // franjas y superficies alternas
+  --crema-hondo: #ece3d5; // hover de superficie
+  --borde: #e6dfd4;
+  --borde-fuerte: #d6ccbc;
+
+  // ---------- texto ----------
+  --tinta: #16202e; // texto principal   — 15.5:1 sobre papel
+  --tinta-suave: #5a6678; // texto secundario  —  5.5:1 sobre papel
+  --tinta-tenue: #8a94a3; // apoyos, sólo decorativo
+
+  // ---------- acentos del bordado ----------
+  --rojo: #b3243a; // acento principal  —  6.1:1 · botón con blanco: 6.5:1
+  --rojo-hondo: #931d30; // hover del rojo
+  --oro: #96690a; // oro legible       —  4.6:1 sobre papel
+  --oro-vivo: #e8b33c; // oro de brillo: sólo sobre foto u oscuro
+  --lago: #0b6a73; // turquesa          —  6.0:1 sobre papel
+
+  // ---------- sobre fotografía ----------
+  --noche: #16202e; // velos y pie de página
+  --sobre-foto: #fdfbf7; // texto encima de una foto oscurecida
+
+  // ---------- color por comisión ----------
+  // Versiones oscuras para que se lean sobre fondo claro (todas AA).
+  // El color nunca comunica solo: siempre va con texto e ícono.
+  --com-01: #96690a; // música
+  --com-02: #b3243a; // danza
+  --com-03: #a32763; // artes escénicas / teatro
+  --com-04: #0b6a73; // literatura y expresiones orales
+  --com-05: #9a4a16; // bordadores, mascareros y trajes típicos
+  --com-06: #3f4fbf; // audiovisuales
+  --com-07: #1f7a5a; // artes plásticas
+  --com-08: #4a5568; // promoción, difusión y gestión cultural
+
+  // ---------- tipografía ----------
+  --fuente-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --fuente-texto: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --t-xs: 0.75rem;
+  --t-sm: 0.85rem;
+  --t-base: 0.95rem;
+  --t-md: 1.05rem;
+  --t-lg: clamp(1.35rem, 0.95rem + 1.7vw, 2rem);
+  --t-xl: clamp(2rem, 1.2rem + 3.4vw, 3.4rem);
+  --t-2xl: clamp(2.5rem, 1.35rem + 5vw, 4.6rem);
+  --t-3xl: clamp(3rem, 1.2rem + 7.6vw, 6.6rem);
+
+  // ---------- ritmo ----------
+  --ancho: 1180px;
+  --gutter: 24px;
+  --seccion-y: clamp(56px, 7vw, 96px);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-full: 999px;
+
+  /* Aguayo (lliclla): las franjas del textil andino — llamas, rombos, damero
+     y zigzag — en un solo color y muy tenues. Da textura al fondo sin
+     competir con las fotos. */
+  --patron: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22136%22 viewBox=%220 0 120 136%22><g fill=%22%23b3243a%22 fill-opacity=%220.05%22><rect x=%220%22 y=%220%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%225%22 width=%22120%22 height=%221%22/><rect x=%224%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2213%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2213%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%225%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%229%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2213%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2234%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2243%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2243%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2235%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2239%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2243%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2264%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2273%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2273%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2265%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2269%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2273%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2294%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%22103%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%22103%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2295%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2299%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%22103%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%220%22 y=%2237%22 width=%22120%22 height=%222%22/><polygon points=%2212%2C47 21%2C57 12%2C67 3%2C57%22/><polygon points=%2236%2C47 45%2C57 36%2C67 27%2C57%22/><polygon points=%2260%2C47 69%2C57 60%2C67 51%2C57%22/><polygon points=%2284%2C47 93%2C57 84%2C67 75%2C57%22/><polygon points=%22108%2C47 117%2C57 108%2C67 99%2C57%22/><rect x=%220%22 y=%2273%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%2278%22 width=%22120%22 height=%221%22/><rect x=%220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2240%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2260%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2280%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%22100%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2210%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2230%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2250%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2270%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2290%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%22110%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%220%22 y=%22111%22 width=%22120%22 height=%222%22/><path d=%22M0 130 L10 120 L20 130 L30 120 L40 130 L50 120 L60 130 L70 120 L80 130 L90 120 L100 130 L110 120 L120 130 L120 133 L110 123 L100 133 L90 123 L80 133 L70 123 L60 133 L50 123 L40 133 L30 123 L20 133 L10 123 L0 133 Z%22/></g></svg>');
+  --patron-fuerte: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22136%22 viewBox=%220 0 120 136%22><g fill=%22%23b3243a%22 fill-opacity=%220.09%22><rect x=%220%22 y=%220%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%225%22 width=%22120%22 height=%221%22/><rect x=%224%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2213%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2213%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%225%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%229%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2213%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2234%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2243%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2243%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2235%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2239%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2243%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2264%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2273%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2273%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2265%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2269%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2273%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2294%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%22103%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%22103%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2295%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2299%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%22103%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%220%22 y=%2237%22 width=%22120%22 height=%222%22/><polygon points=%2212%2C47 21%2C57 12%2C67 3%2C57%22/><polygon points=%2236%2C47 45%2C57 36%2C67 27%2C57%22/><polygon points=%2260%2C47 69%2C57 60%2C67 51%2C57%22/><polygon points=%2284%2C47 93%2C57 84%2C67 75%2C57%22/><polygon points=%22108%2C47 117%2C57 108%2C67 99%2C57%22/><rect x=%220%22 y=%2273%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%2278%22 width=%22120%22 height=%221%22/><rect x=%220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2240%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2260%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2280%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%22100%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2210%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2230%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2250%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2270%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2290%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%22110%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%220%22 y=%22111%22 width=%22120%22 height=%222%22/><path d=%22M0 130 L10 120 L20 130 L30 120 L40 130 L50 120 L60 130 L70 120 L80 130 L90 120 L100 130 L110 120 L120 130 L120 133 L110 123 L100 133 L90 123 L80 133 L70 123 L60 133 L50 123 L40 133 L30 123 L20 133 L10 123 L0 133 Z%22/></g></svg>');
+  --patron-cenefa: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22136%22 viewBox=%220 0 120 136%22><g fill=%22%23b3243a%22 fill-opacity=%220.3%22><rect x=%220%22 y=%220%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%225%22 width=%22120%22 height=%221%22/><rect x=%224%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2213%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2213%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%225%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%229%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2213%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2234%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2243%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2243%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2235%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2239%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2243%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2264%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2273%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2273%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2265%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2269%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2273%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2294%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%22103%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%22103%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2295%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2299%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%22103%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%220%22 y=%2237%22 width=%22120%22 height=%222%22/><polygon points=%2212%2C47 21%2C57 12%2C67 3%2C57%22/><polygon points=%2236%2C47 45%2C57 36%2C67 27%2C57%22/><polygon points=%2260%2C47 69%2C57 60%2C67 51%2C57%22/><polygon points=%2284%2C47 93%2C57 84%2C67 75%2C57%22/><polygon points=%22108%2C47 117%2C57 108%2C67 99%2C57%22/><rect x=%220%22 y=%2273%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%2278%22 width=%22120%22 height=%221%22/><rect x=%220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2240%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2260%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2280%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%22100%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2210%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2230%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2250%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2270%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2290%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%22110%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%220%22 y=%22111%22 width=%22120%22 height=%222%22/><path d=%22M0 130 L10 120 L20 130 L30 120 L40 130 L50 120 L60 130 L70 120 L80 130 L90 120 L100 130 L110 120 L120 130 L120 133 L110 123 L100 133 L90 123 L80 133 L70 123 L60 133 L50 123 L40 133 L30 123 L20 133 L10 123 L0 133 Z%22/></g></svg>');
+  --patron-oro: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22136%22 viewBox=%220 0 120 136%22><g fill=%22%23e8b33c%22 fill-opacity=%220.10%22><rect x=%220%22 y=%220%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%225%22 width=%22120%22 height=%221%22/><rect x=%224%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2213%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2213%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%225%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%229%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2213%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2234%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2243%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2243%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2235%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2239%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2243%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2264%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%2273%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%2273%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2265%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2269%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2273%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2294%22 y=%2219%22 width=%2212%22 height=%227%22/><rect x=%22103%22 y=%2211%22 width=%223%22 height=%229%22/><rect x=%22103%22 y=%228%22 width=%227%22 height=%223%22/><rect x=%2295%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%2299%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%22103%22 y=%2226%22 width=%222%22 height=%226%22/><rect x=%220%22 y=%2237%22 width=%22120%22 height=%222%22/><polygon points=%2212%2C47 21%2C57 12%2C67 3%2C57%22/><polygon points=%2236%2C47 45%2C57 36%2C67 27%2C57%22/><polygon points=%2260%2C47 69%2C57 60%2C67 51%2C57%22/><polygon points=%2284%2C47 93%2C57 84%2C67 75%2C57%22/><polygon points=%22108%2C47 117%2C57 108%2C67 99%2C57%22/><rect x=%220%22 y=%2273%22 width=%22120%22 height=%222%22/><rect x=%220%22 y=%2278%22 width=%22120%22 height=%221%22/><rect x=%220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2220%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2240%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2260%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2280%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%22100%22 y=%2285%22 width=%2210%22 height=%2210%22/><rect x=%2210%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2230%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2250%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2270%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%2290%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%22110%22 y=%2295%22 width=%2210%22 height=%2210%22/><rect x=%220%22 y=%22111%22 width=%22120%22 height=%222%22/><path d=%22M0 130 L10 120 L20 130 L30 120 L40 130 L50 120 L60 130 L70 120 L80 130 L90 120 L100 130 L110 120 L120 130 L120 133 L110 123 L100 133 L90 123 L80 133 L70 123 L60 133 L50 123 L40 133 L30 123 L20 133 L10 123 L0 133 Z%22/></g></svg>');
+
+  /* Borde de papel arrancado: tramos rectos largos, saltos en ángulo recto y
+     alguna muesca profunda. Va como máscara, así el recorte es real y no un
+     marco dibujado encima. */
+  --rasgado-foto: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%221000%22 height=%221200%22 viewBox=%220 0 1000 1200%22 preserveAspectRatio=%22none%22><path d=%22M0.0%2C13.3 L26.2%2C13.5 L49.1%2C9.6 L72.4%2C9.0 L94.8%2C19.5 L117.8%2C12.5 L142.1%2C16.1 L167.5%2C0.0 L192.2%2C11.6 L211.2%2C10.3 L228.2%2C8.2 L249.3%2C14.7 L267.1%2C10.6 L289.3%2C7.4 L307.4%2C8.5 L325.0%2C7.2 L344.2%2C29.6 L365.4%2C26.7 L383.2%2C11.7 L407.8%2C8.7 L425.8%2C7.8 L444.6%2C14.8 L463.5%2C5.7 L484.4%2C33.9 L511.4%2C0.0 L528.8%2C9.0 L545.9%2C15.5 L566.8%2C8.0 L590.2%2C7.2 L613.4%2C8.8 L638.7%2C8.9 L662.0%2C11.4 L685.1%2C5.8 L709.0%2C12.4 L726.7%2C18.3 L746.1%2C16.9 L771.4%2C15.4 L790.1%2C8.5 L809.9%2C19.8 L827.1%2C10.8 L844.7%2C9.5 L867.4%2C8.8 L893.3%2C20.7 L917.2%2C7.9 L939.0%2C12.0 L956.3%2C22.8 L976.5%2C10.2 L982.7%2C0.0 L980.2%2C24.9 L980.4%2C48.8 L981.9%2C70.0 L984.3%2C92.7 L973.0%2C115.5 L982.8%2C141.3 L984.9%2C165.7 L991.8%2C191.0 L984.6%2C208.3 L983.2%2C227.6 L980.1%2C250.8 L988.8%2C267.9 L990.6%2C286.9 L986.8%2C310.5 L993.7%2C330.8 L987.6%2C356.6 L991.1%2C376.8 L981.1%2C402.1 L979.0%2C428.6 L981.4%2C454.9 L983.6%2C477.1 L984.3%2C502.5 L989.1%2C527.8 L989.1%2C551.6 L985.1%2C575.1 L990.3%2C596.1 L982.1%2C615.8 L980.6%2C642.6 L993.7%2C669.2 L982.4%2C693.4 L989.8%2C710.7 L979.7%2C733.1 L990.8%2C760.1 L989.9%2C784.1 L987.6%2C810.0 L969.7%2C829.0 L983.9%2C850.6 L981.5%2C874.8 L990.0%2C899.0 L979.3%2C925.8 L988.5%2C950.7 L978.0%2C976.3 L998.8%2C1001.0 L992.5%2C1022.3 L980.2%2C1046.1 L980.4%2C1073.1 L986.8%2C1096.9 L983.4%2C1119.7 L985.2%2C1141.1 L990.7%2C1163.7 L989.4%2C1189.8 L1000.0%2C1180.8 L980.0%2C1191.0 L960.2%2C1186.0 L942.1%2C1192.9 L919.7%2C1192.4 L897.3%2C1186.8 L879.6%2C1185.5 L853.0%2C1180.1 L831.3%2C1191.2 L806.1%2C1180.4 L786.0%2C1190.3 L759.7%2C1191.2 L742.5%2C1190.3 L718.6%2C1188.5 L695.4%2C1191.5 L677.2%2C1185.9 L658.2%2C1185.6 L637.5%2C1187.2 L618.9%2C1190.1 L595.5%2C1185.6 L572.4%2C1181.0 L548.0%2C1181.7 L527.8%2C1188.6 L508.6%2C1179.0 L490.3%2C1189.6 L470.7%2C1191.6 L449.5%2C1191.8 L431.5%2C1185.0 L406.3%2C1187.9 L382.9%2C1188.2 L357.6%2C1181.8 L340.4%2C1182.3 L314.3%2C1194.1 L288.9%2C1179.1 L271.0%2C1192.1 L249.3%2C1182.3 L227.7%2C1185.8 L204.7%2C1192.8 L179.2%2C1190.5 L154.8%2C1195.5 L134.6%2C1191.8 L108.8%2C1180.3 L86.1%2C1190.3 L65.7%2C1182.3 L47.6%2C1196.1 L21.6%2C1180.7 L17.7%2C1200.0 L8.0%2C1175.8 L7.1%2C1154.1 L15.7%2C1130.7 L16.3%2C1104.3 L15.0%2C1080.7 L21.0%2C1059.8 L17.7%2C1035.7 L15.6%2C1018.5 L21.0%2C999.0 L10.6%2C981.8 L14.6%2C961.4 L8.7%2C939.2 L16.4%2C916.7 L20.1%2C895.9 L19.0%2C869.2 L13.0%2C846.2 L12.6%2C826.4 L13.8%2C804.1 L16.3%2C777.8 L17.8%2C760.5 L12.7%2C737.2 L11.4%2C719.6 L17.1%2C696.8 L10.1%2C671.8 L25.3%2C652.3 L20.4%2C633.9 L7.7%2C609.8 L19.1%2C591.6 L22.0%2C573.1 L16.5%2C549.7 L9.4%2C525.3 L8.6%2C505.9 L15.7%2C481.0 L16.6%2C461.3 L15.9%2C438.4 L10.5%2C419.5 L26.7%2C393.3 L15.9%2C373.8 L8.2%2C356.0 L15.8%2C333.5 L9.9%2C311.7 L10.9%2C287.3 L17.5%2C265.8 L9.1%2C247.3 L11.1%2C224.4 L9.6%2C199.1 L13.5%2C176.3 L13.0%2C153.9 L13.5%2C128.7 L11.3%2C111.6 L16.7%2C88.6 L11.6%2C63.9 L16.2%2C44.8 L11.5%2C18.7 Z%22 fill=%22%23fff%22/></svg>');
+
+  --transicion: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  // sombras suaves, de portal de viajes: elevan la tarjeta sin ensuciarla
+  --sombra: 0 2px 4px rgba(22, 32, 46, 0.04), 0 12px 28px rgba(22, 32, 46, 0.08);
+  --sombra-alta: 0 4px 8px rgba(22, 32, 46, 0.06), 0 22px 46px rgba(22, 32, 46, 0.14);
+}

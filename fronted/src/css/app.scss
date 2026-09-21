@@ -1,5 +1,6 @@
 // app global css
 @import './inter';
+@import './tokens';
 
 .q-btn,
 .q-card {
@@ -69,5 +70,33 @@ html.sin-barra-scroll body::-webkit-scrollbar {
   /* evita que el scroll quede detrás del header sticky al hacer foco */
   tbody {
     scroll-margin-top: 48px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Animación de entrada del sitio público (directiva v-revelar).
+// Un fundido corto y 14px de desplazamiento: acompaña la lectura sin robar
+// protagonismo. Quien pide menos animación recibe el contenido ya visible.
+// ---------------------------------------------------------------------------
+.por-revelar {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.por-revelar.revelado {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .por-revelar,
+  .por-revelar.revelado {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

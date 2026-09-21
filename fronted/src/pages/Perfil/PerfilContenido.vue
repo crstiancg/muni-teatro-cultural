@@ -11,150 +11,45 @@
       <div class="text-h6 q-mt-sm">{{ nombreCompleto || formUsuario.usuario.name }}</div>
     </q-card-section>
 
-      <q-card-section>
-        <div class="text-subtitle1 text-weight-bold q-mb-xs">Información de Usuario</div>
-        <div class="text-caption text-grey-6 q-mb-sm">
-          Podés actualizar tu nombre de usuario y correo electrónico. Si cambiás el correo, vas a tener que volver a
-          iniciar sesión con el nuevo.
-        </div>
-  
-        <q-form @submit.prevent="submitUsuario" class="row q-col-gutter-sm items-start">
-          <div class="col-12 col-sm-6">
-            <q-input
-              dense
-              outlined
-              v-model="formUsuario.usuario.name"
-              label="Nombre de Usuario *"
-              @change="formUsuario.validate('usuario.name')"
-              :error="formUsuario.invalid('usuario.name')"
-              :class="formUsuario.invalid('usuario.name') ? 'q-mb-sm' : ''"
-            >
-              <template v-slot:error>
-                <div>{{ formUsuario.errors['usuario.name'] }}</div>
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-input
-              dense
-              outlined
-              v-model="formUsuario.usuario.email"
-              type="email"
-              label="Email *"
-              @change="formUsuario.validate('usuario.email')"
-              :error="formUsuario.invalid('usuario.email')"
-              :class="formUsuario.invalid('usuario.email') ? 'q-mb-sm' : ''"
-            >
-              <template v-slot:error>
-                <div>{{ formUsuario.errors['usuario.email'] }}</div>
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12" align="right">
-            <q-btn
-              unelevated
-              no-caps
-              color="primary"
-              label="Guardar Cambios"
-              type="submit"
-              :loading="formUsuario.processing"
-            />
-          </div>
-        </q-form>
-      </q-card-section>
+    <q-card-section>
+      <div class="text-subtitle1 text-weight-bold q-mb-xs">Información de Usuario</div>
+      <div class="text-caption text-grey-6 q-mb-sm">
+        Puedes actualizar tu nombre de usuario y correo electrónico. Si cambias el correo, tendrás
+        que volver a iniciar sesión con el nuevo.
+      </div>
 
-    <template v-if="mostrarPassword">
-    <q-separator />
-    <q-card-section class="q-pa-md">
-      <div class="text-subtitle1 text-weight-bold q-mb-xs">Cambiar Contraseña</div>
-      <div class="text-caption text-grey-6 q-mb-sm">Ingresá tu contraseña actual y la nueva contraseña.</div>
-
-      <q-form @submit.prevent="submitPassword" class="row q-col-gutter-sm items-start">
-        <div class="col-12 col-sm-4">
+      <q-form @submit.prevent="submitUsuario" class="row q-col-gutter-sm items-start">
+        <div class="col-12 col-sm-6">
           <q-input
             dense
             outlined
-            v-model="formPassword.password.actual"
-            :type="mostrarActual ? 'text' : 'password'"
-            label="Contraseña actual *"
-            @change="formPassword.validate('password.actual')"
-            :error="formPassword.invalid('password.actual')"
-            :class="formPassword.invalid('password.actual') ? 'q-mb-sm' : ''"
+            v-model="formUsuario.usuario.name"
+            label="Nombre de Usuario *"
+            @change="formUsuario.validate('usuario.name')"
+            :error="formUsuario.invalid('usuario.name')"
+            :class="formUsuario.invalid('usuario.name') ? 'q-mb-sm' : ''"
           >
-            <template v-slot:append>
-              <q-icon
-                :name="mostrarActual ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="mostrarActual = !mostrarActual"
-              />
-            </template>
             <template v-slot:error>
-              <div>{{ formPassword.errors['password.actual'] }}</div>
+              <div>{{ formUsuario.errors['usuario.name'] }}</div>
             </template>
           </q-input>
         </div>
-        <div class="col-12 col-sm-4">
+        <div class="col-12 col-sm-6">
           <q-input
             dense
             outlined
-            v-model="formPassword.password.nueva"
-            :type="mostrarNueva ? 'text' : 'password'"
-            label="Nueva contraseña *"
-            @change="formPassword.validate('password.nueva')"
-            :error="formPassword.invalid('password.nueva')"
-            :class="formPassword.invalid('password.nueva') ? 'q-mb-sm' : ''"
+            v-model="formUsuario.usuario.email"
+            type="email"
+            label="Email *"
+            @change="formUsuario.validate('usuario.email')"
+            :error="formUsuario.invalid('usuario.email')"
+            :class="formUsuario.invalid('usuario.email') ? 'q-mb-sm' : ''"
           >
-            <template v-slot:append>
-              <q-icon
-                :name="mostrarNueva ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="mostrarNueva = !mostrarNueva"
-              />
-            </template>
             <template v-slot:error>
-              <div>{{ formPassword.errors['password.nueva'] }}</div>
+              <div>{{ formUsuario.errors['usuario.email'] }}</div>
             </template>
           </q-input>
         </div>
-        <div class="col-12 col-sm-4">
-          <q-input
-            dense
-            outlined
-            v-model="formPassword.password.nueva_confirmation"
-            :type="mostrarConfirmar ? 'text' : 'password'"
-            label="Confirmar contraseña *"
-            @change="formPassword.validate('password.nueva_confirmation')"
-            :error="formPassword.invalid('password.nueva_confirmation')"
-            :class="formPassword.invalid('password.nueva_confirmation') ? 'q-mb-sm' : ''"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="mostrarConfirmar ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="mostrarConfirmar = !mostrarConfirmar"
-              />
-            </template>
-            <template v-slot:error>
-              <div>{{ formPassword.errors['password.nueva_confirmation'] }}</div>
-            </template>
-          </q-input>
-        </div>
-
-        <div class="col-12">
-          <div v-for="req in requisitosPassword" :key="req.label" class="row items-center q-mb-xs">
-            <q-icon
-              :name="req.cumple ? 'check_circle' : 'radio_button_unchecked'"
-              :color="req.cumple ? 'positive' : 'grey-5'"
-              size="18px"
-              class="q-mr-xs req-icon"
-              :class="{ 'req-icon--pop': req.cumple }"
-            />
-            <span class="text-caption req-texto" :class="req.cumple ? 'text-positive' : 'text-grey-7'">
-              {{ req.label }}
-            </span>
-          </div>
-        </div>
-
         <div class="col-12" align="right">
           <q-btn
             unelevated
@@ -162,11 +57,125 @@
             color="primary"
             label="Guardar Cambios"
             type="submit"
-            :loading="formPassword.processing"
+            :loading="formUsuario.processing"
           />
         </div>
       </q-form>
     </q-card-section>
+
+    <template v-if="mostrarPassword">
+      <q-separator />
+      <q-card-section class="q-pa-md">
+        <div class="text-subtitle1 text-weight-bold q-mb-xs">Cambiar Contraseña</div>
+        <div class="text-caption text-grey-6 q-mb-sm">
+          Ingresa tu contraseña actual y la nueva contraseña.
+        </div>
+
+        <q-form @submit.prevent="submitPassword" class="row q-col-gutter-sm items-start">
+          <div class="col-12 col-sm-4">
+            <q-input
+              dense
+              outlined
+              v-model="formPassword.password.actual"
+              :type="mostrarActual ? 'text' : 'password'"
+              label="Contraseña actual *"
+              @change="formPassword.validate('password.actual')"
+              :error="formPassword.invalid('password.actual')"
+              :class="formPassword.invalid('password.actual') ? 'q-mb-sm' : ''"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="mostrarActual ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="mostrarActual = !mostrarActual"
+                />
+              </template>
+              <template v-slot:error>
+                <div>{{ formPassword.errors['password.actual'] }}</div>
+              </template>
+            </q-input>
+          </div>
+          <div class="col-12 col-sm-4">
+            <q-input
+              dense
+              outlined
+              v-model="formPassword.password.nueva"
+              :type="mostrarNueva ? 'text' : 'password'"
+              label="Nueva contraseña *"
+              @change="formPassword.validate('password.nueva')"
+              :error="formPassword.invalid('password.nueva')"
+              :class="formPassword.invalid('password.nueva') ? 'q-mb-sm' : ''"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="mostrarNueva ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="mostrarNueva = !mostrarNueva"
+                />
+              </template>
+              <template v-slot:error>
+                <div>{{ formPassword.errors['password.nueva'] }}</div>
+              </template>
+            </q-input>
+          </div>
+          <div class="col-12 col-sm-4">
+            <q-input
+              dense
+              outlined
+              v-model="formPassword.password.nueva_confirmation"
+              :type="mostrarConfirmar ? 'text' : 'password'"
+              label="Confirmar contraseña *"
+              @change="formPassword.validate('password.nueva_confirmation')"
+              :error="formPassword.invalid('password.nueva_confirmation')"
+              :class="formPassword.invalid('password.nueva_confirmation') ? 'q-mb-sm' : ''"
+            >
+              <template v-slot:append>
+                <q-icon
+                  :name="mostrarConfirmar ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="mostrarConfirmar = !mostrarConfirmar"
+                />
+              </template>
+              <template v-slot:error>
+                <div>{{ formPassword.errors['password.nueva_confirmation'] }}</div>
+              </template>
+            </q-input>
+          </div>
+
+          <div class="col-12">
+            <div
+              v-for="req in requisitosPassword"
+              :key="req.label"
+              class="row items-center q-mb-xs"
+            >
+              <q-icon
+                :name="req.cumple ? 'check_circle' : 'radio_button_unchecked'"
+                :color="req.cumple ? 'positive' : 'grey-5'"
+                size="18px"
+                class="q-mr-xs req-icon"
+                :class="{ 'req-icon--pop': req.cumple }"
+              />
+              <span
+                class="text-caption req-texto"
+                :class="req.cumple ? 'text-positive' : 'text-grey-7'"
+              >
+                {{ req.label }}
+              </span>
+            </div>
+          </div>
+
+          <div class="col-12" align="right">
+            <q-btn
+              unelevated
+              no-caps
+              color="primary"
+              label="Guardar Cambios"
+              type="submit"
+              :loading="formPassword.processing"
+            />
+          </div>
+        </q-form>
+      </q-card-section>
     </template>
 
     <template v-if="tienePersona">
@@ -177,8 +186,8 @@
           <div class="text-subtitle1 text-weight-bold q-mb-xs">Información Personal</div>
           <div class="text-caption text-grey-6 q-mb-md">
             <q-icon name="info" size="14px" class="q-mr-xs" />
-            Revisá y completá tus datos. Podés cerrar esta ventana sin guardar y te la volvemos a mostrar la próxima
-            vez que ingreses.
+            Revisa y completa tus datos. Puedes cerrar esta ventana sin guardar y te la volvemos a
+            mostrar la próxima vez que ingreses.
           </div>
 
           <div class="row q-col-gutter-sm">
@@ -298,11 +307,23 @@
             </div>
 
             <div class="col-12 col-md-4">
-              <q-input dense outlined v-model="form.persona.fecha_nacimiento" type="date" label="Fecha de nacimiento" />
+              <q-input
+                dense
+                outlined
+                v-model="form.persona.fecha_nacimiento"
+                type="date"
+                label="Fecha de nacimiento"
+              />
             </div>
 
             <div class="col-12 col-md-4">
-              <q-input dense outlined v-model="form.persona.celular" label="Celular" maxlength="9" />
+              <q-input
+                dense
+                outlined
+                v-model="form.persona.celular"
+                label="Celular"
+                maxlength="9"
+              />
             </div>
 
             <div class="col-12 col-md-4">
@@ -408,10 +429,12 @@ const requisitosPassword = computed(() => {
 })
 
 const nombreCompleto = computed(() =>
-  [form.persona.nombre, form.persona.apellido_paterno, form.persona.apellido_materno].filter(Boolean).join(' '),
+  [form.persona.nombre, form.persona.apellido_paterno, form.persona.apellido_materno]
+    .filter(Boolean)
+    .join(' '),
 )
-const inicial = computed(
-  () => (form.persona.nombre?.charAt(0) || formUsuario.usuario.name?.charAt(0) || '?').toUpperCase(),
+const inicial = computed(() =>
+  (form.persona.nombre?.charAt(0) || formUsuario.usuario.name?.charAt(0) || '?').toUpperCase(),
 )
 
 const submitUsuario = () => {

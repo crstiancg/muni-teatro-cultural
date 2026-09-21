@@ -20,7 +20,12 @@
 
     <div v-else class="row q-col-gutter-md q-ma-sm">
       <div v-for="item in itemsVisibles" :key="item.id" class="col-6 col-sm-4 col-md-3">
-        <q-card flat bordered class="gallery-card" :class="{ 'gallery-card--anulado': !item.flag_activo }">
+        <q-card
+          flat
+          bordered
+          class="gallery-card"
+          :class="{ 'gallery-card--anulado': !item.flag_activo }"
+        >
           <q-img :src="item.imagen_url" ratio="1" fit="cover" class="gallery-img">
             <template v-slot:error>
               <div class="absolute-full flex flex-center bg-grey-3">
@@ -52,7 +57,9 @@
             >
               <ToggleRight v-if="item.flag_activo" size="18" />
               <ToggleLeft v-else size="18" />
-              <q-tooltip>{{ item.flag_activo ? 'Click para anular' : 'Click para reactivar' }}</q-tooltip>
+              <q-tooltip>{{
+                item.flag_activo ? 'Click para anular' : 'Click para reactivar'
+              }}</q-tooltip>
             </q-btn>
             <q-btn dense flat round size="sm" color="negative" @click="eliminarPermanente(item)">
               <Trash2 size="16" />
@@ -64,7 +71,12 @@
     </div>
 
     <q-dialog v-model="dialogo" persistent>
-      <ActividadForm :key="itemEditando?.id || 'nuevo'" :base-path="basePath" :item="itemEditando" @save="alGuardar" />
+      <ActividadForm
+        :key="itemEditando?.id || 'nuevo'"
+        :base-path="basePath"
+        :item="itemEditando"
+        @save="alGuardar"
+      />
     </q-dialog>
   </div>
 </template>
@@ -118,7 +130,12 @@ function alGuardar(resultado) {
   emit('update:modelValue', items.value)
 
   dialogo.value = false
-  $q.notify({ type: 'positive', message: 'Guardado con éxito.', position: 'top-right', timeout: 1500 })
+  $q.notify({
+    type: 'positive',
+    message: 'Guardado con éxito.',
+    position: 'top-right',
+    timeout: 1500,
+  })
 }
 
 function reemplazar(actualizado) {
@@ -136,14 +153,24 @@ function anular(item) {
   }).onOk(async () => {
     const actualizado = await ActividadService.delete(props.basePath, item.id)
     reemplazar(actualizado.data ?? { ...item, flag_activo: false })
-    $q.notify({ type: 'positive', message: 'Anulada con éxito.', position: 'top-right', timeout: 1000 })
+    $q.notify({
+      type: 'positive',
+      message: 'Anulada con éxito.',
+      position: 'top-right',
+      timeout: 1000,
+    })
   })
 }
 
 async function reactivar(item) {
   const actualizado = await ActividadService.reactivar(props.basePath, item.id)
   reemplazar(actualizado)
-  $q.notify({ type: 'positive', message: 'Reactivada con éxito.', position: 'top-right', timeout: 1000 })
+  $q.notify({
+    type: 'positive',
+    message: 'Reactivada con éxito.',
+    position: 'top-right',
+    timeout: 1000,
+  })
 }
 
 function eliminarPermanente(item) {
@@ -156,7 +183,12 @@ function eliminarPermanente(item) {
     await ActividadService.eliminarPermanente(props.basePath, item.id)
     items.value = items.value.filter((i) => i.id !== item.id)
     emit('update:modelValue', items.value)
-    $q.notify({ type: 'positive', message: 'Eliminado definitivamente.', position: 'top-right', timeout: 1000 })
+    $q.notify({
+      type: 'positive',
+      message: 'Eliminado definitivamente.',
+      position: 'top-right',
+      timeout: 1000,
+    })
   })
 }
 </script>

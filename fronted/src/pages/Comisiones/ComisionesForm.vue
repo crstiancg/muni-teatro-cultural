@@ -64,7 +64,13 @@
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>
@@ -111,7 +117,9 @@ const submit = () => {
 
 async function cargarGrupos() {
   loadingGrupos.value = true
-  const { data } = await ComisionService.getData({ params: { tipo: 'grupo', rowsPerPage: 0, order_by: 'nombre' } })
+  const { data } = await ComisionService.getData({
+    params: { tipo: 'grupo', rowsPerPage: 0, order_by: 'nombre' },
+  })
   grupos.value = data
   loadingGrupos.value = false
 }

@@ -37,7 +37,9 @@
             >
               <ToggleRight v-if="props.row.flag_activo" size="20" />
               <ToggleLeft v-else size="20" />
-              <q-tooltip>{{ props.row.flag_activo ? 'Click para anular' : 'Click para reactivar' }}</q-tooltip>
+              <q-tooltip>{{
+                props.row.flag_activo ? 'Click para anular' : 'Click para reactivar'
+              }}</q-tooltip>
             </q-btn>
             {{ props.row.id }}
           </q-td>
@@ -46,7 +48,9 @@
         <template v-slot:body-cell-tipo="props">
           <q-td :props="props">
             <div class="text-weight-medium">{{ etiqueta(opcionesTipo, props.row.tipo) }}</div>
-            <div class="text-caption text-grey-7">{{ etiqueta(opcionesNivelAlcanzado, props.row.nivel_alcanzado) }}</div>
+            <div class="text-caption text-grey-7">
+              {{ etiqueta(opcionesNivelAlcanzado, props.row.nivel_alcanzado) }}
+            </div>
           </q-td>
         </template>
 
@@ -90,12 +94,13 @@
       <template v-slot:avatar>
         <TriangleAlert :size="20" color="#616161" />
       </template>
-      (*) IMPORTANTE: En caso de postular a un puesto que requiera formación técnica completa o universitaria
-      completa, deberá declarar la fecha exacta de egreso o bachiller de la formación académica correspondiente
-      para contabilizar los años de experiencia general y especifica, de lo contrario se contabilizará desde la
-      fecha de la Expedición del Título correspondiente. (**) De consignar en Nivel Alcanzado - EN CURSO - indicar
-      el CICLO O SEMESTRE alcanzado en la celda de Fecha de Expedición del Grado / Título Dejar los espacios en
-      blanco para a la formación académica que no aplique para el perfil.
+      (*) IMPORTANTE: En caso de postular a un puesto que requiera formación técnica completa o
+      universitaria completa, deberá declarar la fecha exacta de egreso o bachiller de la formación
+      académica correspondiente para contabilizar los años de experiencia general y especifica, de
+      lo contrario se contabilizará desde la fecha de la Expedición del Título correspondiente. (**)
+      De consignar en Nivel Alcanzado - EN CURSO - indicar el CICLO O SEMESTRE alcanzado en la celda
+      de Fecha de Expedición del Grado / Título Dejar los espacios en blanco para a la formación
+      académica que no aplique para el perfil.
     </q-banner>
 
     <q-dialog v-model="dialogo" persistent>
@@ -139,7 +144,12 @@ const columnas = [
   { name: 'id', label: 'Id', field: 'id', align: 'left' },
   { name: 'tipo', label: 'Tipo / Nivel Alcanzado', field: 'tipo', align: 'left' },
   { name: 'profesion', label: 'Profesión / Centro de Estudio', field: 'profesion', align: 'left' },
-  { name: 'fecha_expedicion', label: 'Fecha de Expedición', field: 'fecha_expedicion', align: 'left' },
+  {
+    name: 'fecha_expedicion',
+    label: 'Fecha de Expedición',
+    field: 'fecha_expedicion',
+    align: 'left',
+  },
   { name: 'folio', label: 'Folios', field: 'folio', align: 'left' },
   { name: 'archivo', label: 'Archivo', field: 'archivo_url', align: 'center' },
   { name: 'acciones', label: 'Acciones', field: 'id', align: 'center' },
@@ -191,7 +201,12 @@ function alGuardar(resultado) {
   emit('update:modelValue', items.value)
 
   dialogo.value = false
-  $q.notify({ type: 'positive', message: 'Guardado con éxito.', position: 'top-right', timeout: 1500 })
+  $q.notify({
+    type: 'positive',
+    message: 'Guardado con éxito.',
+    position: 'top-right',
+    timeout: 1500,
+  })
 }
 
 function reemplazar(actualizado) {
@@ -209,14 +224,24 @@ function anular(item) {
   }).onOk(async () => {
     const actualizado = await FormacionAcademicaService.delete(props.basePath, item.id)
     reemplazar(actualizado.data ?? { ...item, flag_activo: false })
-    $q.notify({ type: 'positive', message: 'Anulado con éxito.', position: 'top-right', timeout: 1000 })
+    $q.notify({
+      type: 'positive',
+      message: 'Anulado con éxito.',
+      position: 'top-right',
+      timeout: 1000,
+    })
   })
 }
 
 async function reactivar(item) {
   const actualizado = await FormacionAcademicaService.reactivar(props.basePath, item.id)
   reemplazar(actualizado)
-  $q.notify({ type: 'positive', message: 'Reactivado con éxito.', position: 'top-right', timeout: 1000 })
+  $q.notify({
+    type: 'positive',
+    message: 'Reactivado con éxito.',
+    position: 'top-right',
+    timeout: 1000,
+  })
 }
 </script>
 

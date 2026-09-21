@@ -4,7 +4,10 @@
 
     <template v-else-if="persona">
       <div class="cabecera">
-        <router-link :to="{ name: 'ConsejeroDetallePublico', params: { slug: persona.slug } }" class="volver">
+        <router-link
+          :to="{ name: 'ConsejeroDetallePublico', params: { slug: persona.slug } }"
+          class="volver"
+        >
           <ArrowLeft :size="18" /> Volver
         </router-link>
 
@@ -19,7 +22,9 @@
         <div class="contador">{{ persona.actividades?.length || 0 }} fotografías</div>
       </div>
 
-      <div v-if="!persona.actividades?.length" class="vacio">Todavía no hay actividades publicadas.</div>
+      <div v-if="!persona.actividades?.length" class="vacio">
+        Todavía no hay actividades publicadas.
+      </div>
 
       <div v-else class="grid">
         <div v-for="act in persona.actividades" :key="act.id" class="tile" @click="verImagen(act)">

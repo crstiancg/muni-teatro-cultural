@@ -13,7 +13,7 @@
 // Tip: Use the "Theme Builder" on Quasar's documentation website.
 
 $primary: #004173;
-$secondary: #00a7e5; 
+$secondary: #00a7e5;
 $accent: #9c27b0;
 
 $dark: #1d1d1d;
@@ -23,3 +23,40 @@ $negative: #c10015;
 $positive: #21ba45;
 $info: #31ccec;
 $warning: #f2c037;
+
+// ---------------------------------------------------------------------------
+// Mixins del sitio público. Viven acá porque Quasar inyecta este archivo en
+// todos los <style lang="scss"> de los componentes; los tokens (:root y las
+// @font-face) están en tokens.scss y se emiten una sola vez desde app.scss.
+// ---------------------------------------------------------------------------
+
+// Kicker: el ÚNICO lugar donde se permiten mayúsculas. En el resto del sitio
+// los títulos van en caja normal — el uppercase generalizado que había antes
+// gritaba y costaba leer.
+@mixin kicker($color: var(--rojo)) {
+  font-family: var(--fuente-texto);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: $color;
+}
+
+@mixin display($peso: 800) {
+  font-family: var(--fuente-display);
+  font-weight: $peso;
+  font-variation-settings:
+    'SOFT' 20,
+    'WONK' 1;
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+
+// Foco visible y consistente en todo el sitio público. El rojo de la
+// Candelaria es el que mejor contrasta sobre el papel (6.1:1) y también se ve
+// sobre las fotos oscurecidas.
+@mixin foco {
+  outline: 2px solid var(--rojo);
+  outline-offset: 3px;
+  border-radius: 2px;
+}

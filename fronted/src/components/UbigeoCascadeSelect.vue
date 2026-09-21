@@ -70,7 +70,9 @@ let hydrating = false
 
 async function cargarDepartamentos() {
   loadingDep.value = true
-  const { data } = await UbigeoService.getData({ params: { tipo: 'departamento', rowsPerPage: 0, order_by: 'nombre' } })
+  const { data } = await UbigeoService.getData({
+    params: { tipo: 'departamento', rowsPerPage: 0, order_by: 'nombre' },
+  })
   departamentos.value = data
   loadingDep.value = false
 }
@@ -87,7 +89,13 @@ async function cargarProvincias(codDep) {
 async function cargarDistritos(codDep, codProv) {
   loadingDist.value = true
   const { data } = await UbigeoService.getData({
-    params: { tipo: 'distrito', cod_dep: codDep, cod_prov: codProv, rowsPerPage: 0, order_by: 'nombre' },
+    params: {
+      tipo: 'distrito',
+      cod_dep: codDep,
+      cod_prov: codProv,
+      rowsPerPage: 0,
+      order_by: 'nombre',
+    },
   })
   distritos.value = data
   loadingDist.value = false

@@ -3,7 +3,7 @@
     <q-card-section class="row items-center">
       <div class="text-h6">{{ props.item ? 'Editar' : 'Agregar' }} Actividad</div>
       <q-space />
-      <q-btn v-close-popup flat round dense size="sm" style="border-radius: 100% !important;">
+      <q-btn v-close-popup flat round dense size="sm" style="border-radius: 100% !important">
         <X size="16" />
       </q-btn>
     </q-card-section>
@@ -41,12 +41,9 @@
         <div v-if="previewUrl" class="preview-box">
           <img :src="previewUrl" class="preview-img" />
         </div>
-        <div
-          v-else-if="props.item?.imagen_nombre_original"
-          class="text-caption text-grey-7"
-        >
-          Ya tiene una imagen: {{ props.item.imagen_nombre_original }}. Si no seleccionás una nueva, se conserva la
-          actual.
+        <div v-else-if="props.item?.imagen_nombre_original" class="text-caption text-grey-7">
+          Ya tiene una imagen: {{ props.item.imagen_nombre_original }}. Si no seleccionás una nueva,
+          se conserva la actual.
         </div>
 
         <q-checkbox
@@ -119,7 +116,9 @@ onBeforeUnmount(() => {
   if (objectUrl.value) URL.revokeObjectURL(objectUrl.value)
 })
 
-const previewUrl = computed(() => objectUrl.value || (!form.actividad.imagen ? props.item?.imagen_url : null))
+const previewUrl = computed(
+  () => objectUrl.value || (!form.actividad.imagen ? props.item?.imagen_url : null),
+)
 </script>
 
 <style scoped>

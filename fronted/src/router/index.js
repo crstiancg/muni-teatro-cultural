@@ -15,7 +15,13 @@ export default defineRouter((/* { store, ssrContext } */) => {
       : createWebHashHistory
 
   const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    // las anclas del sitio público (#comisiones) tienen que funcionar también
+    // al llegar desde otra página; el offset es la altura del header sticky
+    scrollBehavior: (to, from, savedPosition) => {
+      if (to.hash) return { el: to.hash, top: 80, behavior: 'smooth' }
+      if (savedPosition) return savedPosition
+      return { left: 0, top: 0 }
+    },
     routes,
     history: createHistory(import.meta.env.QUASAR_VUE_ROUTER_BASE),
   })

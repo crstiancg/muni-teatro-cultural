@@ -16,19 +16,48 @@ class PersonaPublicaController extends Controller
     {
         $query = Persona::query()
             ->whereNotNull('codigo_comision')
-            ->with(['comision:codigo,cod_grupo,cod_familia,nombre']);
+            ->with([
+                'comision:codigo,cod_grupo,cod_familia,nombre',
+                // una sola actividad por persona: la que se usa como foto de la
+                // tarjeta en el directorio
+                'actividades' => fn ($q) => $q->where('flag_activo', true)
+                    ->where('flag_publico', true)
+                    ->latest()
+                    ->limit(1),
+            ])
+            ->withCount([
+                'actividades as actividades_count' => fn ($q) => $q->where('flag_activo', true)
+                    ->where('flag_publico', true),
+            ]);
 
         if ($request->filled('grupo')) {
             $query->whereHas('comision', fn ($q) => $q->where('cod_grupo', $request->string('grupo')));
         }
 
         if ($request->filled('buscar')) {
-            $query->where('nombre_completo', 'like', '%' . $request->string('buscar') . '%');
+            $termino = '%' . $request->string('buscar') . '%';
+            $query->where(function ($q) use ($termino) {
+                $q->where('nombre_completo', 'like', $termino)
+                    ->orWhereHas('comision', fn ($c) => $c->where('nombre', 'like', $termino));
+            });
         }
 
-        $personas = $query->orderBy('nombre_completo')->get();
+        // el registro puede tener cientos de artistas: se pagina para no mandar
+        // la tabla entera en cada carga del directorio
+        $porPagina = min((int) $request->input('por_pagina', 24), 60);
+        $personas = $query->orderBy('nombre_completo')->paginate($porPagina);
 
-        return response()->json($personas->map(fn (Persona $persona) => $this->datosPublicos($persona)));
+        return response()->json([
+            'data' => collect($personas->items())
+                ->map(fn (Persona $persona) => $this->datosPublicos($persona))
+                ->all(),
+            'meta' => [
+                'pagina' => $personas->currentPage(),
+                'ultima_pagina' => $personas->lastPage(),
+                'total' => $personas->total(),
+                'por_pagina' => $personas->perPage(),
+            ],
+        ]);
     }
 
     public function show(Persona $persona)
@@ -87,11 +116,27 @@ class PersonaPublicaController extends Controller
         ]));
     }
 
+    // cada grupo con cuántos artistas tiene: el directorio muestra el número al
+    // lado de cada filtro, así se sabe qué hay detrás antes de hacer clic
     public function grupos()
     {
-        return response()->json(
-            Comision::where('tipo', 'grupo')->orderBy('nombre')->get(['cod_grupo', 'nombre'])
-        );
+        $porGrupo = Persona::query()
+            ->whereNotNull('personas.codigo_comision')
+            ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
+            ->groupBy('comisions.cod_grupo')
+            ->selectRaw('comisions.cod_grupo as cod_grupo, count(*) as total')
+            ->pluck('total', 'cod_grupo');
+
+        $grupos = Comision::where('tipo', 'grupo')
+            ->orderBy('nombre')
+            ->get(['cod_grupo', 'nombre'])
+            ->map(fn (Comision $grupo) => [
+                'cod_grupo' => $grupo->cod_grupo,
+                'nombre' => $grupo->nombre,
+                'consejeros' => (int) ($porGrupo[$grupo->cod_grupo] ?? 0),
+            ]);
+
+        return response()->json($grupos);
     }
 
     // todo lo que necesita la portada en una sola llamada: conteos reales,
@@ -124,7 +169,7 @@ class PersonaPublicaController extends Controller
                     'cod_grupo' => $grupo->cod_grupo,
                     'nombre' => $grupo->nombre,
                     'consejeros' => (int) ($consejerosPorGrupo[$grupo->cod_grupo] ?? 0),
-                    'imagen_url' => $imagen ? asset('storage/' . $imagen) : null,
+                    'imagen_url' => Actividad::resolverImagenUrl($imagen),
                 ];
             });
 
@@ -137,7 +182,37 @@ class PersonaPublicaController extends Controller
             ],
             'grupos' => $grupos,
             'destacadas' => $this->actividadesDestacadas()->getData(true),
+            'artistas' => $this->artistasDestacados(),
         ]);
+    }
+
+    // artistas con trabajo publicado, para presentarlos en portada con su foto.
+    // Se toma la ultima actividad publica de cada uno como imagen de portada y
+    // las siguientes como miniaturas de su trabajo.
+    private function artistasDestacados(int $limite = 8): array
+    {
+        return Persona::query()
+            ->whereNotNull('codigo_comision')
+            ->whereHas('actividades', fn ($q) => $q->where('flag_activo', true)->where('flag_publico', true))
+            ->with([
+                'comision:codigo,cod_grupo,cod_familia,nombre',
+                'actividades' => fn ($q) => $q->where('flag_activo', true)
+                    ->where('flag_publico', true)
+                    ->latest()
+                    ->limit(4),
+            ])
+            ->inRandomOrder()
+            ->limit($limite)
+            ->get()
+            ->map(fn (Persona $persona) => [
+                ...$this->datosPublicos($persona),
+                'imagen_url' => $persona->actividades->first()?->imagen_url,
+                'miniaturas' => $persona->actividades->skip(1)->take(3)
+                    ->pluck('imagen_url')->values(),
+                'total_actividades' => $persona->actividades_count
+                    ?? $persona->actividades->count(),
+            ])
+            ->all();
     }
 
     private function datosPublicos(Persona $persona): array
@@ -150,6 +225,12 @@ class PersonaPublicaController extends Controller
             'nombre_completo' => $persona->nombre_completo,
             'comision' => $persona->comision?->nombre,
             'cod_grupo' => $persona->comision?->cod_grupo,
+            // el directorio se presenta con fotos, así que cada persona viaja
+            // con su imagen de portada y cuántas actividades tiene publicadas
+            'imagen_url' => $persona->relationLoaded('actividades')
+                ? $persona->actividades->first()?->imagen_url
+                : null,
+            'total_actividades' => $persona->actividades_count ?? null,
         ];
     }
 }

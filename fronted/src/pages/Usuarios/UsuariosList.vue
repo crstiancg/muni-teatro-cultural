@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="formUser" persistent>
-    <UsuariosForm :key="editId" :title="title" :id="editId" ref="usuariosFormRef" @save="save"></UsuariosForm>
+    <UsuariosForm
+      :key="editId"
+      :title="title"
+      :id="editId"
+      ref="usuariosFormRef"
+      @save="save"
+    ></UsuariosForm>
   </q-dialog>
   <q-page>
     <div class="q-pa-md q-gutter-sm">
@@ -67,8 +73,23 @@
               {{ col.value }}
             </q-td>
             <q-td auto-width>
-              <q-btn size="sm" outline color="green" round @click="editar(props.row.id)" icon="edit" class="q-mr-xs" />
-              <q-btn size="sm" outline color="red" round @click="eliminar(props.row.id)" icon="delete" />
+              <q-btn
+                size="sm"
+                outline
+                color="green"
+                round
+                @click="editar(props.row.id)"
+                icon="edit"
+                class="q-mr-xs"
+              />
+              <q-btn
+                size="sm"
+                outline
+                color="red"
+                round
+                @click="eliminar(props.row.id)"
+                icon="delete"
+              />
             </q-td>
           </q-tr>
         </template>

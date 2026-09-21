@@ -34,7 +34,13 @@
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>

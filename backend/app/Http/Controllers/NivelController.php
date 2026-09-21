@@ -10,10 +10,15 @@ class NivelController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $niveles = Nivel::paginate(10);
-        return response()->json($niveles);
+        return $this->generateViewSetList(
+            $request,
+            Nivel::query(),
+            [],
+            ['nombre'],
+            ['id']
+        );
     }
 
     /**

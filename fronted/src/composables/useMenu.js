@@ -1,5 +1,16 @@
 import { computed } from 'vue'
-import { LayoutDashboard, Users, Shield, KeyRound, Contact, FolderTree, GraduationCap, Briefcase, School, BookOpen } from 'lucide-vue-next'
+import {
+  LayoutDashboard,
+  Users,
+  Shield,
+  KeyRound,
+  Contact,
+  FolderTree,
+  GraduationCap,
+  Briefcase,
+  School,
+  BookOpen,
+} from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 export function useMenu() {
@@ -59,9 +70,27 @@ export function useMenu() {
       caption: 'Usuarios y accesos',
       icon: Shield,
       children: [
-        { type: 'item', label: 'Usuarios', routeName: 'Usuarios', icon: Users, permission: 'admin-usuarios-index' },
-        { type: 'item', label: 'Roles', routeName: 'Roles', icon: Shield, permission: 'admin-roles-index' },
-        { type: 'item', label: 'Permisos', routeName: 'Permisos', icon: KeyRound, permission: 'admin-permisos-index' },
+        {
+          type: 'item',
+          label: 'Usuarios',
+          routeName: 'Usuarios',
+          icon: Users,
+          permission: 'admin-usuarios-index',
+        },
+        {
+          type: 'item',
+          label: 'Roles',
+          routeName: 'Roles',
+          icon: Shield,
+          permission: 'admin-roles-index',
+        },
+        {
+          type: 'item',
+          label: 'Permisos',
+          routeName: 'Permisos',
+          icon: KeyRound,
+          permission: 'admin-permisos-index',
+        },
       ],
     },
   ]

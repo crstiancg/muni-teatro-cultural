@@ -33,7 +33,14 @@
         <div class="text-caption text-grey-7 q-mt-md q-mb-xs">Permisos</div>
         <q-scroll-area style="height: 360px; max-width: 100%">
           <q-list bordered separator class="rounded-borders">
-            <q-item v-for="p in permisos" :key="p.id" tag="label" clickable v-ripple class="q-py-sm">
+            <q-item
+              v-for="p in permisos"
+              :key="p.id"
+              tag="label"
+              clickable
+              v-ripple
+              class="q-py-sm"
+            >
               <q-item-section avatar>
                 <q-toggle
                   v-model="form.rol.permisosSelected"
@@ -56,7 +63,13 @@
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>
@@ -77,7 +90,9 @@ const props = defineProps({
 })
 
 const form = ref(
-  props.id ? useForm('put', 'api/roles/' + props.id, formRol) : useForm('post', 'api/roles', formRol),
+  props.id
+    ? useForm('put', 'api/roles/' + props.id, formRol)
+    : useForm('post', 'api/roles', formRol),
 )
 
 async function cargarPermisos() {

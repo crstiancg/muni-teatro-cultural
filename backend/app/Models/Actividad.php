@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Actividad extends Model
 {
@@ -34,6 +35,21 @@ class Actividad extends Model
 
     public function getImagenUrlAttribute()
     {
-        return $this->imagen_path ? asset('storage/' . $this->imagen_path) : null;
+        return static::resolverImagenUrl($this->imagen_path);
+    }
+
+    // los seeders de prueba guardan URLs externas (picsum) en vez de un archivo
+    // subido, asi que las devolvemos tal cual en vez de prefijarlas con storage/
+    public static function resolverImagenUrl(?string $imagenPath): ?string
+    {
+        if (! $imagenPath) {
+            return null;
+        }
+
+        if (Str::startsWith($imagenPath, ['http://', 'https://'])) {
+            return $imagenPath;
+        }
+
+        return asset('storage/' . $imagenPath);
     }
 }

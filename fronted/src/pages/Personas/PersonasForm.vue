@@ -129,7 +129,13 @@
           </div>
 
           <div class="col-12 col-md-4">
-            <q-input dense outlined v-model="form.persona.fecha_nacimiento" type="date" label="Fecha de nacimiento" />
+            <q-input
+              dense
+              outlined
+              v-model="form.persona.fecha_nacimiento"
+              type="date"
+              label="Fecha de nacimiento"
+            />
           </div>
 
           <div class="col-12 col-md-4">
@@ -173,15 +179,21 @@
 
         <div v-if="!props.id" class="text-caption text-grey-6 q-mt-sm">
           <q-icon name="info" size="14px" class="q-mr-xs" />
-          Se crea automáticamente un usuario para que esta persona pueda ingresar al sistema. Contraseña por
-          defecto: su DNI.
+          Se crea automáticamente un usuario para que esta persona pueda ingresar al sistema.
+          Contraseña por defecto: su DNI.
         </div>
       </q-card-section>
       <q-separator />
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>

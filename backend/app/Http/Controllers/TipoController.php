@@ -8,10 +8,15 @@ use Illuminate\Http\Request;
 class TipoController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $tipos = Tipo::paginate(1);
-        return response()->json($tipos);
+        return $this->generateViewSetList(
+            $request,
+            Tipo::query(),
+            [],
+            ['nombre'],
+            ['id']
+        );
     }
 
 

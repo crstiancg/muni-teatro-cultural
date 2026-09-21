@@ -1,6 +1,8 @@
 import { api } from '@/boot/axios'
 
 class PersonaPublicaService {
+  // devuelve { data, meta } — el directorio se pagina porque el registro
+  // puede tener cientos de artistas
   static async getData(params) {
     return (await api.get('/api/publico/consejeros', { params })).data
   }

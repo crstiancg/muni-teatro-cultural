@@ -53,7 +53,9 @@ let hydrating = false
 
 async function cargarGrupos() {
   loadingGrupo.value = true
-  const { data } = await ComisionService.getData({ params: { tipo: 'grupo', rowsPerPage: 0, order_by: 'nombre' } })
+  const { data } = await ComisionService.getData({
+    params: { tipo: 'grupo', rowsPerPage: 0, order_by: 'nombre' },
+  })
   grupos.value = data
   loadingGrupo.value = false
 }

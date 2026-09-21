@@ -1,7 +1,11 @@
 <template>
   <q-card style="width: 100%; max-width: 700px">
     <q-scroll-area style="height: 75vh">
-      <PerfilContenido :data-inicial="dataInicial" :mostrar-password="false" @save="emits('save')" />
+      <PerfilContenido
+        :data-inicial="dataInicial"
+        :mostrar-password="false"
+        @save="emits('save')"
+      />
     </q-scroll-area>
 
     <q-separator />

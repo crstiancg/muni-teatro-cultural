@@ -172,7 +172,7 @@ class UniversidadSeeder extends Seeder
             array('nombre' => 'Sin estudios superiores'),
     
         );
-        Schema::dropIfExists('universidades');
+        DB::table('universidades')->insert($universidades);
     }
 }
 /*

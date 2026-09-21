@@ -9,7 +9,7 @@
           </div>
 
           <h1>Bienvenido de nuevo</h1>
-          <p class="lc-sub">Ingresá tus credenciales para acceder al panel administrativo.</p>
+          <p class="lc-sub">Ingresa tus credenciales para acceder al panel administrativo.</p>
 
           <q-form @submit="login" class="lc-fields">
             <div class="lc-field">

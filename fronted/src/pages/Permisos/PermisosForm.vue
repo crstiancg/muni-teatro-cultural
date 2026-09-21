@@ -52,7 +52,13 @@
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>
@@ -70,7 +76,9 @@ const props = defineProps({
 })
 
 const form = ref(
-  props.id ? useForm('put', 'api/permisos/' + props.id, formPermiso) : useForm('post', 'api/permisos', formPermiso),
+  props.id
+    ? useForm('put', 'api/permisos/' + props.id, formPermiso)
+    : useForm('post', 'api/permisos', formPermiso),
 )
 
 const submit = () => {

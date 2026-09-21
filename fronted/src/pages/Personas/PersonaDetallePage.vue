@@ -3,7 +3,9 @@
     <div class="q-pa-md q-gutter-sm">
       <q-breadcrumbs>
         <q-breadcrumbs-el><Home size="16" /></q-breadcrumbs-el>
-        <q-breadcrumbs-el label="Personas" :to="{ name: 'Personas' }"><Contact size="16" class="q-mr-xs" /></q-breadcrumbs-el>
+        <q-breadcrumbs-el label="Personas" :to="{ name: 'Personas' }"
+          ><Contact size="16" class="q-mr-xs"
+        /></q-breadcrumbs-el>
         <q-breadcrumbs-el :label="persona?.nombre_completo || '...'" />
       </q-breadcrumbs>
     </div>
@@ -23,7 +25,15 @@
             <div class="text-subtitle1 text-weight-bold q-mt-md">{{ persona?.dni }}</div>
             <div class="text-body2">{{ persona?.nombre_completo }}</div>
             <div class="text-caption text-grey-7">{{ persona?.correo }}</div>
-            <q-btn outline no-caps rounded color="primary" label="Editar" class="q-mt-md" @click="abrirEditar">
+            <q-btn
+              outline
+              no-caps
+              rounded
+              color="primary"
+              label="Editar"
+              class="q-mt-md"
+              @click="abrirEditar"
+            >
               <Pencil size="16" class="q-ml-xs" />
             </q-btn>
           </q-card-section>
@@ -36,28 +46,45 @@
             <div class="text-subtitle1 text-weight-bold q-mb-md">
               Formación Académica, Grado Académico y/o Nivel de Estudio Alcanzado
             </div>
-            <CurriculumVitaeList :base-path="`personas/${personaId}/curriculum-vitaes`" v-model="curriculum" />
+            <CurriculumVitaeList
+              :base-path="`personas/${personaId}/curriculum-vitaes`"
+              v-model="curriculum"
+            />
           </q-card-section>
         </q-card>
 
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Capacitaciones y Reconocimientos</div>
-            <CapacitacionList :base-path="`personas/${personaId}/capacitaciones`" v-model="capacitaciones" />
+            <div class="text-subtitle1 text-weight-bold q-mb-md">
+              Capacitaciones y Reconocimientos
+            </div>
+            <CapacitacionList
+              :base-path="`personas/${personaId}/capacitaciones`"
+              v-model="capacitaciones"
+            />
           </q-card-section>
         </q-card>
 
         <q-card flat :bordered="!$q.dark.isActive">
           <q-card-section class="q-pa-md">
             <div class="text-subtitle1 text-weight-bold q-mb-md">Actividades Realizadas</div>
-            <ActividadGallery :base-path="`personas/${personaId}/actividades`" v-model="actividades" />
+            <ActividadGallery
+              :base-path="`personas/${personaId}/actividades`"
+              v-model="actividades"
+            />
           </q-card-section>
         </q-card>
       </div>
     </div>
 
     <q-dialog v-model="mostrarEditar" persistent>
-      <PersonasForm ref="personasFormRef" :key="personaId" title="Editar Persona" :id="personaId" @save="alGuardarPersona" />
+      <PersonasForm
+        ref="personasFormRef"
+        :key="personaId"
+        title="Editar Persona"
+        :id="personaId"
+        @save="alGuardarPersona"
+      />
     </q-dialog>
   </q-page>
 </template>

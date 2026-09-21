@@ -43,7 +43,9 @@
         <q-item-section>
           {{ valorInput }}
         </q-item-section>
-        <q-item-section class="text-green" side> Presiona Enter o Click para agregar </q-item-section>
+        <q-item-section class="text-green" side>
+          Presiona Enter o Click para agregar
+        </q-item-section>
       </q-item>
       <q-item v-else>
         <q-item-section side> No se encontró ningún resultado. </q-item-section>

@@ -37,7 +37,9 @@
             >
               <ToggleRight v-if="props.row.flag_activo" size="20" />
               <ToggleLeft v-else size="20" />
-              <q-tooltip>{{ props.row.flag_activo ? 'Click para anular' : 'Click para reactivar' }}</q-tooltip>
+              <q-tooltip>{{
+                props.row.flag_activo ? 'Click para anular' : 'Click para reactivar'
+              }}</q-tooltip>
             </q-btn>
             {{ props.row.id }}
           </q-td>
@@ -125,7 +127,12 @@ const itemsVisibles = computed(() =>
 const columnas = [
   { name: 'id', label: 'Id', field: 'id', align: 'left' },
   { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'left' },
-  { name: 'nombre_evento', label: 'Nombre del Evento / Centro de Estudio', field: 'nombre_evento', align: 'left' },
+  {
+    name: 'nombre_evento',
+    label: 'Nombre del Evento / Centro de Estudio',
+    field: 'nombre_evento',
+    align: 'left',
+  },
   { name: 'fecha', label: 'Fecha', field: 'fecha', align: 'left' },
   { name: 'horas', label: 'Horas', field: 'horas', align: 'left' },
   { name: 'folio', label: 'Folios', field: 'folio', align: 'left' },
@@ -171,7 +178,12 @@ function alGuardar(resultado) {
   emit('update:modelValue', items.value)
 
   dialogo.value = false
-  $q.notify({ type: 'positive', message: 'Guardado con éxito.', position: 'top-right', timeout: 1500 })
+  $q.notify({
+    type: 'positive',
+    message: 'Guardado con éxito.',
+    position: 'top-right',
+    timeout: 1500,
+  })
 }
 
 function reemplazar(actualizado) {
@@ -189,14 +201,24 @@ function anular(item) {
   }).onOk(async () => {
     const actualizado = await CapacitacionService.delete(props.basePath, item.id)
     reemplazar(actualizado.data ?? { ...item, flag_activo: false })
-    $q.notify({ type: 'positive', message: 'Anulado con éxito.', position: 'top-right', timeout: 1000 })
+    $q.notify({
+      type: 'positive',
+      message: 'Anulado con éxito.',
+      position: 'top-right',
+      timeout: 1000,
+    })
   })
 }
 
 async function reactivar(item) {
   const actualizado = await CapacitacionService.reactivar(props.basePath, item.id)
   reemplazar(actualizado)
-  $q.notify({ type: 'positive', message: 'Reactivado con éxito.', position: 'top-right', timeout: 1000 })
+  $q.notify({
+    type: 'positive',
+    message: 'Reactivado con éxito.',
+    position: 'top-right',
+    timeout: 1000,
+  })
 }
 </script>
 

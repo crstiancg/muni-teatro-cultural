@@ -70,7 +70,11 @@
           :class="form.invalid('password') ? 'q-mb-sm' : ''"
         >
           <template v-slot:append>
-            <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="isPwd = !isPwd" />
+            <q-icon
+              :name="isPwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="isPwd = !isPwd"
+            />
           </template>
           <template v-slot:prepend>
             <q-icon name="lock" />
@@ -159,7 +163,13 @@
                     >
                       <q-tooltip>Editar permiso</q-tooltip>
                     </q-btn>
-                    <q-toggle keep-color v-model="form.permisosSelected" color="secondary" :val="p.id" dense />
+                    <q-toggle
+                      keep-color
+                      v-model="form.permisosSelected"
+                      color="secondary"
+                      :val="p.id"
+                      dense
+                    />
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -172,13 +182,22 @@
                 Permisos heredados del rol
                 <span class="text-caption text-grey-6">({{ permisosHeredados.length }})</span>
               </div>
-              <div v-if="!permisosHeredados.length" class="text-caption text-grey-5 text-center q-py-sm">
+              <div
+                v-if="!permisosHeredados.length"
+                class="text-caption text-grey-5 text-center q-py-sm"
+              >
                 Asigná un rol para ver los permisos que hereda
               </div>
               <div v-else class="row q-col-gutter-sm">
                 <div v-for="p in permisosHeredados" :key="p.id" class="col-12 col-sm-6 col-md-4">
                   <div class="permiso-tile row items-center no-wrap">
-                    <q-avatar size="28px" color="grey-3" text-color="grey-7" icon="vpn_key" class="q-mr-sm" />
+                    <q-avatar
+                      size="28px"
+                      color="grey-3"
+                      text-color="grey-7"
+                      icon="vpn_key"
+                      class="q-mr-sm"
+                    />
                     <div class="col overflow-hidden">
                       <div class="permiso-tile__label ellipsis">{{ p.description || p.name }}</div>
                       <div class="permiso-tile__slug ellipsis">{{ p.name }}</div>
@@ -198,7 +217,13 @@
 
       <q-card-actions align="right">
         <q-btn label="Cancelar" flat v-close-popup></q-btn>
-        <q-btn outline label="Guardar" :loading="form.processing" type="submit" color="positive"></q-btn>
+        <q-btn
+          outline
+          label="Guardar"
+          :loading="form.processing"
+          type="submit"
+          color="positive"
+        ></q-btn>
       </q-card-actions>
     </q-form>
   </q-card>
@@ -238,7 +263,9 @@ const form = props.id
       permisosSelected: [],
     })
 
-const filteredPermisos = computed(() => listPermisos.value.filter((p) => form.permisosSelected.includes(p.id)))
+const filteredPermisos = computed(() =>
+  listPermisos.value.filter((p) => form.permisosSelected.includes(p.id)),
+)
 
 // Permisos que el usuario hereda por los roles asignados. Se editan desde el
 // rol, no desde acá — solo lectura, para que quede claro qué puede hacer.

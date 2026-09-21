@@ -3,7 +3,9 @@
     <div class="q-pa-md q-gutter-sm">
       <q-breadcrumbs>
         <q-breadcrumbs-el><Home size="16" /></q-breadcrumbs-el>
-        <q-breadcrumbs-el label="Curriculum Vitae"><GraduationCap size="16" class="q-mr-xs" /></q-breadcrumbs-el>
+        <q-breadcrumbs-el label="Curriculum Vitae"
+          ><GraduationCap size="16" class="q-mr-xs"
+        /></q-breadcrumbs-el>
       </q-breadcrumbs>
     </div>
     <q-separator />
@@ -22,7 +24,15 @@
             </q-avatar>
             <div class="text-subtitle1 text-weight-bold q-mt-md">{{ persona?.dni }}</div>
             <div class="text-h6">{{ persona?.nombre_completo }}</div>
-            <q-btn outline no-caps rounded color="primary" label="Editar" class="q-mt-md" @click="mostrarEditar = true">
+            <q-btn
+              outline
+              no-caps
+              rounded
+              color="primary"
+              label="Editar"
+              class="q-mt-md"
+              @click="mostrarEditar = true"
+            >
               <Pencil size="16" class="q-ml-xs" />
             </q-btn>
           </q-card-section>
@@ -35,13 +45,18 @@
             <div class="text-subtitle1 text-weight-bold q-mb-md">
               Formación Académica, Grado Académico y/o Nivel de Estudio Alcanzado
             </div>
-            <CurriculumVitaeList base-path="mi-informacion/curriculum-vitaes" v-model="curriculum" />
+            <CurriculumVitaeList
+              base-path="mi-informacion/curriculum-vitaes"
+              v-model="curriculum"
+            />
           </q-card-section>
         </q-card>
 
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
-            <div class="text-subtitle1 text-weight-bold q-mb-md">Capacitaciones y Reconocimientos</div>
+            <div class="text-subtitle1 text-weight-bold q-mb-md">
+              Capacitaciones y Reconocimientos
+            </div>
             <CapacitacionList base-path="mi-informacion/capacitaciones" v-model="capacitaciones" />
           </q-card-section>
         </q-card>
