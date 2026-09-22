@@ -51,9 +51,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('personas', PersonaController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);
-    Route::apiResource('profesiones', ProfesionController::class);
-    Route::apiResource('universidades', UniversidadController::class);
-    Route::apiResource('carreras', CarreraController::class);
+    Route::apiResource('profesiones', ProfesionController::class)->middleware([HandlePrecognitiveRequests::class]);
+    Route::apiResource('universidades', UniversidadController::class)->middleware([HandlePrecognitiveRequests::class]);
+    Route::apiResource('carreras', CarreraController::class)->middleware([HandlePrecognitiveRequests::class]);
 
     Route::get('comisiones', [ComisionController::class, 'index']);
     Route::get('comisiones/{codigo}', [ComisionController::class, 'show'])->whereAlphaNumeric('codigo');
