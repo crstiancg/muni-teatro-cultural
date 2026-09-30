@@ -8,6 +8,7 @@ use App\Http\Requests\StoreFormacionAcademicaRequest;
 use App\Http\Requests\StoreMiInformacionRequest;
 use App\Http\Requests\StoreMiPasswordRequest;
 use App\Http\Requests\StoreMiUsuarioRequest;
+use App\Http\Requests\StorePersonaFotoRequest;
 use App\Models\Actividad;
 use App\Models\Capacitacion;
 use App\Models\FormacionAcademica;
@@ -36,11 +37,13 @@ class MiInformacionController extends Controller
     {
         $usuario = $request->user();
         // un admin sin ficha de persona también puede entrar a "Mi Perfil"
-        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades']);
+        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto']);
 
         return response()->json([
             'usuario' => ['id' => $usuario->id, 'name' => $usuario->name, 'email' => $usuario->email],
             'persona' => $persona,
+            // la clave inicial es el DNI: el dashboard recomienda cambiarla mientras lo siga siendo
+            'password_es_dni' => $persona && Hash::check($persona->dni, $usuario->password),
         ]);
     }
 
@@ -210,6 +213,25 @@ class MiInformacionController extends Controller
             'archivo_path' => $archivo->store('capacitaciones', 'public'),
             'archivo_nombre_original' => $archivo->getClientOriginalName(),
         ];
+    }
+
+    public function storeFoto(StorePersonaFotoRequest $request)
+    {
+        // un admin sin ficha de persona no tiene dónde colgar la foto
+        $persona = $request->user()->persona;
+        abort_unless($persona, 404);
+
+        return response()->json($persona->reemplazarFoto($request->file('foto')), 201);
+    }
+
+    public function destroyFoto(Request $request)
+    {
+        $persona = $request->user()->persona;
+        abort_unless($persona, 404);
+
+        $persona->eliminarFoto();
+
+        return response()->json(true);
     }
 
     public function storeActividad(StoreActividadRequest $request)

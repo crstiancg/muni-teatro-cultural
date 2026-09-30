@@ -19,7 +19,15 @@
         <q-card flat :bordered="!$q.dark.isActive">
           <q-card-section class="text-center">
             <div class="text-subtitle1 text-weight-bold q-mb-md">CURRICULUM VITAE</div>
-            <q-avatar size="150px" color="primary" text-color="white" class="text-h4">
+            <!-- un admin sin ficha de persona no tiene dónde guardar la foto -->
+            <FotoPerfilUploader
+              v-if="persona"
+              base-path="mi-informacion"
+              size="150px"
+              :inicial="inicial"
+              v-model="persona.foto"
+            />
+            <q-avatar v-else size="150px" color="primary" text-color="white" class="text-h4">
               {{ inicial }}
             </q-avatar>
             <div class="text-subtitle1 text-weight-bold q-mt-md">{{ persona?.dni }}</div>
@@ -40,6 +48,14 @@
       </div>
 
       <div class="col-12 col-md-9">
+        <q-card v-if="persona" flat :bordered="!$q.dark.isActive" class="q-mb-md">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">Perfil público — Sobre su trabajo</div>
+            <EstadoPerfilPublico modo="artista" v-model="persona" class="q-mb-md" />
+            <PerfilPublicoForm base-path="mi-informacion" v-model="persona" />
+          </q-card-section>
+        </q-card>
+
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
             <div class="text-subtitle1 text-weight-bold q-mb-md">
@@ -84,6 +100,9 @@ import CurriculumVitaeList from '@/components/CurriculumVitaeList.vue'
 import CapacitacionList from '@/components/CapacitacionList.vue'
 import ActividadGallery from '@/components/ActividadGallery.vue'
 import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
+import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
+import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import PerfilPublicoForm from '@/components/PerfilPublicoForm.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 
 const $q = useQuasar()

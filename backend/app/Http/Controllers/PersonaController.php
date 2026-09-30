@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StorePersonaRequest;
 use App\Models\Persona;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class PersonaController extends Controller
+class PersonaController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas');
+    }
+
     private const CAMPOS = [
         'dni', 'nombre', 'apellido_paterno', 'apellido_materno', 'genero',
         'fecha_nacimiento', 'direccion', 'estado_civil', 'celular',
@@ -53,7 +59,7 @@ class PersonaController extends Controller
 
     public function show(Persona $persona)
     {
-        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades']));
+        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto']));
     }
 
     public function update(StorePersonaRequest $request, Persona $persona)

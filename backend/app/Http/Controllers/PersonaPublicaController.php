@@ -15,9 +15,10 @@ class PersonaPublicaController extends Controller
     public function index(Request $request)
     {
         $query = Persona::query()
-            ->whereNotNull('codigo_comision')
+            ->publicado()
             ->with([
                 'comision:codigo,cod_grupo,cod_familia,nombre',
+                'foto',
                 // una sola actividad por persona: la que se usa como foto de la
                 // tarjeta en el directorio
                 'actividades' => fn ($q) => $q->where('flag_activo', true)
@@ -62,11 +63,12 @@ class PersonaPublicaController extends Controller
 
     public function show(Persona $persona)
     {
-        abort_unless($persona->codigo_comision, 404);
+        abort_unless($persona->estado === 'aprobado' && $persona->codigo_comision, 404);
 
         $persona->load([
             'comision:codigo,cod_grupo,cod_familia,nombre',
             'comisionAlternativo:codigo,cod_grupo,cod_familia,nombre',
+            'foto',
             'actividades' => fn ($q) => $q->where('flag_activo', true)->where('flag_publico', true),
         ]);
 
@@ -74,6 +76,9 @@ class PersonaPublicaController extends Controller
             ...$this->datosPublicos($persona),
             ...$this->datosContacto($persona),
             'comision_alternativo' => $persona->comisionAlternativo?->nombre,
+            // HTML ya sanitizado al guardar (Persona::biografiaLimpia)
+            'biografia' => $persona->biografia,
+            'redes_sociales' => $persona->redes_sociales ?? (object) [],
             'actividades' => $persona->actividades->map(fn ($a) => [
                 'id' => $a->id,
                 'descripcion' => $a->descripcion,
@@ -83,13 +88,12 @@ class PersonaPublicaController extends Controller
     }
 
     // ÚNICO lugar donde se decide qué datos de contacto salen al público.
-    // Decisión del cliente (18/09/2026): se publica también el DNI, aun habiendo
-    // advertido el riesgo de suplantación y la Ley 29733. Para dejar de exponer
-    // un campo, basta con sacarlo de este arreglo.
+    // El DNI NO se publica (decisión 30/09/2026): además de la Ley 29733, es la
+    // contraseña inicial de cada artista. Para dejar de exponer un campo, basta
+    // con sacarlo de este arreglo.
     private function datosContacto(Persona $persona): array
     {
         return [
-            'dni' => $persona->dni,
             'celular' => $persona->celular,
             'correo' => $persona->correo,
         ];
@@ -101,7 +105,7 @@ class PersonaPublicaController extends Controller
         $actividades = Actividad::query()
             ->where('flag_activo', true)
             ->where('flag_publico', true)
-            ->whereHas('persona', fn ($q) => $q->whereNotNull('codigo_comision'))
+            ->whereHas('persona', fn ($q) => $q->publicado())
             ->with('persona:id,slug,nombre_completo')
             ->latest()
             ->limit(8)
@@ -121,7 +125,7 @@ class PersonaPublicaController extends Controller
     public function grupos()
     {
         $porGrupo = Persona::query()
-            ->whereNotNull('personas.codigo_comision')
+            ->publicado()
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
             ->groupBy('comisions.cod_grupo')
             ->selectRaw('comisions.cod_grupo as cod_grupo, count(*) as total')
@@ -147,13 +151,14 @@ class PersonaPublicaController extends Controller
             ->where('actividades.flag_activo', true)
             ->where('actividades.flag_publico', true)
             ->join('personas', 'actividades.persona_id', '=', 'personas.id')
+            ->where('personas.estado', 'aprobado')
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
             ->select('actividades.imagen_path', 'comisions.cod_grupo')
             ->get()
             ->groupBy('cod_grupo');
 
         $consejerosPorGrupo = Persona::query()
-            ->whereNotNull('personas.codigo_comision')
+            ->publicado()
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
             ->groupBy('comisions.cod_grupo')
             ->selectRaw('comisions.cod_grupo as cod_grupo, count(*) as total')
@@ -175,10 +180,11 @@ class PersonaPublicaController extends Controller
 
         return response()->json([
             'stats' => [
-                'consejeros' => Persona::whereNotNull('codigo_comision')->count(),
+                'consejeros' => Persona::publicado()->count(),
                 'comisiones' => Comision::where('tipo', 'familia')->count(),
                 'grupos' => $grupos->count(),
-                'actividades' => Actividad::where('flag_activo', true)->where('flag_publico', true)->count(),
+                'actividades' => Actividad::where('flag_activo', true)->where('flag_publico', true)
+                    ->whereHas('persona', fn ($q) => $q->publicado())->count(),
             ],
             'grupos' => $grupos,
             'destacadas' => $this->actividadesDestacadas()->getData(true),
@@ -192,10 +198,11 @@ class PersonaPublicaController extends Controller
     private function artistasDestacados(int $limite = 8): array
     {
         return Persona::query()
-            ->whereNotNull('codigo_comision')
+            ->publicado()
             ->whereHas('actividades', fn ($q) => $q->where('flag_activo', true)->where('flag_publico', true))
             ->with([
                 'comision:codigo,cod_grupo,cod_familia,nombre',
+                'foto',
                 'actividades' => fn ($q) => $q->where('flag_activo', true)
                     ->where('flag_publico', true)
                     ->latest()
@@ -231,6 +238,9 @@ class PersonaPublicaController extends Controller
                 ? $persona->actividades->first()?->imagen_url
                 : null,
             'total_actividades' => $persona->actividades_count ?? null,
+            // foto de perfil (tabla archivos); distinta de imagen_url, que es la
+            // portada tomada de la última actividad
+            'foto_url' => $persona->relationLoaded('foto') ? $persona->foto?->url : null,
         ];
     }
 }
