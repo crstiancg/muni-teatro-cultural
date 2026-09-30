@@ -60,3 +60,10 @@ export const COMISIONES = {
 export function comisionDe(codGrupo) {
   return COMISIONES[codGrupo] || { corto: 'Cultura', color: 'var(--oro)' }
 }
+
+// Link para compartir un perfil: lo sirve el backend (/compartir/{slug}) con las
+// etiquetas Open Graph, así WhatsApp/Facebook muestran foto y nombre. Una
+// persona que lo abre es redirigida al perfil del portal.
+export function urlCompartirPerfil(slug) {
+  return `${String(import.meta.env.QCLI_API_BACKEND_URL || '').replace(/\/$/, '')}/compartir/${slug}`
+}

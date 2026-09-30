@@ -188,6 +188,7 @@ import {
 } from 'lucide-vue-next'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
 import { useNotify } from '@/composables/useNotify'
+import { urlCompartirPerfil } from '@/config/institucion'
 
 const props = defineProps({
   // viene de GET mi-informacion (backend: Persona::requisitosPerfil)
@@ -223,14 +224,17 @@ const urlPublica = computed(
     router.resolve({ name: 'ConsejeroDetallePublico', params: { slug: persona.value.slug } }).href,
 )
 
+// para compartir se usa el link del backend: trae la vista previa (Open Graph)
+const urlCompartir = computed(() => urlCompartirPerfil(persona.value.slug))
+
 const urlWhatsapp = computed(
   () =>
     'https://wa.me/?text=' +
-    encodeURIComponent(`Conoce mi trabajo en el registro cultural: ${urlPublica.value}`),
+    encodeURIComponent(`Conoce mi trabajo en el registro cultural: ${urlCompartir.value}`),
 )
 
 async function copiar() {
-  await copyToClipboard(urlPublica.value)
+  await copyToClipboard(urlCompartir.value)
   notifySuccess('Enlace copiado.')
 }
 

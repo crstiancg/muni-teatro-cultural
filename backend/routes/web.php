@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompartirPerfilController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Tipo;
 
@@ -16,3 +17,6 @@ Route::get('/tipos', function () {
     return view('tipos', compact('tipos'));
 
 });
+
+// link para compartir perfiles con vista previa (Open Graph) en WhatsApp/Facebook
+Route::get('/compartir/{persona:slug}', CompartirPerfilController::class)->name('compartir.perfil');

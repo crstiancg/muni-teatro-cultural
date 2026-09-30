@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // la SPA (Quasar) vive aparte: /compartir/{slug} redirige ahí a las personas
+    'frontend_url' => rtrim(env('FRONTEND_URL', 'http://127.0.0.1:9000'), '/'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

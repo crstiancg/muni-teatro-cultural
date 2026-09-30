@@ -252,7 +252,7 @@ import {
   Globe,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, comisionDe } from '@/config/institucion'
+import { INSTITUCION, comisionDe, urlCompartirPerfil } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const route = useRoute()
@@ -295,7 +295,8 @@ const redes = computed(() =>
 
 async function compartir() {
   try {
-    await navigator.clipboard.writeText(window.location.href)
+    // el link del backend trae la vista previa (Open Graph) para WhatsApp/Facebook
+    await navigator.clipboard.writeText(urlCompartirPerfil(persona.value.slug))
     copiado.value = true
     setTimeout(() => (copiado.value = false), 2200)
   } catch {
