@@ -12,6 +12,7 @@
     <q-separator />
     <div class="q-gutter-xs q-pa-sm">
       <q-btn
+        v-if="userStore.hasPermission('admin-personas-crear')"
         outline
         color="primary"
         :disable="loading"
@@ -93,6 +94,7 @@
             </q-td>
             <q-td auto-width>
               <q-btn
+                v-if="userStore.hasPermission('admin-personas-editar')"
                 size="sm"
                 text-color="cyan-8"
                 color="cyan-1"
@@ -103,6 +105,7 @@
                 class="q-mr-xs"
               />
               <q-btn
+                v-if="userStore.hasPermission('admin-personas-eliminar')"
                 size="sm"
                 text-color="red-13"
                 color="red-1"
@@ -126,9 +129,11 @@ import { useRouter } from 'vue-router'
 import PersonaService from '@/services/PersonaService'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import { ESTADOS_PERFIL, estadoPerfil } from '@/config/estadosPerfil'
+import { useUserStore } from '@/stores/user-store'
 
 const $q = useQuasar()
 const router = useRouter()
+const userStore = useUserStore()
 const columns = [
   { name: 'dni', label: 'DNI', aling: 'center', field: (row) => row.dni, sortable: true },
   { name: 'nombre_completo', label: 'Nombre completo', aling: 'center', field: (row) => row.nombre_completo, sortable: true },

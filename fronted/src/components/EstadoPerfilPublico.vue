@@ -30,8 +30,9 @@
         <Send :size="16" class="q-ml-xs" />
       </q-btn>
 
-      <!-- admin: puede aprobar u observar en cualquier estado que no sea el mismo -->
-      <template v-if="modo === 'admin'">
+      <!-- admin: puede aprobar u observar en cualquier estado que no sea el mismo.
+           El backend igual devuelve 403 sin permiso: esto solo evita botones que fallan -->
+      <template v-if="modo === 'admin' && userStore.hasPermission('admin-personas-aprobar')">
         <q-btn
           v-if="persona.estado !== 'aprobado'"
           unelevated
@@ -62,6 +63,7 @@ import { Send } from 'lucide-vue-next'
 import PerfilPublicoService from '@/services/PerfilPublicoService'
 import { useNotify } from '@/composables/useNotify'
 import { estadoPerfil } from '@/config/estadosPerfil'
+import { useUserStore } from '@/stores/user-store'
 
 defineProps({
   // "artista" (Mi CV) o "admin" (detalle de persona)
@@ -98,6 +100,7 @@ const AYUDAS = {
 }
 
 const $q = useQuasar()
+const userStore = useUserStore()
 const { notifySuccess, notifyError } = useNotify()
 const procesando = ref(false)
 const actual = computed(() => ({
