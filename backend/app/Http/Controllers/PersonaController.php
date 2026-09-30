@@ -8,8 +8,6 @@ use App\Models\Persona;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class PersonaController extends Controller implements HasMiddleware
 {
@@ -86,20 +84,19 @@ class PersonaController extends Controller implements HasMiddleware
     }
 
     // Borra la persona, su usuario de acceso y todos sus archivos. Las filas de
-    // CV/capacitaciones/actividades caen por cascadeOnDelete en la base, pero sus
-    // archivos físicos y los de la tabla polimórfica no: hay que borrarlos a mano.
+    // CV/capacitaciones/actividades caen por cascadeOnDelete en la base, pero la
+    // tabla polimórfica "archivos" no tiene FK: sus filas y el disco van a mano.
     public function destroy(Request $request, Persona $persona)
     {
         // sin esto un admin con ficha de persona podría dejarse sin acceso
         abort_if($persona->user_id === $request->user()->id, 422, 'No puedes eliminar tu propia ficha.');
 
-        // se juntan antes y se borran después del commit: si la transacción
-        // falla, no se pierde nada del disco
-        $archivosLegacy = collect()
-            ->merge($persona->formacionesAcademicas()->pluck('archivo_path'))
-            ->merge($persona->capacitaciones()->pluck('archivo_path'))
-            ->merge($persona->actividades()->pluck('imagen_path'))
-            ->filter(fn ($path) => $path && ! Str::startsWith($path, ['http://', 'https://']));
+        // se juntan antes (después del cascade ya no se llega a ellos) y se
+        // borran después del commit: si la transacción falla, no se pierde nada
+        $archivos = $persona->archivos()->get()
+            ->merge($persona->formacionesAcademicas()->with('archivos')->get()->flatMap->archivos)
+            ->merge($persona->capacitaciones()->with('archivos')->get()->flatMap->archivos)
+            ->merge($persona->actividades()->with('archivos')->get()->flatMap->archivos);
 
         DB::transaction(function () use ($persona) {
             $user = $persona->user;
@@ -110,10 +107,8 @@ class PersonaController extends Controller implements HasMiddleware
             $user?->delete();
         });
 
-        // la instancia conserva el id: las filas polimórficas siguen ubicables.
-        // Uno por uno para que el evento deleting de Archivo borre el disco.
-        $persona->archivos()->get()->each->delete();
-        Storage::disk('public')->delete($archivosLegacy->all());
+        // uno por uno para que el evento deleting de Archivo borre el disco
+        $archivos->each->delete();
 
         return response()->json(true);
     }

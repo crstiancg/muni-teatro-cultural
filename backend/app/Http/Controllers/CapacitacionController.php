@@ -6,7 +6,6 @@ use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreCapacitacionRequest;
 use App\Models\Capacitacion;
 use App\Models\Persona;
-use Illuminate\Support\Facades\Storage;
 
 class CapacitacionController extends Controller implements HasMiddleware
 {
@@ -26,8 +25,8 @@ class CapacitacionController extends Controller implements HasMiddleware
         $capacitacion = Capacitacion::create([
             ...collect($datos)->only(self::CAMPOS)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivo($request),
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion, 201);
     }
@@ -37,16 +36,10 @@ class CapacitacionController extends Controller implements HasMiddleware
         abort_unless($capacitacion->persona_id === $persona->id, 404);
 
         $datos = data_get($request, 'capacitacion');
-        $archivoNuevo = $this->datosArchivo($request);
-
-        if ($archivoNuevo && $capacitacion->archivo_path) {
-            Storage::disk('public')->delete($capacitacion->archivo_path);
-        }
-
         $capacitacion->update([
             ...collect($datos)->only(self::CAMPOS)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion);
     }
@@ -69,19 +62,5 @@ class CapacitacionController extends Controller implements HasMiddleware
         $capacitacion->update(['flag_activo' => true]);
 
         return response()->json($capacitacion);
-    }
-
-    private function datosArchivo(StoreCapacitacionRequest $request): array
-    {
-        if (! $request->hasFile('capacitacion.archivo')) {
-            return [];
-        }
-
-        $archivo = $request->file('capacitacion.archivo');
-
-        return [
-            'archivo_path' => $archivo->store('capacitaciones', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
     }
 }

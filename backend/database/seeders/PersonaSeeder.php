@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 // Crea 100 personas de prueba con sus actividades. A diferencia de
-// ArtistasDemoSeeder, no descarga ningun archivo: en imagen_path guarda la URL
-// de picsum y Actividad::resolverImagenUrl() la devuelve tal cual, asi que corre
+// ArtistasDemoSeeder, no descarga ningun archivo: en archivos.path guarda la URL
+// de picsum y Archivo::url la devuelve tal cual, asi que corre
 // sin internet (las imagenes recien se piden cuando el navegador las muestra).
 class PersonaSeeder extends Seeder
 {
@@ -69,6 +69,8 @@ class PersonaSeeder extends Seeder
                 'ubigeo_cod_nacimiento' => $ubigeos ? fake()->randomElement($ubigeos) : null,
                 'ubigeo_cod_residencia' => $ubigeos ? fake()->randomElement($ubigeos) : null,
                 'codigo_comision' => fake()->randomElement($familias),
+                // sin esto quedan en borrador y no aparecen en el portal
+                'estado' => 'aprobado',
                 'user_id' => $user->id,
             ]);
 
@@ -80,10 +82,12 @@ class PersonaSeeder extends Seeder
                 Actividad::create([
                     'persona_id' => $persona->id,
                     'descripcion' => fake()->sentence(10),
-                    'imagen_path' => "https://picsum.photos/seed/{$seed}/800/600",
-                    'imagen_nombre_original' => "actividad-{$seed}.jpg",
                     'flag_activo' => true,
                     'flag_publico' => true,
+                ])->archivos()->create([
+                    'coleccion' => Actividad::COLECCION_ADJUNTO,
+                    'path' => "https://picsum.photos/seed/{$seed}/800/600",
+                    'nombre_original' => "actividad-{$seed}.jpg",
                 ]);
             }
         }

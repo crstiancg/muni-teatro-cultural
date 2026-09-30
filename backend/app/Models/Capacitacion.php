@@ -2,13 +2,25 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneAdjunto;
 use Illuminate\Database\Eloquent\Model;
 
 class Capacitacion extends Model
 {
+    use TieneAdjunto;
+
+    const COLECCION_ADJUNTO = 'certificado';
+
+    const CARPETA_ADJUNTO = 'capacitaciones';
+
     protected $table = 'capacitaciones';
 
-    protected $appends = ['archivo_url'];
+    protected $appends = ['archivo_url', 'archivo_nombre_original'];
+
+    // siempre se necesita para archivo_url; oculto porque ya sale aplanado
+    protected $with = ['adjunto'];
+
+    protected $hidden = ['adjunto'];
 
     protected $fillable = [
         'persona_id',
@@ -18,8 +30,6 @@ class Capacitacion extends Model
         'horas',
         'folio',
         'fecha',
-        'archivo_path',
-        'archivo_nombre_original',
         'flag_activo',
     ];
 
@@ -41,13 +51,14 @@ class Capacitacion extends Model
         return $this->belongsTo(Persona::class);
     }
 
-    public function archivos()
+    // mismos nombres que cuando eran columnas: el front no cambia
+    public function getArchivoUrlAttribute(): ?string
     {
-        return $this->morphMany(Archivo::class, 'archivable');
+        return $this->adjunto?->url;
     }
 
-    public function getArchivoUrlAttribute()
+    public function getArchivoNombreOriginalAttribute(): ?string
     {
-        return $this->archivo_path ? asset('storage/' . $this->archivo_path) : null;
+        return $this->adjunto?->nombre_original;
     }
 }

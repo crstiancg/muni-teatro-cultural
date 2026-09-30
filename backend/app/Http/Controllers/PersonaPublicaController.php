@@ -153,7 +153,8 @@ class PersonaPublicaController extends Controller
             ->join('personas', 'actividades.persona_id', '=', 'personas.id')
             ->where('personas.estado', 'aprobado')
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
-            ->select('actividades.imagen_path', 'comisions.cod_grupo')
+            // el id alcanza: la imagen llega por el eager load de "adjunto" (Actividad::$with)
+            ->select('actividades.id', 'comisions.cod_grupo')
             ->get()
             ->groupBy('cod_grupo');
 
@@ -168,13 +169,12 @@ class PersonaPublicaController extends Controller
             ->orderBy('nombre')
             ->get(['cod_grupo', 'nombre'])
             ->map(function (Comision $grupo) use ($actividadesPorGrupo, $consejerosPorGrupo) {
-                $imagen = $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_path;
 
                 return [
                     'cod_grupo' => $grupo->cod_grupo,
                     'nombre' => $grupo->nombre,
                     'consejeros' => (int) ($consejerosPorGrupo[$grupo->cod_grupo] ?? 0),
-                    'imagen_url' => Actividad::resolverImagenUrl($imagen),
+                    'imagen_url' => $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_url,
                 ];
             });
 

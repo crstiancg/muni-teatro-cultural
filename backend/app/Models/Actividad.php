@@ -2,20 +2,29 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneAdjunto;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Actividad extends Model
 {
+    use TieneAdjunto;
+
+    const COLECCION_ADJUNTO = 'imagen';
+
+    const CARPETA_ADJUNTO = 'actividades';
+
     protected $table = 'actividades';
 
-    protected $appends = ['imagen_url'];
+    protected $appends = ['imagen_url', 'imagen_nombre_original'];
+
+    // siempre se necesita para imagen_url; oculto porque ya sale aplanado
+    protected $with = ['adjunto'];
+
+    protected $hidden = ['adjunto'];
 
     protected $fillable = [
         'persona_id',
         'descripcion',
-        'imagen_path',
-        'imagen_nombre_original',
         'flag_activo',
         'flag_publico',
     ];
@@ -33,28 +42,15 @@ class Actividad extends Model
         return $this->belongsTo(Persona::class);
     }
 
-    public function archivos()
+    // mismos nombres que cuando eran columnas: el front no cambia.
+    // Las URLs externas de los seeders (picsum) las resuelve Archivo::url
+    public function getImagenUrlAttribute(): ?string
     {
-        return $this->morphMany(Archivo::class, 'archivable');
+        return $this->adjunto?->url;
     }
 
-    public function getImagenUrlAttribute()
+    public function getImagenNombreOriginalAttribute(): ?string
     {
-        return static::resolverImagenUrl($this->imagen_path);
-    }
-
-    // los seeders de prueba guardan URLs externas (picsum) en vez de un archivo
-    // subido, asi que las devolvemos tal cual en vez de prefijarlas con storage/
-    public static function resolverImagenUrl(?string $imagenPath): ?string
-    {
-        if (! $imagenPath) {
-            return null;
-        }
-
-        if (Str::startsWith($imagenPath, ['http://', 'https://'])) {
-            return $imagenPath;
-        }
-
-        return asset('storage/' . $imagenPath);
+        return $this->adjunto?->nombre_original;
     }
 }

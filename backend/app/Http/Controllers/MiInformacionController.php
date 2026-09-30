@@ -14,7 +14,6 @@ use App\Models\Capacitacion;
 use App\Models\FormacionAcademica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class MiInformacionController extends Controller
 {
@@ -89,8 +88,8 @@ class MiInformacionController extends Controller
         $formacion = FormacionAcademica::create([
             ...collect($datos)->only(self::CAMPOS_FORMACION)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivoFormacion($request),
         ]);
+        $formacion->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacion, 201);
     }
@@ -100,16 +99,10 @@ class MiInformacionController extends Controller
         abort_unless($formacionAcademica->persona_id === $request->user()->persona?->id, 404);
 
         $datos = data_get($request, 'formacion');
-        $archivoNuevo = $this->datosArchivoFormacion($request);
-
-        if ($archivoNuevo && $formacionAcademica->archivo_path) {
-            Storage::disk('public')->delete($formacionAcademica->archivo_path);
-        }
-
         $formacionAcademica->update([
             ...collect($datos)->only(self::CAMPOS_FORMACION)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $formacionAcademica->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacionAcademica);
     }
@@ -134,19 +127,6 @@ class MiInformacionController extends Controller
         return response()->json($formacionAcademica);
     }
 
-    private function datosArchivoFormacion(StoreFormacionAcademicaRequest $request): array
-    {
-        if (! $request->hasFile('formacion.archivo')) {
-            return [];
-        }
-
-        $archivo = $request->file('formacion.archivo');
-
-        return [
-            'archivo_path' => $archivo->store('formacion_academica', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
-    }
 
     public function storeCapacitacion(StoreCapacitacionRequest $request)
     {
@@ -156,8 +136,8 @@ class MiInformacionController extends Controller
         $capacitacion = Capacitacion::create([
             ...collect($datos)->only(self::CAMPOS_CAPACITACION)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivoCapacitacion($request),
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion, 201);
     }
@@ -167,16 +147,10 @@ class MiInformacionController extends Controller
         abort_unless($capacitacion->persona_id === $request->user()->persona?->id, 404);
 
         $datos = data_get($request, 'capacitacion');
-        $archivoNuevo = $this->datosArchivoCapacitacion($request);
-
-        if ($archivoNuevo && $capacitacion->archivo_path) {
-            Storage::disk('public')->delete($capacitacion->archivo_path);
-        }
-
         $capacitacion->update([
             ...collect($datos)->only(self::CAMPOS_CAPACITACION)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion);
     }
@@ -201,19 +175,6 @@ class MiInformacionController extends Controller
         return response()->json($capacitacion);
     }
 
-    private function datosArchivoCapacitacion(StoreCapacitacionRequest $request): array
-    {
-        if (! $request->hasFile('capacitacion.archivo')) {
-            return [];
-        }
-
-        $archivo = $request->file('capacitacion.archivo');
-
-        return [
-            'archivo_path' => $archivo->store('capacitaciones', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
-    }
 
     public function storeFoto(StorePersonaFotoRequest $request)
     {
@@ -242,8 +203,8 @@ class MiInformacionController extends Controller
             'descripcion' => data_get($request, 'actividad.descripcion'),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
             'persona_id' => $persona->id,
-            ...$this->datosImagenActividad($request),
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad, 201);
     }
@@ -252,17 +213,11 @@ class MiInformacionController extends Controller
     {
         abort_unless($actividad->persona_id === $request->user()->persona?->id, 404);
 
-        $imagenNueva = $this->datosImagenActividad($request);
-
-        if ($imagenNueva && $actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
-
         $actividad->update([
             'descripcion' => data_get($request, 'actividad.descripcion'),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
-            ...$imagenNueva,
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad);
     }
@@ -293,24 +248,8 @@ class MiInformacionController extends Controller
     {
         abort_unless($actividad->persona_id === $request->user()->persona?->id, 404);
 
-        if ($actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
+        $actividad->eliminarAdjunto();
 
         return response()->json($actividad->delete());
-    }
-
-    private function datosImagenActividad(StoreActividadRequest $request): array
-    {
-        if (! $request->hasFile('actividad.imagen')) {
-            return [];
-        }
-
-        $imagen = $request->file('actividad.imagen');
-
-        return [
-            'imagen_path' => $imagen->store('actividades', 'public'),
-            'imagen_nombre_original' => $imagen->getClientOriginalName(),
-        ];
     }
 }
