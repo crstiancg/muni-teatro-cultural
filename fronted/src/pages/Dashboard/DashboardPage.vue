@@ -28,14 +28,12 @@
       </template>
     </q-banner>
 
-    <q-card flat bordered class="q-mb-md">
-      <q-card-section>
-        <div class="text-h6">Bienvenido al panel de Teatro Cultural</div>
-        <div class="text-caption text-grey">
-          Desde aquí puedes gestionar tu información y tu presencia en el portal.
-        </div>
-      </q-card-section>
-    </q-card>
+    <div class="q-mb-lg">
+      <div class="text-h5 text-weight-bold">Hola, {{ primerNombre }} 👋</div>
+      <div class="text-body2" style="opacity: 0.68">
+        {{ hoy }} · Esto es lo que pasa hoy en el registro cultural.
+      </div>
+    </div>
 
     <!-- resumen para quien gestiona personas (admin) -->
     <DashboardAdmin v-if="userStore.hasPermission('admin-personas-index')" class="q-mb-md" />
@@ -60,7 +58,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { date } from 'quasar'
 import { ShieldAlert } from 'lucide-vue-next'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
 import DashboardAdmin from '@/components/DashboardAdmin.vue'
@@ -69,6 +68,15 @@ import MiInformacionService from '@/services/MiInformacionService'
 
 const userStore = useUserStore()
 const persona = ref(null)
+
+const primerNombre = computed(() => (userStore.getName || '').split(' ')[0] || 'bienvenido')
+const hoy = date.formatDate(new Date(), 'dddd D [de] MMMM', {
+  days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+  months: [
+    'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+    'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+  ],
+})
 const passwordEsDni = ref(false)
 
 onMounted(async () => {
