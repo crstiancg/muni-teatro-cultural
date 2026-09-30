@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('persona_id')->constrained('personas')->cascadeOnDelete();
             $table->enum('tipo', [
-                'diplomado', 'programa', 'especializacion','capacitacion','reconocimiento', 'curso', 'taller', 'seminario', 'conferencias', 'otros',
+                'diplomado', 'programa', 'especializacion', 'curso', 'taller', 'seminario', 'conferencias', 'otros',
             ]);
             $table->string('nombre_evento');
             $table->string('centro_estudios');

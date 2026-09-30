@@ -16,7 +16,8 @@ class StoreCapacitacionRequest extends FormRequest
         return [
             'capacitacion.tipo' => 'required|in:diplomado,programa,especializacion,curso,taller,seminario,conferencias,otros',
             'capacitacion.nombre_evento' => 'required|string|max:255',
-            // 'capacitacion.centro_estudios' => 'required|string|max:255',
+            // opcional: no toda capacitación o reconocimiento la da un centro de estudios
+            'capacitacion.centro_estudios' => 'nullable|string|max:255',
             'capacitacion.horas' => 'nullable|integer|min:0',
             'capacitacion.folio' => 'nullable|string|max:255',
             'capacitacion.fecha' => 'nullable|date',

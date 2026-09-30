@@ -55,7 +55,7 @@
               dense
               outlined
               v-model="form.capacitacion.centro_estudios"
-              label="Centro de Estudio *"
+              label="Centro de Estudio"
               @change="form.validate('capacitacion.centro_estudios')"
               :error="form.invalid('capacitacion.centro_estudios')"
               :error-message="form.errors['capacitacion.centro_estudios']"
