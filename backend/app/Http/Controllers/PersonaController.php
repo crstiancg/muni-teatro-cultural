@@ -60,7 +60,7 @@ class PersonaController extends Controller implements HasMiddleware
 
     public function show(Persona $persona)
     {
-        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto']));
+        return response()->json($persona->load(['user:id,name,email', 'ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto', 'revisiones.usuario:id,name']));
     }
 
     public function update(StorePersonaRequest $request, Persona $persona)

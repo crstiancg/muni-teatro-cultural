@@ -36,7 +36,7 @@ class MiInformacionController extends Controller
     {
         $usuario = $request->user();
         // un admin sin ficha de persona también puede entrar a "Mi Perfil"
-        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto']);
+        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto', 'revisiones.usuario:id,name']);
 
         return response()->json([
             'usuario' => ['id' => $usuario->id, 'name' => $usuario->name, 'email' => $usuario->email],

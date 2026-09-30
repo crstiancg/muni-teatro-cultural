@@ -49,9 +49,10 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         abort_unless($persona->codigo_comision, 422, 'Primero completa tu comisión en "Editar".');
 
         $persona->update(['estado' => 'pendiente', 'observacion' => null]);
+        $this->registrarRevision($request, $persona, 'enviado');
         $persona->notificarAdmins('solicitud', "{$persona->nombre_completo} envió su perfil para revisión.");
 
-        return response()->json($persona);
+        return response()->json($this->conHistorial($persona));
     }
 
     // --- el admin ---
@@ -70,7 +71,7 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         $this->resolver($request, $persona, 'aprobado', null);
         $this->avisarArtista($persona, 'aprobado', 'Tu perfil fue aprobado y ya aparece en el portal.');
 
-        return response()->json($persona);
+        return response()->json($this->conHistorial($persona));
     }
 
     public function observar(Request $request, Persona $persona)
@@ -80,7 +81,7 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         $this->resolver($request, $persona, 'observado', $datos['observacion']);
         $this->avisarArtista($persona, 'observado', "Tu perfil fue observado: {$datos['observacion']}");
 
-        return response()->json($persona);
+        return response()->json($this->conHistorial($persona));
     }
 
     // --- helpers ---
@@ -110,6 +111,24 @@ class PerfilPublicoController extends Controller implements HasMiddleware
             'revisado_por' => $request->user()->id,
             'revisado_en' => now(),
         ]);
+
+        $this->registrarRevision($request, $persona, $estado, $observacion);
+    }
+
+    private function registrarRevision(Request $request, Persona $persona, string $accion, ?string $observacion = null): void
+    {
+        $persona->revisiones()->create([
+            'accion' => $accion,
+            'observacion' => $observacion,
+            'user_id' => $request->user()->id,
+        ]);
+    }
+
+    // el front mezcla la respuesta en la persona: así la línea de tiempo se
+    // actualiza sin recargar la página
+    private function conHistorial(Persona $persona): Persona
+    {
+        return $persona->load('revisiones.usuario:id,name');
     }
 
     private function avisarArtista(Persona $persona, string $tipo, string $mensaje): void

@@ -156,6 +156,12 @@ class Persona extends Model
         return $this->morphMany(Archivo::class, 'archivable');
     }
 
+    // historial del flujo de revisión, lo más reciente primero
+    public function revisiones()
+    {
+        return $this->hasMany(RevisionPerfil::class)->latest()->latest('id');
+    }
+
     public function foto()
     {
         return $this->morphOne(Archivo::class, 'archivable')->where('coleccion', 'foto');

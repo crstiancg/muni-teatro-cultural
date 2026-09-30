@@ -46,6 +46,13 @@
             </q-btn>
           </q-card-section>
         </q-card>
+
+        <q-card v-if="persona" flat :bordered="!$q.dark.isActive" class="q-mt-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">Historial de revisiones</div>
+            <HistorialRevisiones :revisiones="persona.revisiones" />
+          </q-card-section>
+        </q-card>
       </div>
 
       <div class="col-12 col-md-9">
@@ -114,6 +121,7 @@ import CurriculumVitaeList from '@/components/CurriculumVitaeList.vue'
 import CapacitacionList from '@/components/CapacitacionList.vue'
 import ActividadGallery from '@/components/ActividadGallery.vue'
 import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
+import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
 import PerfilPublicoForm from '@/components/PerfilPublicoForm.vue'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
