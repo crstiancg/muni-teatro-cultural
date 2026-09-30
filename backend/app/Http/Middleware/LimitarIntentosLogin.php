@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 // Passport trae "throttle" genérico en /oauth/token (60/min por IP). Como la
 // clave inicial es el DNI (8 dígitos), se limita además por cuenta: 5 intentos
 // fallidos por minuto por correo + IP. Un login correcto reinicia el contador.
+// Cubre POST /api/login (el que usa el front) y /oauth/token directo.
 class LimitarIntentosLogin
 {
     private const MAX_INTENTOS = 5;
@@ -19,11 +20,19 @@ class LimitarIntentosLogin
 
     public function handle(Request $request, Closure $next): Response
     {
-        if (! $request->is('oauth/token') || $request->input('grant_type') !== 'password') {
+        $usuario = match (true) {
+            $request->is('api/login') => $request->input('email'),
+            $request->is('oauth/token') && $request->input('grant_type') === 'password'
+                // la subpetición de AuthController ya se contó en api/login
+                && ! $request->attributes->get('login_interno') => $request->input('username'),
+            default => null,
+        };
+
+        if ($usuario === null) {
             return $next($request);
         }
 
-        $clave = 'login:' . Str::lower((string) $request->input('username')) . '|' . $request->ip();
+        $clave = 'login:' . Str::lower((string) $usuario) . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($clave, self::MAX_INTENTOS)) {
             $segundos = RateLimiter::availableIn($clave);

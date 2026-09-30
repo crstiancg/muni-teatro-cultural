@@ -23,14 +23,8 @@ export const useUserStore = defineStore('user', {
   actions: {
     async login(email, password) {
       Cookies.remove('token', { path: '/' })
-      const res = await api.post('oauth/token', {
-        grant_type: 'password',
-        client_id: '01a0b014-f3f5-71e2-8cbd-d8a9d0ca21b9',
-        client_secret: import.meta.env.QCLI_APP_SECRET,
-        username: email,
-        password: password,
-        scope: '',
-      })
+      // el backend agrega el client id/secret de Passport: no viajan en el bundle
+      const res = await api.post('api/login', { email, password })
       const tokenString = 'Bearer ' + res.data.access_token
       Cookies.set('token', tokenString, { path: '/' })
       await this.getUser()

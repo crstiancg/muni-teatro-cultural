@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapacitacionController;
 use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
@@ -22,6 +23,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NivelController;
 use App\Http\Controllers\UniversidadController;
 use App\Http\Controllers\CarreraController;
+
+// login del panel: el client secret de Passport lo agrega el backend
+Route::post('login', [AuthController::class, 'login']);
 
 // endpoints públicos, sin auth: solo datos seguros para la galería de consejeros
 Route::get('publico/portada', [PersonaPublicaController::class, 'portada']);
