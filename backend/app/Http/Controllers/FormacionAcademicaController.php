@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreFormacionAcademicaRequest;
 use App\Models\FormacionAcademica;
 use App\Models\Persona;
 use Illuminate\Support\Facades\Storage;
 
-class FormacionAcademicaController extends Controller
+class FormacionAcademicaController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas', ['editar' => ['store', 'update', 'destroy', 'reactivar']]);
+    }
+
     private const CAMPOS = [
         'tipo', 'nivel_alcanzado', 'centro_estudios', 'profesion', 'folio', 'fecha_expedicion',
     ];

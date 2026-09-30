@@ -33,6 +33,11 @@ class Actividad extends Model
         return $this->belongsTo(Persona::class);
     }
 
+    public function archivos()
+    {
+        return $this->morphMany(Archivo::class, 'archivable');
+    }
+
     public function getImagenUrlAttribute()
     {
         return static::resolverImagenUrl($this->imagen_path);

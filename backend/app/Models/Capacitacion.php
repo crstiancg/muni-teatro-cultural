@@ -31,9 +31,19 @@ class Capacitacion extends Model
         ];
     }
 
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        return $date->format('Y-m-d');
+    }
+
     public function persona()
     {
         return $this->belongsTo(Persona::class);
+    }
+
+    public function archivos()
+    {
+        return $this->morphMany(Archivo::class, 'archivable');
     }
 
     public function getArchivoUrlAttribute()

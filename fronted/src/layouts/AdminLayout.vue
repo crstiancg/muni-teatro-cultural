@@ -5,6 +5,7 @@
         <q-btn flat dense round icon="menu" @click="drawer = !drawer" />
         <q-toolbar-title />
         <AppClock class="q-mr-md" />
+        <NotificacionesBell />
         <SwitchDarkMode />
       </q-toolbar>
     </q-header>
@@ -122,6 +123,7 @@ import { LogOut } from 'lucide-vue-next'
 import MenuItem from '@/components/sidebar/MenuItem.vue'
 import MenuGroup from '@/components/sidebar/MenuGroup.vue'
 import AppClock from '@/components/AppClock.vue'
+import NotificacionesBell from '@/components/NotificacionesBell.vue'
 import SwitchDarkMode from '@/components/SwitchDarkMode.vue'
 import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
 import MiInformacionService from '@/services/MiInformacionService'

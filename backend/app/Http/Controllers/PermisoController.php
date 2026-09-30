@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StorePermisoRequest;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Permission;
 
-class PermisoController extends Controller
+class PermisoController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('permisos');
+    }
+
     public function index(Request $request)
     {
         return $this->generateViewSetList(

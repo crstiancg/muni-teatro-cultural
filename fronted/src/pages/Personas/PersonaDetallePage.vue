@@ -19,9 +19,11 @@
       <div class="col-12 col-md-3">
         <q-card flat :bordered="!$q.dark.isActive">
           <q-card-section class="text-center">
-            <q-avatar size="88px" color="primary" text-color="white" class="text-h4">
-              {{ inicial }}
-            </q-avatar>
+            <FotoPerfilUploader
+              :base-path="`personas/${personaId}`"
+              :inicial="inicial"
+              v-model="persona.foto"
+            />
             <div class="text-subtitle1 text-weight-bold q-mt-md">{{ persona?.dni }}</div>
             <div class="text-body2">{{ persona?.nombre_completo }}</div>
             <div class="text-caption text-grey-7">{{ persona?.correo }}</div>
@@ -41,6 +43,14 @@
       </div>
 
       <div class="col-12 col-md-9">
+        <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">Perfil público — Sobre su trabajo</div>
+            <EstadoPerfilPublico modo="admin" v-model="persona" class="q-mb-md" />
+            <PerfilPublicoForm :base-path="`personas/${personaId}`" v-model="persona" />
+          </q-card-section>
+        </q-card>
+
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
             <div class="text-subtitle1 text-weight-bold q-mb-md">
@@ -97,6 +107,9 @@ import { Home, Contact, Pencil } from 'lucide-vue-next'
 import CurriculumVitaeList from '@/components/CurriculumVitaeList.vue'
 import CapacitacionList from '@/components/CapacitacionList.vue'
 import ActividadGallery from '@/components/ActividadGallery.vue'
+import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
+import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import PerfilPublicoForm from '@/components/PerfilPublicoForm.vue'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import PersonaService from '@/services/PersonaService'
 

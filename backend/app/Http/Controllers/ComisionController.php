@@ -2,14 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreComisionRequest;
 use App\Http\Requests\StoreFamiliaRequest;
 use App\Models\Comision;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class ComisionController extends Controller
+class ComisionController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('comisiones', [
+            // index/show quedan abiertos: los usan los selects en cascada del perfil del artista
+            'crear' => ['storeGrupo', 'storeFamilia'],
+            'editar' => ['update'],
+            'eliminar' => ['destroy'],
+        ]);
+    }
+
     public function index(Request $request)
     {
         return $this->generateViewSetList(

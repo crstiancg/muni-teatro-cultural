@@ -5,7 +5,15 @@
 
   <template v-else>
     <q-card-section class="text-center q-pb-none">
-      <q-avatar size="72px" color="primary" text-color="white" class="text-h5">
+      <!-- un admin sin ficha de persona no tiene dónde guardar la foto -->
+      <FotoPerfilUploader
+        v-if="tienePersona"
+        base-path="mi-informacion"
+        size="72px"
+        :inicial="inicial"
+        v-model="foto"
+      />
+      <q-avatar v-else size="72px" color="primary" text-color="white" class="text-h5">
         {{ inicial }}
       </q-avatar>
       <div class="text-h6 q-mt-sm">{{ nombreCompleto || formUsuario.usuario.name }}</div>
@@ -383,6 +391,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
+import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 import formPerfil, { formUsuarioPerfil, formPasswordPerfil } from './FormPerfil'
 
@@ -396,6 +405,8 @@ const props = defineProps({
 })
 const cargando = ref(!props.dataInicial)
 const tienePersona = ref(false)
+// la foto se sube sola (no viaja en el form de datos personales)
+const foto = ref(null)
 
 const opcionesGenero = [
   { label: 'Masculino', value: 'masculino' },
@@ -425,6 +436,10 @@ const requisitosPassword = computed(() => {
     { label: 'Una letra mayúscula', cumple: /[A-Z]/.test(pass) },
     { label: 'Una letra minúscula', cumple: /[a-z]/.test(pass) },
     { label: 'Un número', cumple: /[0-9]/.test(pass) },
+    // mismo chequeo que StoreMiPasswordRequest; un admin sin persona no tiene DNI
+    ...(tienePersona.value
+      ? [{ label: 'Distinta a tu DNI', cumple: pass.length > 0 && pass !== form.persona.dni }]
+      : []),
   ]
 })
 
@@ -495,6 +510,8 @@ function hidratar({ usuario, persona }) {
 
   tienePersona.value = !!persona
   if (!persona) return
+
+  foto.value = persona.foto ?? null
 
   form.setData({
     persona: {

@@ -73,7 +73,9 @@
         <div class="columna">
           <section class="bloque">
             <h2>Sobre su trabajo</h2>
-            <p class="texto">
+            <!-- HTML sanitizado en el backend al guardar (HTMLPurifier), por eso v-html es seguro -->
+            <div v-if="persona.biografia" class="texto biografia" v-html="persona.biografia" />
+            <p v-else class="texto">
               <strong>{{ persona.nombre }}</strong> integra la comisión de
               <strong>{{ comision.corto.toLowerCase() }}</strong> del registro cultural de
               {{ INSTITUCION.ciudad }}, dentro de la familia <strong>{{ persona.comision }}</strong
@@ -109,7 +111,8 @@
         <aside class="tarjeta">
           <div class="tarjeta-cabecera">
             <span class="avatar" :style="{ '--acento': comision.color }">
-              {{ inicial }}
+              <img v-if="persona.foto_url" :src="persona.foto_url" :alt="persona.nombre_completo" />
+              <template v-else>{{ inicial }}</template>
             </span>
             <div>
               <p class="tarjeta-nombre">{{ persona.nombre_completo }}</p>
@@ -130,11 +133,21 @@
                 <a :href="`mailto:${persona.correo}`">{{ persona.correo }}</a>
               </dd>
             </div>
-            <div v-if="persona.dni">
-              <dt><IdCard :size="15" /> Documento</dt>
-              <dd>{{ persona.dni }}</dd>
-            </div>
           </dl>
+
+          <div v-if="redes.length" class="redes">
+            <a
+              v-for="red in redes"
+              :key="red.clave"
+              :href="red.url"
+              target="_blank"
+              rel="noopener nofollow"
+              :title="red.label"
+              :aria-label="red.label"
+            >
+              <component :is="red.icono" :size="18" />
+            </a>
+          </div>
 
           <div v-if="persona.comision_alternativo" class="alterna">
             <span class="punto" />
@@ -220,7 +233,6 @@ import {
   LayoutGrid,
   Sparkles,
   MapPin,
-  IdCard,
   Phone,
   Mail,
   Share2,
@@ -233,6 +245,11 @@ import {
   Video,
   Palette,
   Megaphone,
+  Facebook,
+  Instagram,
+  Music2,
+  Youtube,
+  Globe,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import { INSTITUCION, comisionDe } from '@/config/institucion'
@@ -260,6 +277,21 @@ const comision = computed(() => comisionDe(persona.value?.cod_grupo))
 const iconoComision = computed(() => iconosPorGrupo[persona.value?.cod_grupo] || Sparkles)
 const actividades = computed(() => persona.value?.actividades || [])
 const inicial = computed(() => (persona.value?.nombre?.charAt(0) || '?').toUpperCase())
+
+// mismas claves que Persona::REDES en el backend; solo se muestran las cargadas
+const REDES = [
+  { clave: 'facebook', label: 'Facebook', icono: Facebook },
+  { clave: 'instagram', label: 'Instagram', icono: Instagram },
+  { clave: 'tiktok', label: 'TikTok', icono: Music2 },
+  { clave: 'youtube', label: 'YouTube', icono: Youtube },
+  { clave: 'web', label: 'Página web', icono: Globe },
+]
+const redes = computed(() =>
+  REDES.filter((r) => persona.value?.redes_sociales?.[r.clave]).map((r) => ({
+    ...r,
+    url: persona.value.redes_sociales[r.clave],
+  })),
+)
 
 async function compartir() {
   try {
@@ -653,6 +685,54 @@ watch(
   }
 }
 
+.biografia {
+  :deep(p),
+  :deep(div) {
+    margin: 0 0 0.8em;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    padding-left: 1.3em;
+    margin: 0 0 0.8em;
+  }
+
+  :deep(blockquote) {
+    margin: 0 0 0.8em;
+    padding-left: 1em;
+    border-left: 3px solid var(--acento, currentColor);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--rojo);
+  }
+}
+
+.redes {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+
+  a {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--tinta) 15%, transparent);
+    color: var(--tinta);
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+
+    &:hover {
+      color: var(--rojo);
+      border-color: var(--rojo);
+    }
+  }
+}
+
 .enlace {
   display: inline-flex;
   align-items: center;
@@ -756,6 +836,13 @@ watch(
   color: var(--acento);
   @include display(800);
   font-size: 1.3rem;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .tarjeta-nombre {
