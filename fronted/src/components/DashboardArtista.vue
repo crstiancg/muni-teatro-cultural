@@ -78,69 +78,77 @@
         </q-card>
       </div>
 
-      <!-- estado + qué hacer ahora -->
+      <!-- estado + qué hacer ahora: misma estructura en todos los estados
+           (encabezado con chip, una línea de contexto y una sola zona de acción) -->
       <div class="col-12 col-md-5">
-        <q-card flat bordered class="full-height tarjeta column">
-          <q-card-section class="col">
-            <div class="text-subtitle1 text-weight-bold q-mb-sm">Tu perfil en el portal</div>
+        <q-card flat bordered class="full-height tarjeta">
+          <q-card-section class="portal">
+            <div class="row items-center justify-between no-wrap">
+              <div class="text-subtitle1 text-weight-bold">Tu perfil en el portal</div>
+              <q-chip
+                dense
+                square
+                :color="estadoActual.color"
+                text-color="white"
+                class="text-weight-bold q-ma-none"
+              >
+                {{ estadoActual.label }}
+              </q-chip>
+            </div>
 
+            <div class="text-body2 texto-secundario">{{ contexto }}</div>
+
+            <!-- publicado: enlace + compartir -->
             <template v-if="persona.estado === 'aprobado'">
-              <div class="row items-center q-gutter-sm q-mb-md">
-                <q-chip dense square color="positive" text-color="white" class="text-weight-bold">
-                  Publicado
-                </q-chip>
-                <span class="text-caption texto-secundario">Tus cambios se publican al guardar.</span>
-              </div>
-
-              <div class="enlace q-mb-md ellipsis">{{ urlPublica }}</div>
-
-              <div class="column q-gutter-sm">
-                <q-btn
-                  unelevated
-                  no-caps
-                  color="primary"
-                  :href="urlPublica"
-                  target="_blank"
-                >
-                  <ExternalLink :size="16" class="q-mr-sm" /> Ver mi perfil público
+              <q-input :model-value="urlCompartir" readonly dense outlined class="enlace">
+                <template #prepend><Link2 :size="16" /></template>
+                <template #append>
+                  <q-btn flat dense round size="sm" @click="copiar">
+                    <Copy :size="16" />
+                    <q-tooltip>Copiar enlace</q-tooltip>
+                  </q-btn>
+                </template>
+              </q-input>
+              <div class="acciones">
+                <q-btn unelevated no-caps color="primary" :href="urlPublica" target="_blank">
+                  <ExternalLink :size="16" class="q-mr-sm" /> Ver mi perfil
                 </q-btn>
-                <div class="row q-col-gutter-sm">
-                  <div class="col-6">
-                    <q-btn outline no-caps color="primary" class="full-width" @click="copiar">
-                      <Copy :size="16" class="q-mr-sm" /> Copiar enlace
-                    </q-btn>
-                  </div>
-                  <div class="col-6">
-                    <q-btn
-                      outline
-                      no-caps
-                      color="positive"
-                      class="full-width"
-                      :href="urlWhatsapp"
-                      target="_blank"
-                    >
-                      <Share2 :size="16" class="q-mr-sm" /> WhatsApp
-                    </q-btn>
-                  </div>
-                </div>
+                <q-btn outline no-caps color="positive" :href="urlWhatsapp" target="_blank">
+                  <Share2 :size="16" class="q-mr-sm" /> WhatsApp
+                </q-btn>
               </div>
             </template>
 
-            <template v-else>
-              <EstadoPerfilPublico
-                v-if="!faltanObligatorios || persona.estado === 'pendiente'"
-                modo="artista"
-                v-model="persona"
-              />
-              <div v-else class="bloqueado">
-                <Lock :size="22" />
-                <div>
-                  Todavía no puedes enviarlo a revisión. Te falta
-                  <strong>{{ faltanObligatorios }}</strong>
-                  {{ faltanObligatorios === 1 ? 'requisito obligatorio' : 'requisitos obligatorios' }}.
-                </div>
+            <!-- en revisión: solo esperar -->
+            <div v-else-if="persona.estado === 'pendiente'" class="aviso">
+              <Clock :size="20" />
+              <div>Te avisaremos en la campanita cuando un administrador lo revise.</div>
+            </div>
+
+            <!-- borrador u observado con lo obligatorio completo: enviar -->
+            <q-btn
+              v-else-if="!faltanObligatorios"
+              unelevated
+              no-caps
+              color="primary"
+              class="full-width"
+              :loading="enviando"
+              @click="enviar"
+            >
+              <Send :size="16" class="q-mr-sm" />
+              {{ persona.estado === 'observado' ? 'Reenviar a revisión' : 'Enviar a revisión' }}
+            </q-btn>
+
+            <!-- falta algo obligatorio: decir qué -->
+            <div v-else class="aviso">
+              <Lock :size="20" />
+              <div>
+                Para enviarlo a revisión te falta:
+                <ul class="q-my-xs q-pl-md">
+                  <li v-for="r in pendientesObligatorios" :key="r.clave">{{ r.label }}</li>
+                </ul>
               </div>
-            </template>
+            </div>
           </q-card-section>
         </q-card>
       </div>
@@ -215,7 +223,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { copyToClipboard, date } from 'quasar'
 import {
@@ -225,6 +233,9 @@ import {
   ExternalLink,
   Share2,
   Lock,
+  Link2,
+  Clock,
+  Send,
   MessageSquareWarning,
   Images,
   EyeOff,
@@ -234,7 +245,8 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-vue-next'
-import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import PerfilPublicoService from '@/services/PerfilPublicoService'
+import { estadoPerfil } from '@/config/estadosPerfil'
 import { useNotify } from '@/composables/useNotify'
 import { urlCompartirPerfil } from '@/config/institucion'
 
@@ -247,7 +259,7 @@ const props = defineProps({
 const persona = defineModel({ type: Object, required: true })
 
 const router = useRouter()
-const { notifySuccess } = useNotify()
+const { notifySuccess, notifyError } = useNotify()
 
 // a dónde ir para completar cada requisito
 const ACCIONES = {
@@ -264,9 +276,43 @@ const porcentaje = computed(() => {
   return Math.round((props.requisitos.filter((r) => r.cumple).length / props.requisitos.length) * 100)
 })
 
-const faltanObligatorios = computed(
-  () => props.requisitos.filter((r) => r.obligatorio && !r.cumple).length,
+const pendientesObligatorios = computed(() =>
+  props.requisitos.filter((r) => r.obligatorio && !r.cumple),
 )
+const faltanObligatorios = computed(() => pendientesObligatorios.value.length)
+
+const estadoActual = computed(() => estadoPerfil(persona.value.estado))
+
+// una sola línea que explica qué pasa ahora
+const contexto = computed(() => {
+  switch (persona.value.estado) {
+    case 'aprobado':
+      return 'Tu perfil está publicado. Tus cambios se ven al guardar.'
+    case 'pendiente':
+      return 'Tu perfil está en revisión.'
+    case 'observado':
+      return faltanObligatorios.value
+        ? 'Corrige lo observado y completa lo obligatorio para reenviarlo.'
+        : '¿Ya corregiste lo observado? Reenvíalo a revisión.'
+    default:
+      return faltanObligatorios.value
+        ? 'Completa lo obligatorio para poder enviarlo.'
+        : 'Todo listo: envíalo para que lo publiquen.'
+  }
+})
+
+const enviando = ref(false)
+async function enviar() {
+  enviando.value = true
+  try {
+    persona.value = { ...persona.value, ...(await PerfilPublicoService.enviarRevision()) }
+    notifySuccess('Perfil enviado a revisión.')
+  } catch (error) {
+    notifyError(error.response?.data?.message || 'No se pudo enviar.')
+  } finally {
+    enviando.value = false
+  }
+}
 
 const urlPublica = computed(
   () =>
@@ -378,15 +424,24 @@ const contenido = computed(() => [
   white-space: pre-line;
 }
 
-.enlace {
-  font-family: monospace;
-  font-size: 0.8rem;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(128, 128, 128, 0.1);
+.portal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.bloqueado {
+.enlace :deep(input) {
+  font-size: 0.85rem;
+}
+
+/* grilla simple en vez de gutters anidados de Quasar (sumaban márgenes negativos) */
+.acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.aviso {
   display: flex;
   gap: 12px;
   align-items: flex-start;
