@@ -127,6 +127,8 @@ const opcionesTipo = [
   { label: 'Taller', value: 'taller' },
   { label: 'Seminario', value: 'seminario' },
   { label: 'Conferencias', value: 'conferencias' },
+  { label: 'Capacitación', value: 'capacitacion' },
+  { label: 'Reconocimiento', value: 'reconocimiento' },
   { label: 'Otros', value: 'otros' },
 ]
 
