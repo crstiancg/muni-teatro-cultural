@@ -37,6 +37,9 @@
       </q-card-section>
     </q-card>
 
+    <!-- resumen para quien gestiona personas (admin) -->
+    <DashboardAdmin v-if="userStore.hasPermission('admin-personas-index')" class="q-mb-md" />
+
     <!-- solo para quien tiene ficha de persona (artistas) -->
     <q-card v-if="persona" flat bordered>
       <q-card-section>
@@ -60,8 +63,11 @@
 import { ref, onMounted } from 'vue'
 import { ShieldAlert } from 'lucide-vue-next'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import DashboardAdmin from '@/components/DashboardAdmin.vue'
+import { useUserStore } from '@/stores/user-store'
 import MiInformacionService from '@/services/MiInformacionService'
 
+const userStore = useUserStore()
 const persona = ref(null)
 const passwordEsDni = ref(false)
 

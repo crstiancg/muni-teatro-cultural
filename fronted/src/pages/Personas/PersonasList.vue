@@ -125,7 +125,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import PersonaService from '@/services/PersonaService'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import { ESTADOS_PERFIL, estadoPerfil } from '@/config/estadosPerfil'
@@ -133,6 +133,7 @@ import { useUserStore } from '@/stores/user-store'
 
 const $q = useQuasar()
 const router = useRouter()
+const route = useRoute()
 const userStore = useUserStore()
 const columns = [
   { name: 'dni', label: 'DNI', aling: 'center', field: (row) => row.dni, sortable: true },
@@ -143,7 +144,8 @@ const columns = [
 ]
 
 // "Pendientes" es la bandeja de solicitudes: lo que el admin tiene que revisar
-const estado = ref(null)
+// arranca con ?estado= si viene del dashboard ("Ver bandeja")
+const estado = ref(route.query.estado || null)
 const opcionesEstado = [
   { label: 'Todos', value: null },
   ...Object.entries(ESTADOS_PERFIL).map(([value, e]) => ({

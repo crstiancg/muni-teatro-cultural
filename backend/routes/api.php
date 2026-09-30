@@ -6,6 +6,7 @@ use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\PersonaController;
@@ -76,6 +77,8 @@ Route::middleware('auth:api')->group(function () {
     Route::put('personas/{persona}/perfil-publico', [PerfilPublicoController::class, 'update']);
     Route::put('personas/{persona}/aprobar', [PerfilPublicoController::class, 'aprobar']);
     Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);
+
+    Route::get('dashboard/admin', [DashboardController::class, 'admin']);
 
     Route::get('notificaciones', [NotificacionController::class, 'index']);
     Route::put('notificaciones/leer-todas', [NotificacionController::class, 'leerTodas']);
