@@ -407,6 +407,9 @@ const cargando = ref(!props.dataInicial)
 const tienePersona = ref(false)
 // la foto se sube sola (no viaja en el form de datos personales)
 const foto = ref(null)
+// para avisar que cambiar de comisión devuelve un perfil publicado a revisión
+const estadoPerfil = ref(null)
+const comisionesOriginales = ref({ principal: null, alternativa: null })
 
 const opcionesGenero = [
   { label: 'Masculino', value: 'masculino' },
@@ -483,12 +486,37 @@ const submitPassword = () => {
     .catch(() => {})
 }
 
+const cambioComision = () =>
+  form.persona.codigo_comision !== comisionesOriginales.value.principal ||
+  form.persona.codigo_comision_alternativo !== comisionesOriginales.value.alternativa
+
+// mismo criterio que MiInformacionController::update
 const submit = () => {
+  if (estadoPerfil.value === 'aprobado' && cambioComision()) {
+    $q.dialog({
+      title: 'Tu perfil volverá a revisión',
+      message:
+        'Si cambias tu comisión, tu perfil dejará de verse en el portal hasta que un administrador lo apruebe de nuevo. ¿Deseas continuar?',
+      cancel: { label: 'Cancelar', flat: true, noCaps: true },
+      ok: { label: 'Sí, cambiar comisión', color: 'orange-9', noCaps: true },
+      persistent: true,
+    }).onOk(guardar)
+    return
+  }
+  guardar()
+}
+
+const guardar = () => {
   form.persona.correo_modificado = form.persona.correo !== form.persona.correo_original
 
   form
     .submit()
-    .then(() => {
+    .then((respuesta) => {
+      estadoPerfil.value = respuesta?.data?.estado ?? estadoPerfil.value
+      comisionesOriginales.value = {
+        principal: form.persona.codigo_comision,
+        alternativa: form.persona.codigo_comision_alternativo,
+      }
       form.persona.correo_original = form.persona.correo
       form.persona.correo_modificado = false
       emits('save')
@@ -512,6 +540,11 @@ function hidratar({ usuario, persona }) {
   if (!persona) return
 
   foto.value = persona.foto ?? null
+  estadoPerfil.value = persona.estado
+  comisionesOriginales.value = {
+    principal: persona.codigo_comision,
+    alternativa: persona.codigo_comision_alternativo,
+  }
 
   form.setData({
     persona: {

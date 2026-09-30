@@ -68,6 +68,18 @@ class MiInformacionController extends Controller
             $persona->user()->update(['email' => $persona->correo]);
         }
 
+        // la comisión decide en qué disciplina aparece en el portal: si un perfil
+        // publicado la cambia, vuelve a revisión (el front ya le avisó antes)
+        if ($persona->estado === 'aprobado' && $persona->wasChanged(['codigo_comision', 'codigo_comision_alternativo'])) {
+            $persona->update(['estado' => 'pendiente', 'observacion' => null]);
+            $persona->revisiones()->create([
+                'accion' => 'enviado',
+                'observacion' => 'Cambió de comisión: el perfil volvió a revisión.',
+                'user_id' => $request->user()->id,
+            ]);
+            $persona->notificarAdmins('solicitud', "{$persona->nombre_completo} cambió de comisión y su perfil volvió a revisión.");
+        }
+
         return response()->json($persona);
     }
 
