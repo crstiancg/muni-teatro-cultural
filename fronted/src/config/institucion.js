@@ -9,8 +9,8 @@
 
 export const INSTITUCION = {
   // PENDIENTE: confirmar el nombre oficial y de qué entidad depende
-  nombre: 'Teatro Cultural',
-  entidad: 'Municipalidad Provincial de Puno',
+  nombre: 'RMAC',
+  entidad: 'Registro Municipal de Agentes Culturales y Portafolio del Provincia de Puno',
   ciudad: 'Puno',
   region: 'Puno, Perú',
 
