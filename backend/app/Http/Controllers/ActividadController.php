@@ -2,13 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreActividadRequest;
 use App\Models\Actividad;
 use App\Models\Persona;
 use Illuminate\Support\Facades\Storage;
 
-class ActividadController extends Controller
+class ActividadController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas', [
+            'editar' => ['store', 'update', 'destroy', 'reactivar'],
+            'eliminar' => ['destroyPermanente'],
+        ]);
+    }
+
     public function store(StoreActividadRequest $request, Persona $persona)
     {
         $actividad = Actividad::create([

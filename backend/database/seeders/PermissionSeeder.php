@@ -43,6 +43,12 @@ class PermissionSeeder extends Seeder
             }
         }
 
+        // fuera del CRUD: aprobar u observar el perfil público de un artista
+        Permission::updateOrCreate(
+            ['name' => 'admin-personas-aprobar', 'guard_name' => 'api'],
+            ['description' => 'Aprobar perfiles públicos']
+        )->assignRole([$admin]);
+
         $user = User::updateOrCreate(
             ['email' => 'password@gmail.com'],
             ['name' => 'Administrador', 'password' => bcrypt('password')]

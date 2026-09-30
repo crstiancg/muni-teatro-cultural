@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreCapacitacionRequest;
 use App\Models\Capacitacion;
 use App\Models\Persona;
 use Illuminate\Support\Facades\Storage;
 
-class CapacitacionController extends Controller
+class CapacitacionController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas', ['editar' => ['store', 'update', 'destroy', 'reactivar']]);
+    }
+
     private const CAMPOS = [
         'tipo', 'nombre_evento', 'centro_estudios', 'horas', 'folio', 'fecha',
     ];

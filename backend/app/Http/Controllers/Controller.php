@@ -4,9 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 
 abstract class Controller
 {
+    // Arma el middleware de spatie "permission:admin-{modulo}-{accion}" por método.
+    // Mapa por defecto = CRUD de apiResource. OJO: un método que no esté en el
+    // mapa queda solo con auth:api, así que cada método nuevo hay que sumarlo acá.
+    protected static function permisos(string $modulo, ?array $mapa = null): array
+    {
+        $mapa ??= [
+            'index' => ['index', 'show'],
+            'crear' => ['store'],
+            'editar' => ['update'],
+            'eliminar' => ['destroy'],
+        ];
+
+        return collect($mapa)
+            ->map(fn (array $metodos, string $accion) => new Middleware("permission:admin-{$modulo}-{$accion}", only: $metodos))
+            ->values()
+            ->all();
+    }
     public function getPageSize()
     {
         if (request()->filled('per_page')) {

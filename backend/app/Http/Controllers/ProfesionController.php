@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Models\Profesion;
 use Illuminate\Http\Request;
 
-class ProfesionController extends Controller
+class ProfesionController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('profesiones');
+    }
+
     /**
      * Display a listing of the resource.
      */
