@@ -30,11 +30,12 @@
         <Send :size="16" class="q-ml-xs" />
       </q-btn>
 
-      <!-- admin: puede aprobar u observar en cualquier estado que no sea el mismo.
-           El backend igual devuelve 403 sin permiso: esto solo evita botones que fallan -->
+      <!-- admin: mismas reglas que PerfilPublicoController::aprobar/observar.
+           Borrador y observado esperan al artista: no hay nada que resolver.
+           El backend igual valida estado y permiso: esto solo evita botones que fallan -->
       <template v-if="modo === 'admin' && userStore.hasPermission('admin-personas-aprobar')">
         <q-btn
-          v-if="persona.estado !== 'aprobado'"
+          v-if="persona.estado === 'pendiente'"
           unelevated
           no-caps
           color="positive"
@@ -44,6 +45,7 @@
           @click="aprobar"
         />
         <q-btn
+          v-if="['pendiente', 'aprobado'].includes(persona.estado)"
           outline
           no-caps
           color="orange-9"

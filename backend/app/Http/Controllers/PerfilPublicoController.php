@@ -64,8 +64,11 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         return response()->json($persona);
     }
 
+    // solo se aprueba lo que el artista envió: aprobar un borrador u observado
+    // publicaría algo que nadie corrigió ni pidió revisar
     public function aprobar(Request $request, Persona $persona)
     {
+        abort_unless($persona->estado === 'pendiente', 422, 'Solo se puede aprobar un perfil en revisión.');
         abort_unless($persona->codigo_comision, 422, 'La persona no tiene comisión asignada.');
 
         $this->resolver($request, $persona, 'aprobado', null);
@@ -76,6 +79,13 @@ class PerfilPublicoController extends Controller implements HasMiddleware
 
     public function observar(Request $request, Persona $persona)
     {
+        // en revisión: pedir correcciones; publicado: despublicarlo con motivo
+        abort_unless(
+            in_array($persona->estado, ['pendiente', 'aprobado']),
+            422,
+            'Solo se puede observar un perfil en revisión o publicado.'
+        );
+
         $datos = $request->validate(['observacion' => 'required|string|max:1000']);
 
         $this->resolver($request, $persona, 'observado', $datos['observacion']);
