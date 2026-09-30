@@ -19,6 +19,15 @@
         icon-right="add"
         @click="abrirCrear"
       />
+      <q-btn-toggle
+        v-model="estado"
+        unelevated
+        no-caps
+        toggle-color="primary"
+        :options="opcionesEstado"
+        class="q-ml-sm"
+        @update:model-value="tableRef.requestServerInteraction()"
+      />
     </div>
     <q-card class="q-ma-sm" flat :bordered="!$q.dark.isActive">
       <q-table
@@ -65,13 +74,22 @@
         <template v-slot:body="props">
           <q-tr :props="props" class="cursor-pointer" @click="verDetalle(props.row.id)">
             <q-td auto-width>
-              <!-- TODO: cuando esté la tabla polimórfica de archivos, mostrar la foto real si existe -->
               <q-avatar color="primary" text-color="white" size="32px">
-                {{ inicial(props.row.nombre_completo) }}
+                <img v-if="props.row.foto?.url" :src="props.row.foto.url" style="object-fit: cover" />
+                <template v-else>{{ inicial(props.row.nombre_completo) }}</template>
               </q-avatar>
             </q-td>
             <q-td v-for="col in props.cols" :key="col.name" :props="props">
-              {{ col.value }}
+              <q-chip
+                v-if="col.name === 'estado'"
+                dense
+                square
+                :color="estadoPerfil(col.value).color"
+                text-color="white"
+              >
+                {{ estadoPerfil(col.value).label }}
+              </q-chip>
+              <template v-else>{{ col.value }}</template>
             </q-td>
             <q-td auto-width>
               <q-btn
@@ -107,6 +125,7 @@ import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import PersonaService from '@/services/PersonaService'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
+import { ESTADOS_PERFIL, estadoPerfil } from '@/config/estadosPerfil'
 
 const $q = useQuasar()
 const router = useRouter()
@@ -115,6 +134,17 @@ const columns = [
   { name: 'nombre_completo', label: 'Nombre completo', aling: 'center', field: (row) => row.nombre_completo, sortable: true },
   { name: 'correo', label: 'Correo', aling: 'center', field: (row) => row.correo, sortable: true },
   { name: 'celular', label: 'Celular', aling: 'center', field: (row) => row.celular, sortable: false },
+  { name: 'estado', label: 'Perfil público', align: 'center', field: (row) => row.estado, sortable: false },
+]
+
+// "Pendientes" es la bandeja de solicitudes: lo que el admin tiene que revisar
+const estado = ref(null)
+const opcionesEstado = [
+  { label: 'Todos', value: null },
+  ...Object.entries(ESTADOS_PERFIL).map(([value, e]) => ({
+    label: value === 'pendiente' ? 'Pendientes' : e.label,
+    value,
+  })),
 ]
 
 const tableRef = ref()
@@ -155,7 +185,7 @@ async function onRequest(props) {
   const fetchCount = rowsPerPage === 0 ? 0 : rowsPerPage
   const order_by = descending ? '-' + sortBy : sortBy
   const { data, total = 0 } = await PersonaService.getData({
-    params: { rowsPerPage: fetchCount, page, search: filter, order_by },
+    params: { rowsPerPage: fetchCount, page, search: filter, order_by, estado: estado.value || undefined },
   })
 
   rows.value.splice(0, rows.value.length, ...data)
@@ -217,7 +247,8 @@ async function editar(id) {
 async function eliminar(id) {
   $q.dialog({
     title: '¿Estas seguro de eliminar este registro?',
-    message: 'Este proceso es irreversible.',
+    message:
+      'Se eliminarán también su usuario de acceso, su foto y todos sus archivos. Este proceso es irreversible.',
     cancel: true,
     persistent: true,
   }).onOk(async () => {

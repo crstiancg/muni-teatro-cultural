@@ -61,6 +61,7 @@ import { useQuasar } from 'quasar'
 import { Send } from 'lucide-vue-next'
 import PerfilPublicoService from '@/services/PerfilPublicoService'
 import { useNotify } from '@/composables/useNotify'
+import { estadoPerfil } from '@/config/estadosPerfil'
 
 defineProps({
   // "artista" (Mi CV) o "admin" (detalle de persona)
@@ -68,34 +69,27 @@ defineProps({
 })
 const persona = defineModel({ type: Object, required: true })
 
-const ESTADOS = {
+// label y color vienen de config/estadosPerfil; acá solo el texto de ayuda
+const AYUDAS = {
   borrador: {
-    label: 'Borrador',
-    color: 'grey-7',
     ayuda: {
       artista: 'Completa tu perfil y envíalo a revisión para aparecer en el portal.',
       admin: 'Todavía no envió su perfil a revisión.',
     },
   },
   pendiente: {
-    label: 'En revisión',
-    color: 'blue-7',
     ayuda: {
       artista: 'Un administrador está revisando tu perfil.',
       admin: 'Envió su perfil: revísalo y apruébalo u obsérvalo.',
     },
   },
   aprobado: {
-    label: 'Publicado',
-    color: 'positive',
     ayuda: {
       artista: 'Tu perfil aparece en el portal. Tus cambios se publican al guardar.',
       admin: 'Aparece en el portal público.',
     },
   },
   observado: {
-    label: 'Observado',
-    color: 'orange-9',
     ayuda: {
       artista: 'Corrige lo indicado y vuelve a enviarlo.',
       admin: 'Esperando que corrija lo observado.',
@@ -106,7 +100,10 @@ const ESTADOS = {
 const $q = useQuasar()
 const { notifySuccess, notifyError } = useNotify()
 const procesando = ref(false)
-const actual = computed(() => ESTADOS[persona.value.estado] || ESTADOS.borrador)
+const actual = computed(() => ({
+  ...estadoPerfil(persona.value.estado),
+  ...(AYUDAS[persona.value.estado] || AYUDAS.borrador),
+}))
 
 async function ejecutar(accion, mensaje) {
   procesando.value = true

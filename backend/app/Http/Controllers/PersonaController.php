@@ -8,6 +8,8 @@ use App\Models\Persona;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PersonaController extends Controller implements HasMiddleware
 {
@@ -27,8 +29,9 @@ class PersonaController extends Controller implements HasMiddleware
     {
         return $this->generateViewSetList(
             $request,
-            Persona::query()->with('user:id,name,email'),
-            [],
+            Persona::query()->with(['user:id,name,email', 'foto']),
+            // ?estado=pendiente arma la bandeja de solicitudes del admin
+            ['estado'],
             ['dni', 'nombre', 'apellido_paterno', 'apellido_materno', 'correo'],
             ['id', 'dni', 'nombre_completo']
         );
@@ -82,8 +85,36 @@ class PersonaController extends Controller implements HasMiddleware
         return response()->json($persona);
     }
 
-    public function destroy(Persona $persona)
+    // Borra la persona, su usuario de acceso y todos sus archivos. Las filas de
+    // CV/capacitaciones/actividades caen por cascadeOnDelete en la base, pero sus
+    // archivos físicos y los de la tabla polimórfica no: hay que borrarlos a mano.
+    public function destroy(Request $request, Persona $persona)
     {
-        return response()->json($persona->delete());
+        // sin esto un admin con ficha de persona podría dejarse sin acceso
+        abort_if($persona->user_id === $request->user()->id, 422, 'No puedes eliminar tu propia ficha.');
+
+        // se juntan antes y se borran después del commit: si la transacción
+        // falla, no se pierde nada del disco
+        $archivosLegacy = collect()
+            ->merge($persona->formacionesAcademicas()->pluck('archivo_path'))
+            ->merge($persona->capacitaciones()->pluck('archivo_path'))
+            ->merge($persona->actividades()->pluck('imagen_path'))
+            ->filter(fn ($path) => $path && ! Str::startsWith($path, ['http://', 'https://']));
+
+        DB::transaction(function () use ($persona) {
+            $user = $persona->user;
+            $persona->delete();
+            $user?->notifications()->delete();
+            $user?->tokens()->delete();
+            // HasRoles de spatie limpia sus roles y permisos al borrarlo
+            $user?->delete();
+        });
+
+        // la instancia conserva el id: las filas polimórficas siguen ubicables.
+        // Uno por uno para que el evento deleting de Archivo borre el disco.
+        $persona->archivos()->get()->each->delete();
+        Storage::disk('public')->delete($archivosLegacy->all());
+
+        return response()->json(true);
     }
 }
