@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Actividad;
 use App\Models\Comision;
 use App\Models\Persona;
+use App\Support\UserAgent;
 use Illuminate\Http\Request;
 
 // Endpoints SIN autenticación: solo exponen lo mínimo seguro para mostrar
@@ -61,9 +62,13 @@ class PersonaPublicaController extends Controller
         ]);
     }
 
-    public function show(Persona $persona)
+    public function show(Request $request, Persona $persona)
     {
         abort_unless($persona->estado === 'aprobado' && $persona->codigo_comision, 404);
+
+        if (! UserAgent::esBot($request->userAgent())) {
+            $persona->registrarVisita($request->ip() . '|' . $request->userAgent());
+        }
 
         $persona->load([
             'comision:codigo,cod_grupo,cod_familia,nombre',

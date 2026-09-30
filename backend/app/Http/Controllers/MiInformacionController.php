@@ -45,6 +45,7 @@ class MiInformacionController extends Controller
             'password_es_dni' => $persona && Hash::check($persona->dni, $usuario->password),
             // checklist del dashboard del artista
             'requisitos' => $persona?->requisitosPerfil() ?? [],
+            'visitas' => $persona?->resumenVisitas(),
         ]);
     }
 

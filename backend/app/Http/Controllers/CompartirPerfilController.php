@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Persona;
+use App\Support\UserAgent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -12,8 +13,6 @@ use Illuminate\Support\Str;
 // persona se la redirige directo al perfil del portal.
 class CompartirPerfilController extends Controller
 {
-    private const BOTS = '/facebookexternalhit|facebot|whatsapp|twitterbot|linkedinbot|slackbot|telegrambot|discordbot|googlebot|bingbot|pinterest|skypeuripreview|redditbot|embedly|vkshare/i';
-
     public function __invoke(Request $request, Persona $persona)
     {
         $urlPerfil = config('app.frontend_url') . '/consejeros/' . $persona->slug;
@@ -23,7 +22,7 @@ class CompartirPerfilController extends Controller
             return redirect()->away(config('app.frontend_url') . '/consejeros');
         }
 
-        if (! preg_match(self::BOTS, (string) $request->userAgent())) {
+        if (! UserAgent::esBot($request->userAgent())) {
             return redirect()->away($urlPerfil);
         }
 

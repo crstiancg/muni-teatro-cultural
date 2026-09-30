@@ -146,6 +146,51 @@
       </div>
     </div>
 
+    <!-- visitas: una sola serie en el tiempo -> número + columnas de un solo tono -->
+    <q-card v-if="visitas" flat bordered class="tarjeta q-mb-md visitas">
+      <q-card-section class="row items-center q-col-gutter-lg">
+        <div class="col-12 col-sm-4">
+          <div class="row items-center no-wrap q-mb-xs">
+            <span class="icono"><Eye :size="18" /></span>
+            <span class="q-ml-sm text-body2 texto-secundario">Visitas a tu perfil</span>
+          </div>
+          <div class="numero">{{ visitas.semana }}</div>
+          <div class="text-caption">
+            <template v-if="variacion !== null">
+              <component :is="variacion >= 0 ? TrendingUp : TrendingDown" :size="14" />
+              <strong>{{ variacion >= 0 ? '+' : '' }}{{ variacion }}%</strong>
+              <span class="texto-secundario"> vs. la semana anterior</span>
+            </template>
+            <span v-else class="texto-secundario">en los últimos 7 días</span>
+          </div>
+          <div class="text-caption texto-secundario">{{ visitas.total }} en total</div>
+        </div>
+
+        <div class="col-12 col-sm-8">
+          <div v-if="persona.estado !== 'aprobado' && !visitas.total" class="texto-secundario text-body2">
+            Cuando tu perfil esté publicado, acá vas a ver cuántas personas lo visitan cada día.
+          </div>
+          <template v-else>
+            <div class="columnas">
+              <div v-for="d in visitas.dias" :key="d.fecha" class="columna">
+                <div
+                  class="barra"
+                  :style="{ height: d.visitas ? `${Math.max((d.visitas / maxVisitas) * 100, 6)}%` : '2px' }"
+                />
+                <q-tooltip anchor="top middle" self="bottom middle">
+                  {{ fechaCorta(d.fecha) }}: {{ d.visitas }} {{ d.visitas === 1 ? 'visita' : 'visitas' }}
+                </q-tooltip>
+              </div>
+            </div>
+            <div class="row justify-between text-caption texto-secundario q-mt-xs">
+              <span>{{ fechaCorta(visitas.dias[0]?.fecha) }}</span>
+              <span>Hoy</span>
+            </div>
+          </template>
+        </div>
+      </q-card-section>
+    </q-card>
+
     <!-- lo que ya cargó, con su acción rápida -->
     <div class="row q-col-gutter-md">
       <div v-for="c in contenido" :key="c.label" class="col-6 col-md-3">
@@ -172,7 +217,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { copyToClipboard } from 'quasar'
+import { copyToClipboard, date } from 'quasar'
 import {
   Circle,
   CircleCheck,
@@ -185,6 +230,9 @@ import {
   EyeOff,
   Award,
   GraduationCap,
+  Eye,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-vue-next'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
 import { useNotify } from '@/composables/useNotify'
@@ -193,6 +241,8 @@ import { urlCompartirPerfil } from '@/config/institucion'
 const props = defineProps({
   // viene de GET mi-informacion (backend: Persona::requisitosPerfil)
   requisitos: { type: Array, default: () => [] },
+  // GET mi-informacion -> Persona::resumenVisitas (semana, semana_anterior, total, dias)
+  visitas: { type: Object, default: null },
 })
 const persona = defineModel({ type: Object, required: true })
 
@@ -237,6 +287,16 @@ async function copiar() {
   await copyToClipboard(urlCompartir.value)
   notifySuccess('Enlace copiado.')
 }
+
+const maxVisitas = computed(() => Math.max(1, ...(props.visitas?.dias || []).map((d) => d.visitas)))
+
+// sin visitas la semana anterior no hay base para un porcentaje
+const variacion = computed(() => {
+  const { semana = 0, semana_anterior: anterior = 0 } = props.visitas || {}
+  return anterior ? Math.round(((semana - anterior) / anterior) * 100) : null
+})
+
+const fechaCorta = (fecha) => (fecha ? date.formatDate(`${fecha}T00:00:00`, 'DD/MM') : '')
 
 const actividades = computed(() => (persona.value.actividades || []).filter((a) => a.flag_activo))
 const contenido = computed(() => [
@@ -343,6 +403,38 @@ const contenido = computed(() => [
   border-radius: 8px;
   color: var(--q-primary);
   background: rgba(0, 65, 115, 0.1);
+}
+
+/* tono de las columnas validado con dataviz (mismo que DashboardAdmin) */
+.visitas {
+  --barra: #2a6fb0;
+}
+
+:global(.body--dark) .visitas {
+  --barra: #3b8fd6;
+}
+
+.columnas {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 90px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+}
+
+.columna {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.barra {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--barra);
+  transition: height 0.4s ease;
 }
 
 .numero {

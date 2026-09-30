@@ -39,7 +39,7 @@
     <DashboardAdmin v-if="userStore.hasPermission('admin-personas-index')" class="q-mb-md" />
 
     <!-- solo para quien tiene ficha de persona (artistas) -->
-    <DashboardArtista v-if="persona" v-model="persona" :requisitos="requisitos" />
+    <DashboardArtista v-if="persona" v-model="persona" :requisitos="requisitos" :visitas="visitas" />
   </div>
 </template>
 
@@ -65,6 +65,7 @@ const hoy = date.formatDate(new Date(), 'dddd D [de] MMMM', {
 })
 const passwordEsDni = ref(false)
 const requisitos = ref([])
+const visitas = ref(null)
 
 onMounted(async () => {
   try {
@@ -72,6 +73,7 @@ onMounted(async () => {
     persona.value = datos.persona
     passwordEsDni.value = datos.password_es_dni
     requisitos.value = datos.requisitos
+    visitas.value = datos.visitas
   } catch {
     // si falla, el dashboard igual se muestra sin los avisos
   }

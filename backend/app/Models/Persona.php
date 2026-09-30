@@ -7,6 +7,8 @@ use App\Notifications\AvisoPerfil;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use Mews\Purifier\Facades\Purifier;
@@ -95,6 +97,44 @@ class Persona extends Model
             ['clave' => 'trayectoria', 'label' => 'Formación o capacitación', 'obligatorio' => false,
                 'cumple' => $this->formacionesAcademicas()->where('flag_activo', true)->exists()
                     || $this->capacitaciones()->where('flag_activo', true)->exists()],
+        ];
+    }
+
+    // Suma una visita al día de hoy. Una misma persona (IP + navegador) cuenta
+    // una vez cada 30 min: recargar la página no infla el número.
+    public function registrarVisita(string $visitante): void
+    {
+        if (! Cache::add("visita:{$this->id}:" . sha1($visitante), true, now()->addMinutes(30))) {
+            return;
+        }
+
+        DB::table('visitas_perfil')->upsert(
+            [['persona_id' => $this->id, 'fecha' => today()->toDateString(), 'visitas' => 1, 'created_at' => now(), 'updated_at' => now()]],
+            ['persona_id', 'fecha'],
+            ['visitas' => DB::raw('visitas + 1'), 'updated_at' => now()]
+        );
+    }
+
+    // para el dashboard del artista: esta semana vs la anterior y los últimos 14 días
+    public function resumenVisitas(): array
+    {
+        $porDia = DB::table('visitas_perfil')
+            ->where('persona_id', $this->id)
+            ->where('fecha', '>=', today()->subDays(13)->toDateString())
+            ->pluck('visitas', 'fecha');
+
+        // se completan los días sin visitas con 0: el gráfico no puede saltearse días
+        $dias = collect(range(13, 0))->map(function ($atras) use ($porDia) {
+            $fecha = today()->subDays($atras)->toDateString();
+
+            return ['fecha' => $fecha, 'visitas' => (int) ($porDia[$fecha] ?? 0)];
+        });
+
+        return [
+            'semana' => $dias->slice(7)->sum('visitas'),
+            'semana_anterior' => $dias->slice(0, 7)->sum('visitas'),
+            'total' => (int) DB::table('visitas_perfil')->where('persona_id', $this->id)->sum('visitas'),
+            'dias' => $dias->values(),
         ];
     }
 
