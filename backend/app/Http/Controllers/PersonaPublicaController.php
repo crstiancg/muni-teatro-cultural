@@ -174,7 +174,7 @@ class PersonaPublicaController extends Controller
                     'cod_grupo' => $grupo->cod_grupo,
                     'nombre' => $grupo->nombre,
                     'consejeros' => (int) ($consejerosPorGrupo[$grupo->cod_grupo] ?? 0),
-                    'imagen_url' => $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_url,
+                    'imagen_url' => $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_miniatura_url,
                 ];
             });
 
@@ -213,9 +213,9 @@ class PersonaPublicaController extends Controller
             ->get()
             ->map(fn (Persona $persona) => [
                 ...$this->datosPublicos($persona),
-                'imagen_url' => $persona->actividades->first()?->imagen_url,
+                'imagen_url' => $persona->actividades->first()?->imagen_miniatura_url,
                 'miniaturas' => $persona->actividades->skip(1)->take(3)
-                    ->pluck('imagen_url')->values(),
+                    ->pluck('imagen_miniatura_url')->values(),
                 'total_actividades' => $persona->actividades_count
                     ?? $persona->actividades->count(),
             ])
@@ -235,12 +235,13 @@ class PersonaPublicaController extends Controller
             // el directorio se presenta con fotos, así que cada persona viaja
             // con su imagen de portada y cuántas actividades tiene publicadas
             'imagen_url' => $persona->relationLoaded('actividades')
-                ? $persona->actividades->first()?->imagen_url
+                ? $persona->actividades->first()?->imagen_miniatura_url
                 : null,
             'total_actividades' => $persona->actividades_count ?? null,
             // foto de perfil (tabla archivos); distinta de imagen_url, que es la
             // portada tomada de la última actividad
-            'foto_url' => $persona->relationLoaded('foto') ? $persona->foto?->url : null,
+            // miniatura: se usa en tarjetas y avatares, nunca a pantalla completa
+            'foto_url' => $persona->relationLoaded('foto') ? $persona->foto?->miniatura_url : null,
         ];
     }
 }

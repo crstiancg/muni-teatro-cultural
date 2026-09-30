@@ -32,11 +32,7 @@ trait TieneAdjunto
 
         $this->archivos()->create([
             'coleccion' => static::COLECCION_ADJUNTO,
-            'disco' => 'public',
-            'path' => $archivo->store(static::CARPETA_ADJUNTO, 'public'),
-            'nombre_original' => $archivo->getClientOriginalName(),
-            'mime_type' => $archivo->getMimeType(),
-            'tamano' => $archivo->getSize(),
+            ...Archivo::datosDesdeSubida($archivo, static::CARPETA_ADJUNTO),
         ]);
 
         // para que la respuesta JSON traiga el adjunto nuevo y no el cacheado

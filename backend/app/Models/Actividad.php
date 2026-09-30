@@ -49,6 +49,12 @@ class Actividad extends Model
         return $this->adjunto?->url;
     }
 
+    // para tarjetas y listados: 600 px en vez de la original
+    public function getImagenMiniaturaUrlAttribute(): ?string
+    {
+        return $this->adjunto?->miniatura_url;
+    }
+
     public function getImagenNombreOriginalAttribute(): ?string
     {
         return $this->adjunto?->nombre_original;

@@ -198,11 +198,7 @@ class Persona extends Model
 
         return $this->archivos()->create([
             'coleccion' => 'foto',
-            'disco' => 'public',
-            'path' => $imagen->store('personas/fotos', 'public'),
-            'nombre_original' => $imagen->getClientOriginalName(),
-            'mime_type' => $imagen->getMimeType(),
-            'tamano' => $imagen->getSize(),
+            ...Archivo::datosDesdeSubida($imagen, 'personas/fotos'),
         ]);
     }
 
