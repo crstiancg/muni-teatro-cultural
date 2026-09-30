@@ -14,6 +14,11 @@
       <q-spinner color="primary" size="40px" />
     </div>
 
+    <div v-else-if="errorCarga" class="text-center q-pa-lg">
+      <div class="text-body1 q-mb-sm">No se pudo cargar la información.</div>
+      <q-btn outline no-caps color="primary" label="Reintentar" @click="cargar" />
+    </div>
+
     <div v-else class="row q-col-gutter-md q-ma-sm">
       <div class="col-12 col-md-3">
         <q-card flat :bordered="!$q.dark.isActive">
@@ -107,6 +112,7 @@ import MiInformacionService from '@/services/MiInformacionService'
 
 const $q = useQuasar()
 const cargando = ref(true)
+const errorCarga = ref(false)
 const persona = ref(null)
 const curriculum = ref([])
 const capacitaciones = ref([])
@@ -117,13 +123,21 @@ const mostrarEditar = ref(false)
 const inicial = computed(() => (persona.value?.nombre?.charAt(0) || '?').toUpperCase())
 
 async function cargar() {
-  const datos = await MiInformacionService.get()
-  datosPerfil.value = datos
-  persona.value = datos.persona
-  curriculum.value = datos.persona?.formaciones_academicas || []
-  capacitaciones.value = datos.persona?.capacitaciones || []
-  actividades.value = datos.persona?.actividades || []
-  cargando.value = false
+  cargando.value = true
+  errorCarga.value = false
+  try {
+    const datos = await MiInformacionService.get()
+    datosPerfil.value = datos
+    persona.value = datos.persona
+    curriculum.value = datos.persona?.formaciones_academicas || []
+    capacitaciones.value = datos.persona?.capacitaciones || []
+    actividades.value = datos.persona?.actividades || []
+  } catch {
+    // sin esto la página se queda con el spinner para siempre si falla el backend
+    errorCarga.value = true
+  } finally {
+    cargando.value = false
+  }
 }
 
 function alGuardarPerfil() {

@@ -159,10 +159,15 @@ async function logout() {
 onMounted(async () => {
   // se muestra siempre al loguearse (montar el layout admin) si el usuario
   // tiene una ficha de persona vinculada; si es un admin sin persona, no sale
-  const datos = await MiInformacionService.get()
-  if (datos?.persona) {
-    miInformacion.value = datos
-    mostrarMiInformacion.value = true
+  // el recordatorio es opcional: si falla la consulta, el panel igual se usa
+  try {
+    const datos = await MiInformacionService.get()
+    if (datos?.persona) {
+      miInformacion.value = datos
+      mostrarMiInformacion.value = true
+    }
+  } catch {
+    // sin recordatorio
   }
 })
 </script>
