@@ -39,21 +39,7 @@
     <DashboardAdmin v-if="userStore.hasPermission('admin-personas-index')" class="q-mb-md" />
 
     <!-- solo para quien tiene ficha de persona (artistas) -->
-    <q-card v-if="persona" flat bordered>
-      <q-card-section>
-        <div class="text-subtitle1 text-weight-bold q-mb-sm">Tu perfil en el portal público</div>
-        <EstadoPerfilPublico modo="artista" v-model="persona" />
-      </q-card-section>
-      <q-card-actions align="right">
-        <q-btn
-          flat
-          no-caps
-          color="primary"
-          label="Completar mi perfil"
-          :to="{ name: 'CurriculumVitae' }"
-        />
-      </q-card-actions>
-    </q-card>
+    <DashboardArtista v-if="persona" v-model="persona" :requisitos="requisitos" />
   </div>
 </template>
 
@@ -61,7 +47,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { date } from 'quasar'
 import { ShieldAlert } from 'lucide-vue-next'
-import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import DashboardArtista from '@/components/DashboardArtista.vue'
 import DashboardAdmin from '@/components/DashboardAdmin.vue'
 import { useUserStore } from '@/stores/user-store'
 import MiInformacionService from '@/services/MiInformacionService'
@@ -78,12 +64,14 @@ const hoy = date.formatDate(new Date(), 'dddd D [de] MMMM', {
   ],
 })
 const passwordEsDni = ref(false)
+const requisitos = ref([])
 
 onMounted(async () => {
   try {
     const datos = await MiInformacionService.get()
     persona.value = datos.persona
     passwordEsDni.value = datos.password_es_dni
+    requisitos.value = datos.requisitos
   } catch {
     // si falla, el dashboard igual se muestra sin los avisos
   }

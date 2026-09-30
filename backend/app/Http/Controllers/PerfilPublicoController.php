@@ -45,8 +45,11 @@ class PerfilPublicoController extends Controller implements HasMiddleware
             422,
             $persona->estado === 'pendiente' ? 'Tu solicitud ya está en revisión.' : 'Tu perfil ya está publicado.'
         );
-        // sin comisión no hay dónde mostrarlo en el portal
-        abort_unless($persona->codigo_comision, 422, 'Primero completa tu comisión en "Editar".');
+        // mismo criterio que el checklist del dashboard (Persona::requisitosPerfil)
+        $faltan = collect($persona->requisitosPerfil())
+            ->filter(fn ($r) => $r['obligatorio'] && ! $r['cumple'])
+            ->pluck('label');
+        abort_if($faltan->isNotEmpty(), 422, 'Antes de enviar completa: ' . $faltan->implode(', ') . '.');
 
         $persona->update(['estado' => 'pendiente', 'observacion' => null]);
         $this->registrarRevision($request, $persona, 'enviado');

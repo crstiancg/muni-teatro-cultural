@@ -75,6 +75,29 @@ class Persona extends Model
         ]);
     }
 
+    // ÚNICA definición de "perfil completo": la usan el checklist del dashboard
+    // del artista y la validación de enviarRevision. Obligatorio = bloquea el envío.
+    public function requisitosPerfil(): array
+    {
+        $this->loadMissing('foto');
+
+        return [
+            ['clave' => 'foto', 'label' => 'Foto de perfil', 'obligatorio' => true,
+                'cumple' => (bool) $this->foto],
+            ['clave' => 'comision', 'label' => 'Comisión a la que perteneces', 'obligatorio' => true,
+                'cumple' => (bool) $this->codigo_comision],
+            ['clave' => 'biografia', 'label' => 'Sobre tu trabajo', 'obligatorio' => true,
+                'cumple' => filled($this->biografia)],
+            ['clave' => 'actividad', 'label' => 'Al menos una actividad pública', 'obligatorio' => true,
+                'cumple' => $this->actividades()->where('flag_activo', true)->where('flag_publico', true)->exists()],
+            ['clave' => 'redes', 'label' => 'Al menos una red social', 'obligatorio' => false,
+                'cumple' => filled($this->redes_sociales)],
+            ['clave' => 'trayectoria', 'label' => 'Formación o capacitación', 'obligatorio' => false,
+                'cumple' => $this->formacionesAcademicas()->where('flag_activo', true)->exists()
+                    || $this->capacitaciones()->where('flag_activo', true)->exists()],
+        ];
+    }
+
     public function notificarAdmins(string $tipo, string $mensaje): void
     {
         // a quien PUEDE aprobar (por rol o directo), no a un rol fijo

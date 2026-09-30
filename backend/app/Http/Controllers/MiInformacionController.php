@@ -43,6 +43,8 @@ class MiInformacionController extends Controller
             'persona' => $persona,
             // la clave inicial es el DNI: el dashboard recomienda cambiarla mientras lo siga siendo
             'password_es_dni' => $persona && Hash::check($persona->dni, $usuario->password),
+            // checklist del dashboard del artista
+            'requisitos' => $persona?->requisitosPerfil() ?? [],
         ]);
     }
 
