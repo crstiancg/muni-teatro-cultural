@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // la SPA (Quasar) vive en otro origen: los links de los mails apuntan acá
+    'frontend_url' => rtrim(env('FRONTEND_URL', 'http://127.0.0.1:9000'), '/'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
