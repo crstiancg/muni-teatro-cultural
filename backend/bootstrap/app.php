@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         ]);
+        // la ruta de Passport no es nuestra: se engancha global y filtra por path
+        $middleware->append(\App\Http\Middleware\LimitarIntentosLogin::class);
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

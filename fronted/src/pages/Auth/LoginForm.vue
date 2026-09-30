@@ -160,7 +160,12 @@ const login = async () => {
     $q.notify({
       position: 'top',
       type: 'negative',
-      message: e.response ? 'Credenciales incorrectas' : 'Sin conexión con el servidor',
+      // 429: LimitarIntentosLogin bloqueó por demasiados intentos fallidos
+      message: !e.response
+        ? 'Sin conexión con el servidor'
+        : e.response.status === 429
+          ? e.response.data.message
+          : 'Credenciales incorrectas',
     })
   } finally {
     loading.value = false
