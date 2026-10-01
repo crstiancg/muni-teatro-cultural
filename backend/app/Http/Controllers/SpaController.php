@@ -59,6 +59,11 @@ class SpaController extends Controller
                 'descripcion' => 'Directorio de artistas y agentes culturales de ' . config('seo.ciudad') . ': música, danza, teatro, artes plásticas y más.',
                 'canonica' => "{$base}/consejeros",
             ], 200],
+            $ruta === 'privacidad' => [[
+                'titulo' => "Política de privacidad · {$sitio}",
+                'descripcion' => 'Cómo tratamos los datos personales de artistas, agentes culturales e integrantes de agrupaciones (Ley N.° 29733).',
+                'canonica' => "{$base}/privacidad",
+            ], 200],
             $ruta === 'agrupaciones' => [[
                 'titulo' => "Agrupaciones · {$sitio}",
                 'descripcion' => 'Conjuntos, comparsas y elencos que mantienen viva la cultura de ' . config('seo.ciudad') . '.',

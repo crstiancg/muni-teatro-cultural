@@ -17,13 +17,14 @@ class AgrupacionIntegrante extends Model
         'rol',
         'persona_id',
         'es_representante',
+        'consentimiento_en',
     ];
 
     protected $appends = ['nombre_completo'];
 
     protected function casts(): array
     {
-        return ['es_representante' => 'boolean'];
+        return ['es_representante' => 'boolean', 'consentimiento_en' => 'datetime'];
     }
 
     // si el DNI es de un artista registrado, se vincula solo al guardar

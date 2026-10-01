@@ -29,11 +29,16 @@ class StoreIntegranteRequest extends FormRequest
             'apellido_paterno' => 'required|string|max:255',
             'apellido_materno' => 'nullable|string|max:255',
             'rol' => 'nullable|string|max:60',
+            // Ley 29733: obligatorio al agregar (al editar ya se declaró)
+            'consentimiento' => $integrante ? 'nullable' : 'accepted',
         ];
     }
 
     public function messages(): array
     {
-        return ['dni.unique' => 'Esta persona ya figura como integrante de la agrupación.'];
+        return [
+            'dni.unique' => 'Esta persona ya figura como integrante de la agrupación.',
+            'consentimiento.accepted' => 'Debes declarar que cuentas con el consentimiento de la persona.',
+        ];
     }
 }

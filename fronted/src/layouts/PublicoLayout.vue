@@ -78,6 +78,7 @@
           <router-link :to="{ name: 'Inicio' }">Inicio</router-link>
           <router-link :to="{ name: 'ConsejerosPublico' }">Artistas</router-link>
           <router-link :to="{ name: 'AgrupacionesPublico' }">Agrupaciones</router-link>
+          <router-link :to="{ name: 'Privacidad' }">Privacidad</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
           <router-link :to="{ name: 'Login' }">Ingresar</router-link>
         </nav>

@@ -64,11 +64,32 @@
           :error="!!errores.rol"
           :error-message="errores.rol"
         />
+
+        <!-- Ley 29733: la persona no tiene cuenta, el representante declara su consentimiento -->
+        <div v-if="!integrante" class="consentimiento">
+          <q-checkbox v-model="datos.consentimiento" dense>
+            Declaro contar con el consentimiento de esta persona para registrar sus datos y
+            publicar su nombre y rol en el portal, según la
+            <router-link :to="{ name: 'Privacidad' }" target="_blank">política de privacidad</router-link>
+            (Ley N.° 29733).
+          </q-checkbox>
+          <div v-if="errores.consentimiento" class="text-negative text-caption q-mt-xs">
+            {{ errores.consentimiento }}
+          </div>
+        </div>
       </q-card-section>
 
       <q-card-actions align="right" class="q-pa-md">
         <q-btn v-close-popup flat no-caps label="Cancelar" />
-        <q-btn unelevated no-caps color="primary" type="submit" label="Guardar" :loading="guardando" />
+        <q-btn
+          unelevated
+          no-caps
+          color="primary"
+          type="submit"
+          label="Guardar"
+          :loading="guardando"
+          :disable="!integrante && !datos.consentimiento"
+        />
       </q-card-actions>
     </q-form>
   </q-card>
@@ -98,6 +119,7 @@ const datos = reactive({
   apellido_paterno: props.integrante?.apellido_paterno ?? '',
   apellido_materno: props.integrante?.apellido_materno ?? '',
   rol: props.integrante?.rol ?? '',
+  consentimiento: false,
 })
 const errores = ref({})
 const guardando = ref(false)
@@ -153,3 +175,13 @@ async function enviar() {
   }
 }
 </script>
+
+<style scoped>
+.consentimiento {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.08);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+</style>

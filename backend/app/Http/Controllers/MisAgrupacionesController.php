@@ -185,7 +185,10 @@ class MisAgrupacionesController extends Controller
     {
         $this->soloRepresentante($request, $agrupacion);
 
-        $integrante = $agrupacion->integrantes()->create($request->validated());
+        $integrante = $agrupacion->integrantes()->create([
+            ...collect($request->validated())->except('consentimiento')->all(),
+            'consentimiento_en' => now(),
+        ]);
         $agrupacion->volverARevision("Agregó al integrante {$integrante->nombre_completo}.", $request->user()->id);
 
         // un artista registrado se entera de que figura en la agrupación (y puede reclamar)
@@ -209,7 +212,7 @@ class MisAgrupacionesController extends Controller
         // el DNI del representante es el de su ficha: no se cambia desde acá
         $datos = $integrante->es_representante
             ? collect($request->validated())->only('rol')->all()
-            : $request->validated();
+            : collect($request->validated())->except('consentimiento')->all();
         $integrante->update($datos);
         if ($integrante->wasChanged()) {
             $agrupacion->volverARevision("Modificó al integrante {$integrante->nombre_completo}.", $request->user()->id);

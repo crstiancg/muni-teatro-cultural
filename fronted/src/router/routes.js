@@ -107,6 +107,12 @@ const routes = [
   },
 
   {
+    path: '/privacidad',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [{ path: '', name: 'Privacidad', component: () => import('@/pages/Publico/PrivacidadPage.vue') }],
+  },
+
+  {
     path: '/agrupaciones',
     component: () => import('@/layouts/PublicoLayout.vue'),
     children: [
