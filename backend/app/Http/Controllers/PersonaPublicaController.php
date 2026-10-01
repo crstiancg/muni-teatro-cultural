@@ -102,6 +102,55 @@ class PersonaPublicaController extends Controller
         ]);
     }
 
+    // Buscador de la portada: resultados en vivo mientras se escribe. Artistas y
+    // agrupaciones publicados, por nombre o por comisión (familia), opcionalmente
+    // dentro de una disciplina. Pocos resultados: es un adelanto, no el directorio.
+    public function buscar(Request $request)
+    {
+        $termino = trim((string) $request->input('q'));
+        abort_if(mb_strlen($termino) < 2, 422, 'Escribe al menos 2 letras.');
+
+        $like = '%' . $termino . '%';
+        $grupo = $request->input('grupo');
+
+        $artistas = Persona::query()
+            ->publicado()
+            ->where(fn ($q) => $q->where('nombre_completo', 'like', $like)
+                ->orWhereHas('comision', fn ($c) => $c->where('nombre', 'like', $like)))
+            ->when($grupo, fn ($q) => $q->whereHas('comision', fn ($c) => $c->where('cod_grupo', $grupo)))
+            ->with(['comision:codigo,cod_grupo,nombre', 'foto'])
+            ->orderBy('nombre_completo')
+            ->limit(5)
+            ->get();
+
+        $agrupaciones = Agrupacion::query()
+            ->publicado()
+            ->where(fn ($q) => $q->where('nombre', 'like', $like)
+                ->orWhereHas('comision', fn ($c) => $c->where('nombre', 'like', $like)))
+            ->when($grupo, fn ($q) => $q->whereHas('comision', fn ($c) => $c->where('cod_grupo', $grupo)))
+            ->with(['comision:codigo,cod_grupo,nombre', 'logo'])
+            ->orderBy('nombre')
+            ->limit(3)
+            ->get();
+
+        return response()->json([
+            'artistas' => $artistas->map(fn (Persona $p) => [
+                'nombre' => $p->nombre_completo,
+                'slug' => $p->slug,
+                'comision' => $p->comision?->nombre,
+                'cod_grupo' => $p->comision?->cod_grupo,
+                'foto_url' => $p->foto?->miniatura_url,
+            ]),
+            'agrupaciones' => $agrupaciones->map(fn (Agrupacion $a) => [
+                'nombre' => $a->nombre,
+                'slug' => $a->slug,
+                'comision' => $a->comision?->nombre,
+                'cod_grupo' => $a->comision?->cod_grupo,
+                'logo_url' => $a->logo?->miniatura_url,
+            ]),
+        ]);
+    }
+
     // ÚNICO lugar donde se decide qué datos de contacto salen al público.
     // El DNI NO se publica (decisión 30/09/2026): además de la Ley 29733, es la
     // contraseña inicial de cada artista. Para dejar de exponer un campo, basta

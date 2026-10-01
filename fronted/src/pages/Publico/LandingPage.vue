@@ -30,18 +30,25 @@
           {{ INSTITUCION.ciudad }}.
         </p>
 
-        <!-- buscador segmentado: a quién busco + en qué disciplina -->
-        <form class="buscador" @submit.prevent="buscarArtistas">
+        <!-- buscador: resultados reales en vivo (artistas y agrupaciones), con teclado.
+             Combobox accesible: el input controla la lista de opciones -->
+        <form class="buscador" role="search" @submit.prevent="enviar" @keydown="teclas">
           <div class="segmento">
-            <label for="q-artista">Artista</label>
+            <label for="q-artista">Buscar</label>
             <input
               id="q-artista"
               v-model="termino"
               type="search"
-              placeholder="Nombre, familia o disciplina"
+              placeholder="Artista, agrupación o familia"
               autocomplete="off"
-              @focus="sugerenciasVisibles = true"
-              @blur="ocultarSugerencias"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="buscador-opciones"
+              :aria-expanded="abierto"
+              :aria-activedescendant="activo >= 0 ? `opcion-${activo}` : undefined"
+              @input="alEscribir"
+              @focus="abierto = true"
+              @blur="abierto = false"
             />
           </div>
 
@@ -50,7 +57,7 @@
           <div class="segmento segmento-select">
             <label for="q-disciplina">Disciplina</label>
             <div class="select-caja">
-              <select id="q-disciplina" v-model="grupoElegido">
+              <select id="q-disciplina" v-model="grupoElegido" @change="alEscribir">
                 <option value="">Todas</option>
                 <option v-for="g in grupos" :key="g.cod_grupo" :value="g.cod_grupo">
                   {{ comisionDe(g.cod_grupo).corto }}
@@ -64,18 +71,92 @@
             <Search :size="20" />
           </button>
 
-          <!-- sugerencias al enfocar, como en los buscadores de viaje -->
           <Transition name="caer">
-            <div v-if="sugerenciasVisibles" class="sugerencias">
-              <p class="sugerencias-titulo">Búsquedas frecuentes</p>
-              <ul>
-                <li v-for="a in atajos" :key="a">
-                  <button type="button" @mousedown.prevent="buscarRapido(a)">
-                    <TrendingUp :size="15" />
-                    {{ a }}
+            <div v-if="abierto" id="buscador-opciones" class="sugerencias" role="listbox">
+              <!-- sin texto: las disciplinas reales, que siempre llevan a resultados -->
+              <template v-if="termino.trim().length < 2">
+                <p class="sugerencias-titulo">Explorar por disciplina</p>
+                <ul class="sug-chips">
+                  <li v-for="g in grupos" :key="g.cod_grupo">
+                    <button type="button" @mousedown.prevent="irDisciplina(g.cod_grupo)">
+                      <component :is="iconoDe(g.cod_grupo)" :size="15" />
+                      {{ comisionDe(g.cod_grupo).corto }}
+                      <span class="sug-cuenta">{{ g.consejeros }}</span>
+                    </button>
+                  </li>
+                </ul>
+              </template>
+
+              <template v-else>
+                <template v-if="resultados.artistas.length">
+                  <p class="sugerencias-titulo">Artistas</p>
+                  <button
+                    v-for="o in opcionesDe('artista')"
+                    :id="`opcion-${o.indice}`"
+                    :key="`a-${o.slug}`"
+                    type="button"
+                    role="option"
+                    class="sug-item"
+                    :class="{ activo: activo === o.indice }"
+                    :aria-selected="activo === o.indice"
+                    @mousedown.prevent="abrir(o)"
+                    @mouseenter="activo = o.indice"
+                  >
+                    <span class="sug-avatar" :style="{ '--acento': comisionDe(o.cod_grupo).color }">
+                      <img v-if="o.foto_url" :src="o.foto_url" alt="" />
+                      <template v-else>{{ o.nombre.charAt(0) }}</template>
+                    </span>
+                    <span class="sug-texto">
+                      <strong>{{ o.nombre }}</strong>
+                      <small>{{ o.comision }}</small>
+                    </span>
                   </button>
-                </li>
-              </ul>
+                </template>
+
+                <template v-if="resultados.agrupaciones.length">
+                  <p class="sugerencias-titulo">Agrupaciones</p>
+                  <button
+                    v-for="o in opcionesDe('agrupacion')"
+                    :id="`opcion-${o.indice}`"
+                    :key="`g-${o.slug}`"
+                    type="button"
+                    role="option"
+                    class="sug-item"
+                    :class="{ activo: activo === o.indice }"
+                    :aria-selected="activo === o.indice"
+                    @mousedown.prevent="abrir(o)"
+                    @mouseenter="activo = o.indice"
+                  >
+                    <span class="sug-avatar cuadrado" :style="{ '--acento': comisionDe(o.cod_grupo).color }">
+                      <img v-if="o.logo_url" :src="o.logo_url" alt="" />
+                      <template v-else>{{ o.nombre.charAt(0) }}</template>
+                    </span>
+                    <span class="sug-texto">
+                      <strong>{{ o.nombre }}</strong>
+                      <small>Agrupación · {{ o.comision }}</small>
+                    </span>
+                  </button>
+                </template>
+
+                <p v-if="buscando && !hayResultados" class="sug-estado">Buscando…</p>
+                <p v-else-if="!buscando && !hayResultados" class="sug-estado">
+                  No encontramos coincidencias para “{{ termino.trim() }}”.
+                </p>
+
+                <!-- siempre al final: el directorio completo con el filtro aplicado -->
+                <button
+                  :id="`opcion-${opciones.length - 1}`"
+                  type="button"
+                  role="option"
+                  class="sug-todos"
+                  :class="{ activo: activo === opciones.length - 1 }"
+                  :aria-selected="activo === opciones.length - 1"
+                  @mousedown.prevent="enviar"
+                  @mouseenter="activo = opciones.length - 1"
+                >
+                  Ver todos los artistas para “{{ termino.trim() }}” <ArrowRight :size="15" />
+                </button>
+              </template>
             </div>
           </Transition>
         </form>
@@ -380,7 +461,6 @@ import {
   ArrowRight,
   ChevronDown,
   Search,
-  TrendingUp,
   Sparkles,
   Music,
   PersonStanding,
@@ -404,7 +484,11 @@ const artistas = ref([])
 const agrupaciones = ref([])
 const termino = ref('')
 const grupoElegido = ref('')
-const sugerenciasVisibles = ref(false)
+const abierto = ref(false)
+const buscando = ref(false)
+const resultados = ref({ artistas: [], agrupaciones: [] })
+// índice de la opción resaltada con el teclado (-1 = ninguna)
+const activo = ref(-1)
 
 const danzas = [
   'Sikuris',
@@ -421,7 +505,6 @@ const danzas = [
   'Tobas',
 ]
 
-const atajos = ['Sikuris', 'Bordadores', 'Danza de luces', 'Mascareros', 'Estudiantina']
 
 const iconosPorGrupo = {
   '01': Music,
@@ -438,22 +521,86 @@ function iconoDe(codGrupo) {
   return iconosPorGrupo[codGrupo] || Sparkles
 }
 
-function buscarArtistas() {
+// lista plana de lo que se puede elegir con el teclado: artistas, agrupaciones y
+// al final "ver todos" (las opciones usan @mousedown.prevent, así el blur del
+// input no cierra la lista antes del clic)
+const opciones = computed(() => [
+  ...resultados.value.artistas.map((a) => ({ ...a, tipo: 'artista' })),
+  ...resultados.value.agrupaciones.map((a) => ({ ...a, tipo: 'agrupacion' })),
+  { tipo: 'todos' },
+])
+const opcionesDe = (tipo) =>
+  opciones.value.map((o, indice) => ({ ...o, indice })).filter((o) => o.tipo === tipo)
+const hayResultados = computed(() => opciones.value.length > 1)
+
+// se busca 250 ms después de la última tecla; si llega una respuesta vieja, se descarta
+let pausa = null
+let consulta = 0
+function alEscribir() {
+  abierto.value = true
+  activo.value = -1
+  clearTimeout(pausa)
+  const q = termino.value.trim()
+  if (q.length < 2) {
+    resultados.value = { artistas: [], agrupaciones: [] }
+    return
+  }
+  buscando.value = true
+  pausa = setTimeout(async () => {
+    const mia = ++consulta
+    try {
+      const r = await PersonaPublicaService.buscar({ q, grupo: grupoElegido.value || undefined })
+      if (mia === consulta) resultados.value = r
+    } catch {
+      if (mia === consulta) resultados.value = { artistas: [], agrupaciones: [] }
+    } finally {
+      if (mia === consulta) buscando.value = false
+    }
+  }, 250)
+}
+
+function abrir(opcion) {
+  abierto.value = false
+  if (opcion.tipo === 'artista') {
+    router.push({ name: 'ConsejeroDetallePublico', params: { slug: opcion.slug } })
+  } else if (opcion.tipo === 'agrupacion') {
+    router.push({ name: 'AgrupacionPublica', params: { slug: opcion.slug } })
+  } else {
+    enviar()
+  }
+}
+
+// Enter sin opción elegida, o "ver todos": el directorio con el filtro aplicado
+function enviar() {
+  abierto.value = false
   const query = {}
   if (termino.value.trim()) query.buscar = termino.value.trim()
   if (grupoElegido.value) query.grupo = grupoElegido.value
   router.push({ name: 'ConsejerosPublico', query })
 }
 
-function buscarRapido(texto) {
-  termino.value = texto
-  sugerenciasVisibles.value = false
-  buscarArtistas()
+function irDisciplina(codGrupo) {
+  abierto.value = false
+  router.push({ name: 'ConsejerosPublico', query: { grupo: codGrupo } })
 }
 
-// el blur llega antes que el click de la sugerencia: se espera un instante
-function ocultarSugerencias() {
-  setTimeout(() => (sugerenciasVisibles.value = false), 120)
+function teclas(e) {
+  if (e.target.id !== 'q-artista') return
+  const total = termino.value.trim().length < 2 ? 0 : opciones.value.length
+  if (e.key === 'ArrowDown' && total) {
+    e.preventDefault()
+    abierto.value = true
+    activo.value = (activo.value + 1) % total
+  } else if (e.key === 'ArrowUp' && total) {
+    e.preventDefault()
+    activo.value = activo.value <= 0 ? total - 1 : activo.value - 1
+  } else if (e.key === 'Enter' && abierto.value && activo.value >= 0) {
+    e.preventDefault()
+    abrir(opciones.value.at(activo.value))
+  } else if (e.key === 'Escape') {
+    abierto.value = false
+    activo.value = -1
+  }
 }
 
 const destacado = computed(() => artistas.value[0] || null)
@@ -815,14 +962,18 @@ onMounted(async () => {
   padding: 14px 10px 10px;
   z-index: 20;
 
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
+  max-height: min(70vh, 460px);
+  overflow-y: auto;
+}
+
+/* sin texto: las disciplinas como chips */
+.sug-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 
   button {
     display: inline-flex;
@@ -846,6 +997,107 @@ onMounted(async () => {
     &:hover {
       background: var(--crema-hondo);
     }
+  }
+}
+
+.sug-cuenta {
+  font-size: var(--t-xs);
+  color: var(--tinta-suave);
+  font-weight: 700;
+}
+
+/* con texto: filas de resultados */
+.sug-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &.activo {
+    background: var(--crema);
+  }
+}
+
+.sug-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--acento) 15%, var(--blanco));
+  color: var(--acento);
+  font-weight: 800;
+
+  &.cuadrado {
+    border-radius: var(--r-sm);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sug-texto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: var(--t-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    font-size: var(--t-xs);
+    color: var(--tinta-suave);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sug-estado {
+  margin: 6px 10px 10px;
+  font-size: var(--t-sm);
+  color: var(--tinta-suave);
+}
+
+.sug-todos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  border: 0;
+  border-top: 1px solid var(--borde);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  background: none;
+  color: var(--rojo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+
+  &.activo,
+  &:hover {
+    background: var(--crema);
   }
 }
 

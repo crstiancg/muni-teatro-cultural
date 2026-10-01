@@ -34,6 +34,8 @@ Route::post('login', [AuthController::class, 'login']);
 
 // endpoints públicos, sin auth: solo datos seguros para la galería de consejeros
 Route::get('publico/portada', [PersonaPublicaController::class, 'portada']);
+// buscador en vivo de la portada: se llama mientras se escribe
+Route::get('publico/buscar', [PersonaPublicaController::class, 'buscar'])->middleware('throttle:60,1');
 Route::get('publico/consejeros', [PersonaPublicaController::class, 'index']);
 Route::get('publico/consejeros/grupos', [PersonaPublicaController::class, 'grupos']);
 Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'actividadesDestacadas']);
