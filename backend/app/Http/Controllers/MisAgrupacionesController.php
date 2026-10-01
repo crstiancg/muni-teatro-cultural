@@ -23,18 +23,35 @@ class MisAgrupacionesController extends Controller
         $persona = $this->miPersona($request);
 
         $agrupaciones = $persona->agrupaciones()
-            ->with(['comision:codigo,nombre', 'logo'])
+            ->with(['comision:codigo,nombre', 'logo', 'portada'])
+            ->withCount(['integrantes', 'actividades'])
+            ->orderByDesc('agrupacion_integrantes.es_representante')
             ->orderBy('nombre')
             ->get()
-            ->map(fn (Agrupacion $a) => [
-                ...$a->only(['id', 'nombre', 'slug', 'estado', 'codigo_comision']),
-                'comision' => $a->comision?->nombre,
-                'logo' => $a->logo,
-                'rol' => $a->pivot->rol,
-                'es_representante' => (bool) $a->pivot->es_representante,
-            ]);
+            ->map(function (Agrupacion $a) {
+                $esRepresentante = (bool) $a->pivot->es_representante;
 
-        return response()->json($agrupaciones);
+                return [
+                    ...$a->only(['id', 'nombre', 'slug', 'estado', 'codigo_comision', 'observacion']),
+                    'comision' => $a->comision?->nombre,
+                    'logo' => $a->logo,
+                    'portada_url' => $a->portada?->miniatura_url,
+                    'rol' => $a->pivot->rol,
+                    'es_representante' => $esRepresentante,
+                    'total_integrantes' => $a->integrantes_count,
+                    'total_actividades' => $a->actividades_count,
+                    // lo obligatorio que falta para poder enviarla (solo le sirve al representante)
+                    'faltan' => $esRepresentante
+                        ? collect($a->requisitos())->filter(fn ($r) => $r['obligatorio'] && ! $r['cumple'])->pluck('label')->values()
+                        : [],
+                ];
+            });
+
+        return response()->json([
+            'agrupaciones' => $agrupaciones,
+            'representadas' => $agrupaciones->where('es_representante', true)->count(),
+            'limite' => config('agrupaciones.max_por_representante'),
+        ]);
     }
 
     public function show(Request $request, Agrupacion $agrupacion)
@@ -47,6 +64,17 @@ class MisAgrupacionesController extends Controller
     public function store(StoreAgrupacionRequest $request)
     {
         $persona = $this->miPersona($request);
+
+        // tope por persona (config/agrupaciones.php): ser integrante de otras no cuenta
+        $limite = config('agrupaciones.max_por_representante');
+        $representadas = $persona->agrupaciones()->wherePivot('es_representante', true)->count();
+        abort_if(
+            $representadas >= $limite,
+            422,
+            $limite === 1
+                ? 'Solo puedes crear una agrupación.'
+                : "Puedes representar hasta {$limite} agrupaciones y ya llegaste al límite."
+        );
 
         $agrupacion = Agrupacion::create($this->datos($request));
 
