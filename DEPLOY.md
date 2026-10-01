@@ -65,6 +65,9 @@ APIS_NET_PE_TOKEN=...
 # máximo de agrupaciones que puede representar una persona
 AGRUPACIONES_MAXIMO=2
 
+# superadministrador: oculto en la lista de usuarios, nadie más puede verlo ni borrarlo
+USUARIOS_OCULTOS=1
+
 # solo si el hosting NO permite symlinks (ver paso 3.6)
 # PUBLIC_DISK_EN_PUBLIC=true
 ```

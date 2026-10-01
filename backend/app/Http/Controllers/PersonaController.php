@@ -88,6 +88,9 @@ class PersonaController extends Controller implements HasMiddleware
     // tabla polimórfica "archivos" no tiene FK: sus filas y el disco van a mano.
     public function destroy(Request $request, Persona $persona)
     {
+        // borrar la persona arrastra su usuario: un usuario oculto tampoco se borra por acá
+        abort_if(User::esOculto($persona->user_id) && ! User::esOculto($request->user()->id), 404);
+
         // sin esto un admin con ficha de persona podría dejarse sin acceso
         abort_if($persona->user_id === $request->user()->id, 422, 'No puedes eliminar tu propia ficha.');
 

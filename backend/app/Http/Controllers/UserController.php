@@ -18,7 +18,8 @@ class UserController extends Controller implements HasMiddleware
     {
         return $this->generateViewSetList(
             $request,
-            User::query(),
+            // los usuarios ocultos (config/acceso.php) no aparecen en la lista
+            User::query()->visiblesPara($request->user()),
             [],
             ['id', 'name', 'email'],
             ['id', 'name', 'email']
