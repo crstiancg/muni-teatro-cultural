@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Actividad;
+use App\Models\Agrupacion;
 use App\Models\Comision;
 use App\Models\Persona;
 use App\Support\UserAgent;
@@ -198,12 +199,30 @@ class PersonaPublicaController extends Controller
                 'consejeros' => Persona::publicado()->count(),
                 'comisiones' => Comision::where('tipo', 'familia')->count(),
                 'grupos' => $grupos->count(),
+                'agrupaciones' => Agrupacion::publicado()->count(),
                 'actividades' => Actividad::where('flag_activo', true)->where('flag_publico', true)
                     ->whereHas('persona', fn ($q) => $q->publicado())->count(),
             ],
             'grupos' => $grupos,
             'destacadas' => $this->actividadesDestacadas()->getData(true),
             'artistas' => $this->artistasDestacados(),
+            // las agrupaciones también tienen su vidriera en la portada
+            'agrupaciones' => Agrupacion::query()
+                ->publicado()
+                ->with(['comision:codigo,cod_grupo,nombre', 'logo', 'portada'])
+                ->withCount('integrantes')
+                ->inRandomOrder()
+                ->limit(4)
+                ->get()
+                ->map(fn (Agrupacion $a) => [
+                    'nombre' => $a->nombre,
+                    'slug' => $a->slug,
+                    'comision' => $a->comision?->nombre,
+                    'cod_grupo' => $a->comision?->cod_grupo,
+                    'logo_url' => $a->logo?->miniatura_url,
+                    'portada_url' => $a->portada?->miniatura_url,
+                    'total_integrantes' => $a->integrantes_count,
+                ]),
         ]);
     }
 

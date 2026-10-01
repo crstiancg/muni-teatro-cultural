@@ -233,6 +233,46 @@
       </div>
     </section>
 
+    <!-- ══════════ ④b AGRUPACIONES ══════════ -->
+    <section v-if="agrupaciones.length" class="agrupaciones-home">
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Conjuntos y comparsas</p>
+            <h2 class="titulo">Agrupaciones</h2>
+          </div>
+
+          <router-link :to="{ name: 'AgrupacionesPublico' }" class="btn-linea">
+            {{ stats.agrupaciones === 1 ? 'Ver la agrupación' : `Ver las ${stats.agrupaciones} agrupaciones` }}
+            <ArrowRight :size="16" />
+          </router-link>
+        </header>
+
+        <div class="agr-grilla">
+          <router-link
+            v-for="(a, i) in agrupaciones"
+            :key="a.slug"
+            v-revelar="i * 60"
+            :to="{ name: 'AgrupacionPublica', params: { slug: a.slug } }"
+            class="agr-tarjeta"
+            :style="{ '--acento': comisionDe(a.cod_grupo).color }"
+          >
+            <div class="agr-portada">
+              <img v-if="a.portada_url" :src="a.portada_url" alt="" loading="lazy" />
+            </div>
+            <div class="agr-cuerpo">
+              <span class="agr-logo">
+                <img v-if="a.logo_url" :src="a.logo_url" :alt="a.nombre" loading="lazy" />
+                <template v-else>{{ a.nombre.charAt(0) }}</template>
+              </span>
+              <h3>{{ a.nombre }}</h3>
+              <p>{{ comisionDe(a.cod_grupo).corto }} · {{ a.total_integrantes }} integrantes</p>
+            </div>
+          </router-link>
+        </div>
+      </div>
+    </section>
+
     <!-- ══════════ ⑤ CANDELARIA — pantalla completa, en claro ══════════ -->
     <section class="candelaria">
       <span class="cenefa cenefa-arriba" aria-hidden="true" />
@@ -361,6 +401,7 @@ const stats = ref({ consejeros: 0, comisiones: 0, grupos: 0, actividades: 0 })
 const grupos = ref([])
 const destacadas = ref([])
 const artistas = ref([])
+const agrupaciones = ref([])
 const termino = ref('')
 const grupoElegido = ref('')
 const sugerenciasVisibles = ref(false)
@@ -467,6 +508,7 @@ onMounted(async () => {
   grupos.value = data.grupos
   destacadas.value = data.destacadas
   artistas.value = data.artistas || []
+  agrupaciones.value = data.agrupaciones || []
   rotarFotos()
   await nextTick()
   girarAcordeon()
@@ -1383,6 +1425,99 @@ onMounted(async () => {
 @media (min-width: 620px) {
   .artistas-lista {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ═══════════ ④b AGRUPACIONES ═══════════ */
+.agrupaciones-home {
+  padding: var(--seccion-y) 0;
+}
+
+.agr-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(16px, 2vw, 22px);
+}
+
+.agr-tarjeta {
+  display: flex;
+  flex-direction: column;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--tinta);
+  transition:
+    transform var(--transicion),
+    box-shadow var(--transicion);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra);
+  }
+
+  &:hover .agr-portada img {
+    transform: scale(1.04);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.agr-portada {
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  /* sin portada: el color de la disciplina */
+  background: linear-gradient(135deg, var(--noche), color-mix(in srgb, var(--acento) 70%, var(--noche)));
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+}
+
+.agr-cuerpo {
+  padding: 0 16px 16px;
+
+  h3 {
+    @include display(700);
+    font-size: var(--t-md);
+    margin: 0 0 4px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--t-sm);
+    color: var(--tinta-suave);
+  }
+}
+
+.agr-logo {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -28px;
+  margin-bottom: 10px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--blanco);
+  border: 3px solid var(--blanco);
+  box-shadow: var(--sombra);
+  color: var(--acento);
+  @include display(800);
+  font-size: 1.4rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 
