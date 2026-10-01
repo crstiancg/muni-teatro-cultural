@@ -421,6 +421,9 @@ const contenido = computed(() => [
 }
 
 .observacion {
+  /* texto que escribe una persona: una palabra larga sin espacios no debe salirse */
+  overflow-wrap: anywhere;
+  word-break: break-word;
   white-space: pre-line;
 }
 

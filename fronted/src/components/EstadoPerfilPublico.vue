@@ -12,6 +12,7 @@
       dense
       rounded
       class="bg-orange-1 text-orange-10 q-mt-sm"
+      style="overflow-wrap: anywhere; word-break: break-word"
     >
       <strong>Observación del administrador:</strong> {{ persona.observacion }}
     </q-banner>

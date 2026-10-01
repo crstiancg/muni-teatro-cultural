@@ -3,7 +3,7 @@
     Aún no hay revisiones del perfil público.
   </div>
 
-  <q-timeline v-else dense color="primary" class="q-my-none">
+  <q-timeline v-else dense color="primary" class="q-my-none historial">
     <q-timeline-entry
       v-for="revision in revisiones"
       :key="revision.id"
@@ -43,9 +43,17 @@ const fecha = (valor) => date.formatDate(valor, 'DD/MM/YYYY HH:mm')
 
 <style scoped>
 .observacion {
+  /* texto que escribe una persona: una palabra larga sin espacios no debe salirse */
+  overflow-wrap: anywhere;
+  word-break: break-word;
   white-space: pre-line;
   border-left: 3px solid var(--q-warning);
   padding-left: 8px;
   margin-bottom: 2px;
+}
+/* el contenido de cada entrada puede achicarse: sin esto la palabra larga
+   estira la columna en vez de cortarse */
+.historial :deep(.q-timeline__content) {
+  min-width: 0;
 }
 </style>
