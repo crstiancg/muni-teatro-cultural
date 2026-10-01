@@ -1047,13 +1047,15 @@ onMounted(async () => {
   }
 }
 
+/* dos columnas: las 9 opciones entran sin barra de scroll */
 .disciplinas {
   position: absolute;
   top: calc(100% + 18px);
   right: -12px;
-  width: 290px;
-  max-height: min(60vh, 420px);
-  overflow-y: auto;
+  width: 460px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
   margin: 0;
   padding: 6px;
   list-style: none;
@@ -1065,6 +1067,14 @@ onMounted(async () => {
 }
 
 .disciplina-op {
+  /* "Todas las disciplinas" ocupa la fila completa */
+  &:first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--borde);
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    margin-bottom: 4px;
+  }
+
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1159,6 +1169,22 @@ onMounted(async () => {
 
   max-height: min(70vh, 460px);
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--borde-fuerte) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--borde-fuerte);
+    border-radius: 999px;
+    border: 2px solid var(--blanco);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 /* sin texto: las disciplinas como chips */
@@ -1411,6 +1437,7 @@ onMounted(async () => {
     right: -1px;
     width: auto;
     top: calc(100% + 8px);
+    grid-template-columns: 1fr;
   }
 
   .buscador-btn {
