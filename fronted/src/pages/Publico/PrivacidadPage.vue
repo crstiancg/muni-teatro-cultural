@@ -35,9 +35,13 @@
             consentimiento.
           </li>
           <li>
-            <strong>Visitas al portal:</strong> solo se cuenta cuántas veces se visita cada perfil por día. Para no
-            contar dos veces la misma visita se usa por 30 minutos un identificador cifrado del navegador; no se
-            guarda la dirección IP.
+            <strong>Visitas al portal:</strong> solo se guarda cuántas veces se visita cada perfil por día. Para no
+            contar dos veces la misma visita, durante 30 minutos se conserva un código generado a partir de la
+            dirección IP y el navegador (un resumen, no la dirección en sí), que luego se descarta.
+          </li>
+          <li>
+            <strong>Inicio de sesión:</strong> para frenar intentos de adivinar contraseñas, los intentos fallidos se
+            registran durante un minuto junto con el correo y la dirección IP desde donde se hicieron.
           </li>
         </ul>
       </section>
