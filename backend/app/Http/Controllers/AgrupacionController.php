@@ -15,7 +15,7 @@ class AgrupacionController extends Controller implements HasMiddleware
     {
         return static::permisos('agrupaciones', [
             'index' => ['index', 'show'],
-            'aprobar' => ['aprobar', 'observar', 'transferirRepresentante'],
+            'aprobar' => ['aprobar', 'observar', 'transferirRepresentante', 'destroy'],
         ]);
     }
 
@@ -87,6 +87,20 @@ class AgrupacionController extends Controller implements HasMiddleware
         $agrupacion->notificarRepresentantes('agrupacion_observado', "La agrupación {$agrupacion->nombre} fue observada: {$datos['observacion']}");
 
         return $this->show($agrupacion);
+    }
+
+    // limpieza: duplicadas, de prueba o creadas por error. El modelo borra logo,
+    // portada e imágenes de actividades del disco (Agrupacion::booted)
+    public function destroy(Agrupacion $agrupacion)
+    {
+        // se avisa antes de borrar: después ya no hay a quién notificar
+        $agrupacion->notificarRepresentantes(
+            'agrupacion_eliminada',
+            "La agrupación {$agrupacion->nombre} fue eliminada por el administrador."
+        );
+        $agrupacion->delete();
+
+        return response()->json(true);
     }
 
     // rescate: una agrupación sin representante activo (dejó el grupo, se borró su ficha)

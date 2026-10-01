@@ -18,6 +18,10 @@ class AgrupacionService {
     return (await api.put(`/api/mis-agrupaciones/${id}`, datos)).data
   }
 
+  static async eliminarMia(id) {
+    return await api.delete(`/api/mis-agrupaciones/${id}`)
+  }
+
   static async enviarRevision(id) {
     return (await api.post(`/api/mis-agrupaciones/${id}/enviar-revision`)).data
   }
@@ -58,6 +62,10 @@ class AgrupacionService {
 
   static async observar(id, observacion) {
     return (await api.put(`/api/agrupaciones/${id}/observar`, { observacion })).data
+  }
+
+  static async eliminar(id) {
+    return await api.delete(`/api/agrupaciones/${id}`)
   }
 
   // rescate de una agrupación sin representante activo

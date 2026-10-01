@@ -77,6 +77,10 @@ async function abrir(aviso) {
     router.push({ name: 'AgrupacionAdminDetalle', params: { id: aviso.data.agrupacion_id } })
     return
   }
+  if (tipo === 'agrupacion_eliminada') {
+    router.push({ name: 'MisAgrupaciones' })
+    return
+  }
   if (tipo?.startsWith('agrupacion_')) {
     router.push({ name: 'MiAgrupacion', params: { id: aviso.data.agrupacion_id } })
     return

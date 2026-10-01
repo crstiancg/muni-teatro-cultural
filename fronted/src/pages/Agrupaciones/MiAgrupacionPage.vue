@@ -94,6 +94,13 @@
           </q-card-section>
         </q-card>
 
+        <!-- en borrador el representante puede borrarla; después pasa por el admin -->
+        <div v-if="agrupacion.estado === 'borrador'" class="text-center q-mt-md">
+          <q-btn flat no-caps color="negative" @click="eliminar">
+            <Trash2 :size="15" class="q-mr-xs" /> Eliminar agrupación
+          </q-btn>
+        </div>
+
         <q-card flat :bordered="!$q.dark.isActive" class="q-mt-md">
           <q-card-section>
             <div class="text-subtitle1 text-weight-bold q-mb-sm">Historial de revisiones</div>
@@ -178,7 +185,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
-import { Home, Plus, Circle, CircleCheck } from 'lucide-vue-next'
+import { Home, Plus, Circle, CircleCheck, Trash2 } from 'lucide-vue-next'
 import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
 import AgrupacionDatosForm from '@/components/AgrupacionDatosForm.vue'
@@ -260,6 +267,24 @@ function quitar(integrante) {
       cargar()
     } catch (error) {
       notifyError(error.response?.data?.message || 'No se pudo quitar.')
+    }
+  })
+}
+
+function eliminar() {
+  $q.dialog({
+    title: 'Eliminar agrupación',
+    message: `Se borrarán ${agrupacion.value.nombre}, sus integrantes y actividades. No se puede deshacer. ¿Continuar?`,
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Eliminar', color: 'negative', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await AgrupacionService.eliminarMia(id)
+      notifySuccess('Agrupación eliminada.')
+      router.push({ name: 'MisAgrupaciones' })
+    } catch (error) {
+      notifyError(error.response?.data?.message || 'No se pudo eliminar.')
     }
   })
 }

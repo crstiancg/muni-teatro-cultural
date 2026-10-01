@@ -81,6 +81,10 @@
             >
               <ExternalLink :size="16" class="q-mr-sm" /> Ver en el portal
             </q-btn>
+            <q-btn v-if="puedeAprobar" flat round color="negative" :disable="procesando" @click="eliminar">
+              <Trash2 :size="18" />
+              <q-tooltip>Eliminar agrupación</q-tooltip>
+            </q-btn>
           </div>
         </q-card-section>
 
@@ -174,7 +178,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   Home,
   FolderTree,
@@ -184,6 +188,7 @@ import {
   Circle,
   MessageSquareWarning,
   ExternalLink,
+  Trash2,
   Facebook,
   Instagram,
   Music2,
@@ -199,6 +204,7 @@ import { useUserStore } from '@/stores/user-store'
 
 const $q = useQuasar()
 const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
 const { notifySuccess, notifyError } = useNotify()
 const id = Number(route.params.id)
@@ -260,6 +266,27 @@ function observar() {
     cancel: true,
     persistent: true,
   }).onOk((texto) => ejecutar(() => AgrupacionService.observar(id, texto.trim()), 'Observación enviada.'))
+}
+
+// irreversible: se pide escribir el nombre para confirmar
+function eliminar() {
+  $q.dialog({
+    title: 'Eliminar agrupación',
+    message: `Se borrarán la agrupación, sus integrantes, actividades e imágenes. No se puede deshacer. Escribe <b>${agrupacion.value.nombre}</b> para confirmar.`,
+    html: true,
+    prompt: { model: '', isValid: (v) => v.trim() === agrupacion.value.nombre },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Eliminar', color: 'negative', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await AgrupacionService.eliminar(id)
+      notifySuccess('Agrupación eliminada.')
+      router.push({ name: 'AgrupacionesAdmin' })
+    } catch (error) {
+      notifyError(error.response?.data?.message || 'No se pudo eliminar.')
+    }
+  })
 }
 
 // rescate: la agrupación quedó sin un representante que la gestione

@@ -99,6 +99,7 @@ Route::middleware('auth:api')->group(function () {
         ->middleware('throttle:20,1');
     Route::get('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'show'])->whereNumber('agrupacion');
     Route::put('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'update'])->whereNumber('agrupacion');
+    Route::delete('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'destroy'])->whereNumber('agrupacion');
     Route::post('mis-agrupaciones/{agrupacion}/enviar-revision', [MisAgrupacionesController::class, 'enviarRevision']);
     Route::post('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'storeLogo']);
     Route::delete('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'destroyLogo']);
@@ -123,6 +124,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('agrupaciones', [AgrupacionController::class, 'index']);
     Route::get('agrupaciones/{agrupacion}', [AgrupacionController::class, 'show']);
     Route::put('agrupaciones/{agrupacion}/aprobar', [AgrupacionController::class, 'aprobar']);
+    Route::delete('agrupaciones/{agrupacion}', [AgrupacionController::class, 'destroy']);
     Route::put('agrupaciones/{agrupacion}/observar', [AgrupacionController::class, 'observar']);
     Route::put('agrupaciones/{agrupacion}/representante/{integrante}', [AgrupacionController::class, 'transferirRepresentante']);
     // cada consulta gasta cuota de apis.net.pe: máximo 30 por minuto por usuario

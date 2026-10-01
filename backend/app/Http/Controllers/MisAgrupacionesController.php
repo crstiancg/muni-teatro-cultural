@@ -220,6 +220,22 @@ class MisAgrupacionesController extends Controller
         return response()->json(true);
     }
 
+    // el representante solo borra lo que nunca envió: una vez enviada o
+    // publicada, eliminarla pasa por el admin
+    public function destroy(Request $request, Agrupacion $agrupacion)
+    {
+        $this->soloRepresentante($request, $agrupacion);
+        abort_unless(
+            $agrupacion->estado === 'borrador',
+            422,
+            'Solo puedes eliminar una agrupación en borrador. Para eliminar una enviada o publicada, contacta al administrador.'
+        );
+
+        $agrupacion->delete();
+
+        return response()->json(true);
+    }
+
     // el representante cede la gestión (por ejemplo, si deja el grupo)
     public function transferirRepresentante(Request $request, Agrupacion $agrupacion, AgrupacionIntegrante $integrante)
     {
