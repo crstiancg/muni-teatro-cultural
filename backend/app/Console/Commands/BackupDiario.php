@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
 // Backup de la base y de los archivos subidos (fotos, certificados) en un .zip.
@@ -38,7 +39,8 @@ class BackupDiario extends Command
             return self::FAILURE;
         }
         $zip->addFile($sql, 'base.sql');
-        foreach (File::allFiles(storage_path('app/public')) as $archivo) {
+        // la carpeta real del disco public (cambia con PUBLIC_DISK_EN_PUBLIC)
+        foreach (File::allFiles(Storage::disk('public')->path('')) as $archivo) {
             $zip->addFile($archivo->getPathname(), 'storage/' . str_replace('\\', '/', $archivo->getRelativePathname()));
         }
         $zip->close();

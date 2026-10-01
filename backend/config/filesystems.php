@@ -40,7 +40,9 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // hosting sin symlinks (sin "storage:link"): PUBLIC_DISK_EN_PUBLIC=true guarda
+            // los archivos directo en public/storage, que Apache sirve sin enlace
+            'root' => env('PUBLIC_DISK_EN_PUBLIC', false) ? public_path('storage') : storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
             'throw' => false,
