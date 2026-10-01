@@ -43,6 +43,14 @@ class PermissionSeeder extends Seeder
             }
         }
 
+        // agrupaciones: las crean los artistas; el admin solo las ve y las revisa
+        foreach (['admin-agrupaciones-index' => 'Ver lista de Agrupaciones', 'admin-agrupaciones-aprobar' => 'Aprobar agrupaciones'] as $nombre => $descripcion) {
+            Permission::updateOrCreate(
+                ['name' => $nombre, 'guard_name' => 'api'],
+                ['description' => $descripcion]
+            )->assignRole([$admin]);
+        }
+
         // fuera del CRUD: aprobar u observar el perfil público de un artista
         Permission::updateOrCreate(
             ['name' => 'admin-personas-aprobar', 'guard_name' => 'api'],

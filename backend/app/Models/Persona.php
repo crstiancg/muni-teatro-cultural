@@ -145,6 +145,14 @@ class Persona extends Model
         static::creating(function (Persona $persona) {
             $persona->slug ??= static::generarSlug($persona->nombre_completo);
         });
+
+        // si ya figuraba como integrante de alguna agrupación (cargado por su DNI),
+        // al registrarse queda vinculado y en su perfil aparece "Integra: ..."
+        static::created(function (Persona $persona) {
+            AgrupacionIntegrante::where('dni', $persona->dni)
+                ->whereNull('persona_id')
+                ->update(['persona_id' => $persona->id]);
+        });
     }
 
     public static function generarSlug(?string $nombreCompleto): string
@@ -207,6 +215,14 @@ class Persona extends Model
     public function archivos()
     {
         return $this->morphMany(Archivo::class, 'archivable');
+    }
+
+    // agrupaciones donde figura como integrante (vinculado por su DNI)
+    public function agrupaciones()
+    {
+        return $this->belongsToMany(Agrupacion::class, 'agrupacion_integrantes')
+            ->withPivot(['id', 'rol', 'es_representante'])
+            ->withTimestamps();
     }
 
     // historial del flujo de revisión, lo más reciente primero

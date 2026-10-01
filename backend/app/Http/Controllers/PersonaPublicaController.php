@@ -84,6 +84,12 @@ class PersonaPublicaController extends Controller
             // HTML ya sanitizado al guardar (Persona::biografiaLimpia)
             'biografia' => $persona->biografia,
             'redes_sociales' => $persona->redes_sociales ?? (object) [],
+            // agrupaciones publicadas donde figura como integrante (vinculado por DNI)
+            'agrupaciones' => $persona->agrupaciones()
+                ->publicado()
+                ->orderBy('agrupaciones.nombre')
+                ->get(['agrupaciones.id', 'agrupaciones.nombre', 'agrupaciones.slug'])
+                ->map(fn ($a) => ['nombre' => $a->nombre, 'slug' => $a->slug, 'rol' => $a->pivot->rol]),
             'actividades' => $persona->actividades->map(fn ($a) => [
                 'id' => $a->id,
                 'titulo' => $a->titulo,

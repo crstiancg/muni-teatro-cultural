@@ -1,11 +1,14 @@
 <?php
 
 use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\AgrupacionController;
+use App\Http\Controllers\AgrupacionPublicaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapacitacionController;
 use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
+use App\Http\Controllers\MisAgrupacionesController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
@@ -35,6 +38,7 @@ Route::get('publico/consejeros/grupos', [PersonaPublicaController::class, 'grupo
 Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'actividadesDestacadas']);
 // resuelve por slug (no por id) solo en la parte pública; el admin sigue con id
 Route::get('publico/consejeros/{persona:slug}', [PersonaPublicaController::class, 'show']);
+Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaController::class, 'show']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user = $request->user();
@@ -84,6 +88,27 @@ Route::middleware('auth:api')->group(function () {
     Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);
 
     Route::get('dashboard/admin', [DashboardController::class, 'admin']);
+
+    // agrupaciones: panel del artista (cada acción verifica que sea representante)
+    Route::get('mis-agrupaciones', [MisAgrupacionesController::class, 'index']);
+    Route::post('mis-agrupaciones', [MisAgrupacionesController::class, 'store']);
+    Route::get('mis-agrupaciones/consulta-dni/{dni}', [MisAgrupacionesController::class, 'consultarDni'])
+        ->where('dni', '[0-9]{8}')
+        ->middleware('throttle:20,1');
+    Route::get('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'show'])->whereNumber('agrupacion');
+    Route::put('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'update'])->whereNumber('agrupacion');
+    Route::post('mis-agrupaciones/{agrupacion}/enviar-revision', [MisAgrupacionesController::class, 'enviarRevision']);
+    Route::post('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'storeLogo']);
+    Route::delete('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'destroyLogo']);
+    Route::post('mis-agrupaciones/{agrupacion}/integrantes', [MisAgrupacionesController::class, 'storeIntegrante']);
+    Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'updateIntegrante']);
+    Route::delete('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'destroyIntegrante']);
+
+    // agrupaciones: revisión del admin
+    Route::get('agrupaciones', [AgrupacionController::class, 'index']);
+    Route::get('agrupaciones/{agrupacion}', [AgrupacionController::class, 'show']);
+    Route::put('agrupaciones/{agrupacion}/aprobar', [AgrupacionController::class, 'aprobar']);
+    Route::put('agrupaciones/{agrupacion}/observar', [AgrupacionController::class, 'observar']);
     // cada consulta gasta cuota de apis.net.pe: máximo 30 por minuto por usuario
     Route::get('consulta-dni/{dni}', [ConsultaDniController::class, 'show'])
         ->where('dni', '[0-9]{8}')

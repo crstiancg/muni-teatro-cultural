@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Actividad;
+use App\Models\Agrupacion;
 use App\Models\Capacitacion;
 use App\Models\FormacionAcademica;
 use App\Models\Persona;
@@ -36,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
             'capacitacion' => Capacitacion::class,
             'formacion_academica' => FormacionAcademica::class,
             'actividad' => Actividad::class,
+            'agrupacion' => Agrupacion::class,
         ]);
     }
 }
