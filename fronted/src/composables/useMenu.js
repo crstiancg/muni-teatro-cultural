@@ -29,12 +29,15 @@ export function useMenu() {
       label: 'Curriculum Vitae',
       routeName: 'CurriculumVitae',
       icon: GraduationCap,
+      // secciones del artista: el admin gestiona, no tiene CV ni agrupaciones propias
+      hideForRole: 'Administrador',
     },
     {
       type: 'item',
       label: 'Mis agrupaciones',
       routeName: 'MisAgrupaciones',
       icon: UsersRound,
+      hideForRole: 'Administrador',
     },
     {
       type: 'item',
@@ -112,6 +115,7 @@ export function useMenu() {
   function filterItem(item) {
     if (item.permission && !auth.hasPermission(item.permission)) return null
     if (item.role && !auth.roles?.includes(item.role)) return null
+    if (item.hideForRole && auth.roles?.includes(item.hideForRole)) return null
 
     if (item.type === 'group') {
       const visibleChildren = (item.children || []).map(filterItem).filter(Boolean)
