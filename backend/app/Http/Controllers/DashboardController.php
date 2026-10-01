@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Actividad;
+use App\Models\Agrupacion;
 use App\Models\Comision;
 use App\Models\Persona;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -34,6 +35,18 @@ class DashboardController extends Controller implements HasMiddleware
                 ->limit(6)
                 ->get(['id', 'nombre_completo', 'updated_at']),
             'disciplinas' => $this->porDisciplina(),
+            // agrupaciones en revisión: las que más esperan, primero
+            'agrupaciones' => [
+                'pendientes' => Agrupacion::where('estado', 'pendiente')->count(),
+                'publicadas' => Agrupacion::where('estado', 'aprobado')->count(),
+                'lista' => Agrupacion::query()
+                    ->where('estado', 'pendiente')
+                    ->with(['logo', 'comision:codigo,nombre'])
+                    ->withCount('integrantes')
+                    ->oldest('updated_at')
+                    ->limit(5)
+                    ->get(['id', 'nombre', 'codigo_comision', 'updated_at']),
+            ],
             'actividades' => Actividad::query()
                 ->where('flag_activo', true)
                 ->with('persona:id,nombre_completo')

@@ -75,7 +75,7 @@
         <q-card flat bordered class="full-height column">
           <q-card-section class="row items-center justify-between no-wrap">
             <div>
-              <div class="text-subtitle1 text-weight-bold">Solicitudes pendientes</div>
+              <div class="text-subtitle1 text-weight-bold">Perfiles pendientes</div>
               <div class="text-caption texto-secundario">Las que más esperan, primero</div>
             </div>
             <q-btn
@@ -115,6 +115,59 @@
         </q-card>
       </div>
     </div>
+
+    <!-- agrupaciones en revisión: misma bandeja de trabajo que los perfiles -->
+    <q-card flat bordered class="q-mb-md">
+      <q-card-section class="row items-center justify-between no-wrap">
+        <div>
+          <div class="text-subtitle1 text-weight-bold">
+            Agrupaciones en revisión
+            <q-badge v-if="datos.agrupaciones.pendientes" color="blue-7" class="q-ml-xs">
+              {{ datos.agrupaciones.pendientes }}
+            </q-badge>
+          </div>
+          <div class="text-caption texto-secundario">
+            {{ datos.agrupaciones.publicadas }} publicadas en el portal
+          </div>
+        </div>
+        <q-btn
+          flat
+          dense
+          no-caps
+          color="primary"
+          label="Ver bandeja"
+          :to="{ name: 'AgrupacionesAdmin', query: { estado: 'pendiente' } }"
+        />
+      </q-card-section>
+
+      <q-list v-if="datos.agrupaciones.lista.length" separator class="q-pb-sm">
+        <q-item
+          v-for="a in datos.agrupaciones.lista"
+          :key="a.id"
+          clickable
+          :to="{ name: 'AgrupacionAdminDetalle', params: { id: a.id } }"
+        >
+          <q-item-section avatar>
+            <q-avatar color="primary" text-color="white" size="38px" rounded>
+              <img v-if="a.logo?.miniatura_url" :src="a.logo.miniatura_url" style="object-fit: cover" />
+              <template v-else>{{ a.nombre.charAt(0) }}</template>
+            </q-avatar>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-weight-medium">{{ a.nombre }}</q-item-label>
+            <q-item-label caption>
+              {{ a.comision?.nombre || 'Sin comisión' }} · {{ a.integrantes_count }} integrantes ·
+              esperando desde {{ hace(a.updated_at) }}
+            </q-item-label>
+          </q-item-section>
+          <q-item-section side><ChevronRight :size="18" /></q-item-section>
+        </q-item>
+      </q-list>
+      <div v-else class="vacio">
+        <UsersRound :size="28" />
+        <div>No hay agrupaciones esperando revisión.</div>
+      </div>
+    </q-card>
 
     <q-card flat bordered>
       <q-card-section>
@@ -166,6 +219,7 @@ import {
   ImageOff,
   Inbox,
   Users,
+  UsersRound,
 } from 'lucide-vue-next'
 import DashboardService from '@/services/DashboardService'
 import { estadoPerfil } from '@/config/estadosPerfil'
