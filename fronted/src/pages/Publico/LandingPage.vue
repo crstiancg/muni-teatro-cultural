@@ -54,17 +54,52 @@
 
           <span class="divisor" aria-hidden="true" />
 
+          <!-- desplegable propio en vez del <select> nativo (que no se puede estilizar):
+               listbox accesible con teclado -->
           <div class="segmento segmento-select">
-            <label for="q-disciplina">Disciplina</label>
-            <div class="select-caja">
-              <select id="q-disciplina" v-model="grupoElegido" @change="alEscribir">
-                <option value="">Todas</option>
-                <option v-for="g in grupos" :key="g.cod_grupo" :value="g.cod_grupo">
-                  {{ comisionDe(g.cod_grupo).corto }}
-                </option>
-              </select>
-              <ChevronDown :size="16" />
-            </div>
+            <span id="q-disciplina-label" class="segmento-label">Disciplina</span>
+            <button
+              type="button"
+              class="disciplina-btn"
+              aria-haspopup="listbox"
+              aria-labelledby="q-disciplina-label"
+              :aria-expanded="disciplinaAbierta"
+              @click="alternarDisciplinas"
+              @keydown="teclasDisciplina"
+              @blur="disciplinaAbierta = false"
+            >
+              <span
+                class="disciplina-punto"
+                :style="{ background: grupoElegido ? comisionDe(grupoElegido).color : 'var(--borde-fuerte)' }"
+              />
+              <span class="disciplina-texto">
+                {{ grupoElegido ? comisionDe(grupoElegido).corto : 'Todas' }}
+              </span>
+              <ChevronDown :size="16" class="disciplina-chevron" :class="{ girado: disciplinaAbierta }" />
+            </button>
+
+            <Transition name="caer">
+              <ul v-if="disciplinaAbierta" class="disciplinas" role="listbox" aria-labelledby="q-disciplina-label">
+                <li
+                  v-for="(op, i) in opcionesDisciplina"
+                  :key="op.valor || 'todas'"
+                  role="option"
+                  :aria-selected="grupoElegido === op.valor"
+                  class="disciplina-op"
+                  :class="{ activo: disciplinaActiva === i, elegido: grupoElegido === op.valor }"
+                  :style="{ '--acento': op.color }"
+                  @mousedown.prevent="elegirDisciplina(op.valor)"
+                  @mouseenter="disciplinaActiva = i"
+                >
+                  <span class="disciplina-icono">
+                    <component :is="op.icono" :size="16" />
+                  </span>
+                  <span class="disciplina-nombre">{{ op.nombre }}</span>
+                  <span v-if="op.cuenta !== null" class="disciplina-cuenta">{{ op.cuenta }}</span>
+                  <Check v-if="grupoElegido === op.valor" :size="16" class="disciplina-check" />
+                </li>
+              </ul>
+            </Transition>
           </div>
 
           <button type="submit" class="buscador-btn" aria-label="Buscar">
@@ -460,6 +495,7 @@ import { useRouter } from 'vue-router'
 import {
   ArrowRight,
   ChevronDown,
+  Check,
   Search,
   Sparkles,
   Music,
@@ -489,6 +525,61 @@ const buscando = ref(false)
 const resultados = ref({ artistas: [], agrupaciones: [] })
 // índice de la opción resaltada con el teclado (-1 = ninguna)
 const activo = ref(-1)
+
+// ---------- desplegable de disciplina ----------
+const disciplinaAbierta = ref(false)
+const disciplinaActiva = ref(0)
+const opcionesDisciplina = computed(() => [
+  { valor: '', nombre: 'Todas las disciplinas', icono: Sparkles, color: 'var(--tinta)', cuenta: null },
+  ...grupos.value.map((g) => ({
+    valor: g.cod_grupo,
+    nombre: comisionDe(g.cod_grupo).corto,
+    icono: iconoDe(g.cod_grupo),
+    color: comisionDe(g.cod_grupo).color,
+    cuenta: g.consejeros,
+  })),
+])
+
+function alternarDisciplinas() {
+  disciplinaAbierta.value = !disciplinaAbierta.value
+  if (disciplinaAbierta.value) {
+    // no compiten dos paneles abiertos a la vez
+    abierto.value = false
+    disciplinaActiva.value = Math.max(
+      0,
+      opcionesDisciplina.value.findIndex((o) => o.valor === grupoElegido.value),
+    )
+  }
+}
+
+function elegirDisciplina(valor) {
+  grupoElegido.value = valor
+  disciplinaAbierta.value = false
+  // si ya hay texto, los resultados en vivo se recalculan con el filtro
+  if (termino.value.trim().length >= 2) alEscribir()
+}
+
+function teclasDisciplina(e) {
+  const total = opcionesDisciplina.value.length
+  if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key) && !disciplinaAbierta.value) {
+    e.preventDefault()
+    alternarDisciplinas()
+    return
+  }
+  if (!disciplinaAbierta.value) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    disciplinaActiva.value = (disciplinaActiva.value + 1) % total
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    disciplinaActiva.value = (disciplinaActiva.value - 1 + total) % total
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    elegirDisciplina(opcionesDisciplina.value.at(disciplinaActiva.value).valor)
+  } else if (e.key === 'Escape' || e.key === 'Tab') {
+    disciplinaAbierta.value = false
+  }
+}
 
 const danzas = [
   'Sikuris',
@@ -900,22 +991,126 @@ onMounted(async () => {
 
 .segmento-select {
   flex: 0 0 34%;
+  position: relative;
 }
 
-.select-caja {
+.segmento-label {
+  @include kicker(var(--tinta));
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 2px;
+}
+
+.disciplina-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: var(--t-base);
+  text-align: left;
+  cursor: pointer;
 
-  select {
-    appearance: none;
-    cursor: pointer;
+  &:focus-visible {
+    outline: 2px solid var(--rojo);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.disciplina-punto {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.disciplina-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disciplina-chevron {
+  flex: none;
+  color: var(--tinta-suave);
+  transition: transform var(--transicion);
+
+  &.girado {
+    transform: rotate(180deg);
+  }
+}
+
+.disciplinas {
+  position: absolute;
+  top: calc(100% + 18px);
+  right: -12px;
+  width: 290px;
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  box-shadow: var(--sombra-alta);
+  z-index: 25;
+}
+
+.disciplina-op {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--tinta);
+  font-size: var(--t-sm);
+
+  &.activo {
+    background: var(--crema);
   }
 
-  svg {
-    color: var(--tinta-suave);
-    flex: none;
+  &.elegido .disciplina-nombre {
+    font-weight: 700;
   }
+}
+
+.disciplina-icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 12%, var(--blanco));
+}
+
+.disciplina-nombre {
+  flex: 1;
+  min-width: 0;
+}
+
+.disciplina-cuenta {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--tinta-suave);
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--crema);
+}
+
+.disciplina-check {
+  flex: none;
+  color: var(--rojo);
 }
 
 .divisor {
@@ -1209,6 +1404,13 @@ onMounted(async () => {
 
   .divisor {
     display: none;
+  }
+
+  .disciplinas {
+    left: -1px;
+    right: -1px;
+    width: auto;
+    top: calc(100% + 8px);
   }
 
   .buscador-btn {
