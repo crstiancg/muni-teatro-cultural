@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
-use Mews\Purifier\Facades\Purifier;
+use App\Support\Html;
 
 class Persona extends Model
 {
@@ -64,17 +64,7 @@ class Persona extends Model
 
     public static function biografiaLimpia(?string $html): ?string
     {
-        if (blank(strip_tags($html ?? ''))) {
-            return null;
-        }
-
-        return Purifier::clean($html, [
-            // "div": QEditor (contenteditable) arma los saltos de línea con div, no con p
-            'HTML.Allowed' => 'p,div,br,strong,b,em,i,u,ul,ol,li,a[href],blockquote',
-            'HTML.TargetBlank' => true,
-            'HTML.Nofollow' => true,
-            'AutoFormat.RemoveEmpty' => true,
-        ]);
+        return Html::limpio($html);
     }
 
     // ÚNICA definición de "perfil completo": la usan el checklist del dashboard

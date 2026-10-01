@@ -28,9 +28,9 @@
 
       <div v-else class="grid">
         <div v-for="act in persona.actividades" :key="act.id" class="tile" @click="verImagen(act)">
-          <img :src="act.imagen_url" class="tile-img" loading="lazy" />
+          <img :src="act.imagen_url" class="tile-img" :alt="act.titulo || act.descripcion_texto || ''" loading="lazy" />
           <div class="tile-overlay">
-            <div class="tile-desc">{{ act.descripcion }}</div>
+            <div class="tile-desc">{{ act.titulo || act.descripcion_texto }}</div>
           </div>
         </div>
       </div>
@@ -41,7 +41,11 @@
     <q-dialog v-model="mostrarImagen">
       <div class="lightbox">
         <img :src="imagenSeleccionada?.imagen_url" class="lightbox-img" />
-        <div class="lightbox-desc">{{ imagenSeleccionada?.descripcion }}</div>
+        <div class="lightbox-desc">
+          <strong v-if="imagenSeleccionada?.titulo">{{ imagenSeleccionada.titulo }}</strong>
+          <!-- HTML sanitizado en el backend al guardar -->
+          <div v-if="imagenSeleccionada?.descripcion" v-html="imagenSeleccionada.descripcion" />
+        </div>
       </div>
     </q-dialog>
   </q-page>

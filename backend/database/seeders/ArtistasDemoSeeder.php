@@ -74,7 +74,8 @@ class ArtistasDemoSeeder extends Seeder
 
                 Actividad::create([
                     'persona_id' => $persona->id,
-                    'descripcion' => fake()->sentence(10),
+                    'titulo' => fake()->sentence(4),
+                    'descripcion' => fake()->paragraph(3),
                     'flag_activo' => true,
                     'flag_publico' => fake()->boolean(80),
                 ])->archivos()->create([

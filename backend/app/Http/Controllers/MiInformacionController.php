@@ -10,6 +10,7 @@ use App\Http\Requests\StoreMiPasswordRequest;
 use App\Http\Requests\StoreMiUsuarioRequest;
 use App\Http\Requests\StorePersonaFotoRequest;
 use App\Models\Actividad;
+use App\Support\Html;
 use App\Models\Capacitacion;
 use App\Models\FormacionAcademica;
 use Illuminate\Http\Request;
@@ -215,7 +216,8 @@ class MiInformacionController extends Controller
         $persona = $request->user()->persona;
 
         $actividad = Actividad::create([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
             'persona_id' => $persona->id,
         ]);
@@ -229,7 +231,8 @@ class MiInformacionController extends Controller
         abort_unless($actividad->persona_id === $request->user()->persona?->id, 404);
 
         $actividad->update([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
         ]);
         $actividad->reemplazarAdjunto($request->file('actividad.imagen'));

@@ -39,7 +39,7 @@ class DashboardController extends Controller implements HasMiddleware
                 ->with('persona:id,nombre_completo')
                 ->latest()
                 ->limit(8)
-                ->get(['id', 'persona_id', 'descripcion', 'created_at']),
+                ->get(['id', 'persona_id', 'titulo', 'descripcion', 'created_at']),
         ]);
     }
 

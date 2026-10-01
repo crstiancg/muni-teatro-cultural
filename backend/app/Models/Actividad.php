@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\TieneAdjunto;
+use App\Support\Html;
 use Illuminate\Database\Eloquent\Model;
 
 class Actividad extends Model
@@ -15,7 +16,7 @@ class Actividad extends Model
 
     protected $table = 'actividades';
 
-    protected $appends = ['imagen_url', 'imagen_nombre_original'];
+    protected $appends = ['imagen_url', 'imagen_nombre_original', 'descripcion_texto'];
 
     // siempre se necesita para imagen_url; oculto porque ya sale aplanado
     protected $with = ['adjunto'];
@@ -24,6 +25,7 @@ class Actividad extends Model
 
     protected $fillable = [
         'persona_id',
+        'titulo',
         'descripcion',
         'flag_activo',
         'flag_publico',
@@ -53,6 +55,12 @@ class Actividad extends Model
     public function getImagenMiniaturaUrlAttribute(): ?string
     {
         return $this->adjunto?->miniatura_url;
+    }
+
+    // la descripción sin HTML: para alt de imágenes y vistas previas cortas
+    public function getDescripcionTextoAttribute(): string
+    {
+        return Html::texto($this->descripcion);
     }
 
     public function getImagenNombreOriginalAttribute(): ?string

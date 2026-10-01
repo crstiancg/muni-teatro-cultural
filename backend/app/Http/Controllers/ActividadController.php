@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreActividadRequest;
 use App\Models\Actividad;
+use App\Support\Html;
 use App\Models\Persona;
 
 class ActividadController extends Controller implements HasMiddleware
@@ -20,7 +21,8 @@ class ActividadController extends Controller implements HasMiddleware
     public function store(StoreActividadRequest $request, Persona $persona)
     {
         $actividad = Actividad::create([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
             'persona_id' => $persona->id,
         ]);
@@ -34,7 +36,8 @@ class ActividadController extends Controller implements HasMiddleware
         abort_unless($actividad->persona_id === $persona->id, 404);
 
         $actividad->update([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
         ]);
         $actividad->reemplazarAdjunto($request->file('actividad.imagen'));

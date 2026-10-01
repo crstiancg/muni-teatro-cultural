@@ -86,7 +86,10 @@ class PersonaPublicaController extends Controller
             'redes_sociales' => $persona->redes_sociales ?? (object) [],
             'actividades' => $persona->actividades->map(fn ($a) => [
                 'id' => $a->id,
+                'titulo' => $a->titulo,
+                // HTML ya sanitizado al guardar (App\Support\Html::limpio)
                 'descripcion' => $a->descripcion,
+                'descripcion_texto' => $a->descripcion_texto,
                 'imagen_url' => $a->imagen_url,
             ]),
         ]);
@@ -118,7 +121,8 @@ class PersonaPublicaController extends Controller
 
         return response()->json($actividades->map(fn (Actividad $a) => [
             'id' => $a->id,
-            'descripcion' => $a->descripcion,
+            'titulo' => $a->titulo,
+            'descripcion' => $a->descripcion_texto,
             'imagen_url' => $a->imagen_url,
             'persona_slug' => $a->persona->slug,
             'persona_nombre' => $a->persona->nombre_completo,

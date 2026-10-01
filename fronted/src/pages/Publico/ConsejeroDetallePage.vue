@@ -45,7 +45,10 @@
       <section v-if="actividades.length" class="mosaico-zona">
         <div class="mosaico" :class="`piezas-${Math.min(actividades.length, 5)}`">
           <button class="pieza principal" @click="abrirVisor(0)">
-            <img :src="actividades[0].imagen_url" :alt="actividades[0].descripcion || ''" />
+            <img
+              :src="actividades[0].imagen_url"
+              :alt="actividades[0].titulo || actividades[0].descripcion_texto || ''"
+            />
           </button>
 
           <button
@@ -54,7 +57,7 @@
             class="pieza"
             @click="abrirVisor(i + 1)"
           >
-            <img :src="act.imagen_url" :alt="act.descripcion || ''" loading="lazy" />
+            <img :src="act.imagen_url" :alt="act.titulo || act.descripcion_texto || ''" loading="lazy" />
           </button>
         </div>
 
@@ -101,7 +104,11 @@
                 <button class="act-foto" @click="abrirVisor(i)">
                   <img :src="act.imagen_url" alt="" loading="lazy" />
                 </button>
-                <p>{{ act.descripcion || 'Actividad sin descripción' }}</p>
+                <div class="act-texto">
+                  <p class="act-titulo">{{ act.titulo || 'Actividad' }}</p>
+                  <!-- con formato (negritas, listas): HTML sanitizado en el backend -->
+                  <div v-if="act.descripcion" class="act-html" v-html="act.descripcion" />
+                </div>
               </li>
             </ul>
           </section>
@@ -187,50 +194,53 @@
     </template>
 
     <!-- ══════════ VISOR ══════════ -->
-    <div
-      v-if="visorAbierto"
-      class="visor"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Fotografía"
-      @click.self="cerrarVisor"
-    >
-      <div class="visor-barra">
-        <span>{{ visorIndex + 1 }} / {{ actividades.length }}</span>
-        <button aria-label="Cerrar" @click="cerrarVisor"><X :size="21" /></button>
+    <!-- panel lateral (como Instagram/Facebook en escritorio): la foto usa todo el
+         alto y la descripción se lee completa al costado, con su propio scroll.
+         En celular el panel pasa abajo. -->
+    <div v-if="visorAbierto" class="visor" role="dialog" aria-modal="true" aria-label="Fotografía">
+      <button class="visor-cerrar" aria-label="Cerrar" @click="cerrarVisor"><X :size="21" /></button>
+
+      <div class="visor-escena" @click.self="cerrarVisor">
+        <img
+          class="visor-img"
+          :src="actividades[visorIndex].imagen_url"
+          :alt="actividades[visorIndex].titulo || actividades[visorIndex].descripcion_texto || ''"
+        />
+        <button class="visor-nav izq" aria-label="Anterior" @click="navegar(-1)">
+          <ChevronLeft :size="26" />
+        </button>
+        <button class="visor-nav der" aria-label="Siguiente" @click="navegar(1)">
+          <ChevronRight :size="26" />
+        </button>
       </div>
 
-      <button class="visor-nav izq" aria-label="Anterior" @click="navegar(-1)">
-        <ChevronLeft :size="26" />
-      </button>
-
-      <!-- la imagen toma el alto que deja el texto: así la descripción nunca queda
-           fuera de pantalla; un texto largo se abre en su propia caja con scroll -->
-      <figure class="visor-figura">
-        <div class="visor-imagen">
-          <img
-            :src="actividades[visorIndex].imagen_url"
-            :alt="actividades[visorIndex].descripcion || ''"
-          />
+      <aside class="visor-panel">
+        <div class="visor-autor">
+          <span class="visor-avatar" :style="{ '--acento': comision.color }">
+            <img v-if="persona.foto_url" :src="persona.foto_url" alt="" />
+            <template v-else>{{ inicial }}</template>
+          </span>
+          <div class="visor-autor-texto">
+            <p class="visor-nombre">{{ persona.nombre_completo }}</p>
+            <p class="visor-familia">{{ persona.comision }}</p>
+          </div>
         </div>
-        <figcaption
-          v-if="actividades[visorIndex].descripcion"
-          :class="{ abierta: textoAbierto }"
-        >
-          <p class="visor-texto">{{ actividades[visorIndex].descripcion }}</p>
-          <button
-            v-if="actividades[visorIndex].descripcion.length > 180"
-            class="visor-mas"
-            @click="textoAbierto = !textoAbierto"
-          >
-            {{ textoAbierto ? 'Ver menos' : 'Ver más' }}
-          </button>
-        </figcaption>
-      </figure>
 
-      <button class="visor-nav der" aria-label="Siguiente" @click="navegar(1)">
-        <ChevronRight :size="26" />
-      </button>
+        <div class="visor-descripcion">
+          <h3 v-if="actividades[visorIndex].titulo" class="visor-titulo">
+            {{ actividades[visorIndex].titulo }}
+          </h3>
+          <!-- HTML sanitizado en el backend al guardar (App\Support\Html::limpio) -->
+          <div
+            v-if="actividades[visorIndex].descripcion"
+            class="visor-html"
+            v-html="actividades[visorIndex].descripcion"
+          />
+          <p v-else class="visor-sin-texto">Esta fotografía no tiene descripción.</p>
+        </div>
+
+        <div class="visor-pie">Foto {{ visorIndex + 1 }} de {{ actividades.length }}</div>
+      </aside>
     </div>
   </q-page>
 </template>
@@ -322,10 +332,6 @@ async function compartir() {
 // ---------- visor ----------
 const visorAbierto = ref(false)
 const visorIndex = ref(0)
-const textoAbierto = ref(false)
-
-// cada foto arranca con su descripción recortada
-watch(visorIndex, () => (textoAbierto.value = false))
 
 function abrirVisor(i) {
   visorIndex.value = i
@@ -781,7 +787,8 @@ watch(
   li {
     display: flex;
     gap: 16px;
-    align-items: center;
+    /* arriba: con una descripción larga la foto no queda flotando en el medio */
+    align-items: flex-start;
     background: var(--blanco);
     border: 1px solid var(--borde);
     border-radius: var(--r-md);
@@ -793,6 +800,51 @@ watch(
     font-size: var(--t-sm);
     line-height: 1.6;
     color: var(--tinta-suave);
+  }
+}
+
+.act-texto {
+  min-width: 0;
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  color: var(--tinta-suave);
+  overflow-wrap: anywhere;
+}
+
+.lista-actividades .act-titulo {
+  margin: 0 0 2px;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+/* el HTML del editor llega por v-html: los estilos scoped necesitan :deep */
+.act-html {
+  :deep(p),
+  :deep(div),
+  :deep(blockquote) {
+    margin: 0 0 0.5em;
+  }
+
+  :deep(strong),
+  :deep(b) {
+    font-weight: 700;
+    color: var(--tinta);
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin: 0 0 0.5em;
+    padding-left: 1.2em;
+  }
+
+  :deep(blockquote) {
+    padding-left: 0.8em;
+    border-left: 3px solid var(--borde);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--rojo);
   }
 }
 
@@ -999,125 +1051,14 @@ watch(
   /* casi opaco + desenfoque: la página de atrás no compite con la foto */
   background: rgba(10, 14, 20, 0.97);
   backdrop-filter: blur(6px);
-  display: flex;
-  flex-direction: column;
-  padding: 72px 80px 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 
-.visor-barra {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-  color: rgba(253, 251, 247, 0.85);
-  font-size: var(--t-sm);
-  font-weight: 600;
-
-  button {
-    display: grid;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 1px solid rgba(253, 251, 247, 0.3);
-    background: rgba(253, 251, 247, 0.12);
-    color: var(--sobre-foto);
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(253, 251, 247, 0.26);
-    }
-
-    &:focus-visible {
-      @include foco;
-    }
-  }
-}
-
-.visor-figura {
-  flex: 1;
-  min-height: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-
-  figcaption {
-    flex: none;
-    width: 100%;
-    max-width: 68ch;
-    color: rgba(253, 251, 247, 0.85);
-    font-size: var(--t-sm);
-    text-align: center;
-  }
-}
-
-/* ocupa el alto que sobra: la imagen se achica, el texto no se corta */
-.visor-imagen {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    border-radius: var(--r-md);
-    display: block;
-  }
-}
-
-.visor-texto {
-  margin: 0;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  /* recortado a 3 líneas hasta que se pide "Ver más" */
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-figcaption.abierta .visor-texto {
-  display: block;
-  -webkit-line-clamp: unset;
-  max-height: 32vh;
-  overflow-y: auto;
-  text-align: left;
-  padding-right: 6px;
-}
-
-.visor-mas {
-  margin-top: 6px;
-  padding: 4px 8px;
-  border: 0;
-  background: none;
-  color: var(--oro-vivo);
-  font-weight: 700;
-  font-size: var(--t-sm);
-  cursor: pointer;
-
-  &:focus-visible {
-    @include foco;
-  }
-}
-
+.visor-cerrar,
 .visor-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
   border-radius: 50%;
   border: 1px solid rgba(253, 251, 247, 0.3);
   background: rgba(253, 251, 247, 0.12);
@@ -1133,31 +1074,202 @@ figcaption.abierta .visor-texto {
   }
 }
 
+.visor-cerrar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+}
+
+/* la foto toma todo el alto disponible, centrada */
+.visor-escena {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 88px;
+}
+
+.visor-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--r-md);
+  display: block;
+}
+
+.visor-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+}
+
 .visor-nav.izq {
-  left: 16px;
+  left: 20px;
 }
 
 .visor-nav.der {
-  right: 16px;
+  right: 20px;
 }
 
-@media (max-width: 640px) {
+.visor-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(253, 251, 247, 0.04);
+  border-left: 1px solid rgba(253, 251, 247, 0.1);
+  color: rgba(253, 251, 247, 0.88);
+}
+
+.visor-autor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* deja lugar al botón de cerrar, que flota arriba a la derecha */
+  padding: 20px 72px 18px 22px;
+  border-bottom: 1px solid rgba(253, 251, 247, 0.1);
+}
+
+.visor-avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--acento) 35%, transparent);
+  color: var(--sobre-foto);
+  font-weight: 800;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.visor-autor-texto {
+  min-width: 0;
+}
+
+.visor-nombre {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  color: var(--sobre-foto);
+  line-height: 1.3;
+}
+
+.visor-familia {
+  margin: 2px 0 0;
+  font-size: var(--t-xs);
+  color: rgba(253, 251, 247, 0.6);
+}
+
+/* la descripción completa, con su propio scroll */
+.visor-descripcion {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+  font-size: var(--t-sm);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.visor-titulo {
+  margin: 0 0 10px;
+  font-size: var(--t-base);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--sobre-foto);
+}
+
+/* el HTML del editor llega por v-html: los estilos scoped necesitan :deep */
+.visor-html {
+  :deep(p),
+  :deep(div),
+  :deep(blockquote) {
+    margin: 0 0 0.7em;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin: 0 0 0.7em;
+    padding-left: 1.3em;
+  }
+
+  :deep(blockquote) {
+    padding-left: 0.9em;
+    border-left: 3px solid rgba(253, 251, 247, 0.3);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--oro-vivo);
+  }
+}
+
+.visor-sin-texto {
+  color: rgba(253, 251, 247, 0.5);
+  font-style: italic;
+}
+
+.visor-pie {
+  padding: 14px 22px;
+  border-top: 1px solid rgba(253, 251, 247, 0.1);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: rgba(253, 251, 247, 0.6);
+}
+
+/* celular y tablet: la foto arriba, el panel abajo con alto máximo */
+@media (max-width: 900px) {
   .visor {
-    padding: 72px 16px 90px;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .visor-escena {
+    padding: 64px 16px 16px;
   }
 
   .visor-nav {
-    top: auto;
-    bottom: 22px;
-    transform: none;
+    width: 40px;
+    height: 40px;
   }
 
   .visor-nav.izq {
-    left: 28%;
+    left: 8px;
   }
 
   .visor-nav.der {
-    right: 28%;
+    right: 8px;
+  }
+
+  .visor-panel {
+    max-height: 38vh;
+    border-left: 0;
+    border-top: 1px solid rgba(253, 251, 247, 0.1);
+  }
+
+  .visor-autor {
+    padding: 14px 16px 12px;
+  }
+
+  .visor-descripcion {
+    padding: 12px 16px;
+  }
+
+  .visor-pie {
+    padding: 10px 16px;
   }
 }
 </style>

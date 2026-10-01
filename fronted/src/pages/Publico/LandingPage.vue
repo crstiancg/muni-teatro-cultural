@@ -300,7 +300,7 @@
             class="mosaico-item"
             :class="`m-${i}`"
           >
-            <img :src="act.imagen_url" :alt="act.descripcion || ''" loading="lazy" />
+            <img :src="act.imagen_url" :alt="act.titulo || act.descripcion || ''" loading="lazy" />
             <span class="mosaico-pie">{{ act.persona_nombre }}</span>
           </router-link>
         </div>

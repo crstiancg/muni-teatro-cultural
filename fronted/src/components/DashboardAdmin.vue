@@ -129,7 +129,7 @@
             class="actividad"
           >
             <div class="miniatura">
-              <img v-if="a.imagen_url" :src="a.imagen_url" :alt="a.descripcion || ''" loading="lazy" />
+              <img v-if="a.imagen_url" :src="a.imagen_url" :alt="a.titulo || a.descripcion_texto || ''" loading="lazy" />
               <div v-else class="sin-imagen"><ImageOff :size="22" /></div>
             </div>
             <div class="text-body2 text-weight-medium ellipsis q-mt-xs">
