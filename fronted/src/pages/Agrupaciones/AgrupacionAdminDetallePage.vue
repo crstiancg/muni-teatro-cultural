@@ -128,47 +128,10 @@
           </q-card>
 
           <q-card flat bordered class="tarjeta">
-            <q-card-section class="row items-center justify-between">
-              <div class="text-subtitle1 text-weight-bold">Integrantes ({{ agrupacion.integrantes.length }})</div>
-              <div class="text-caption texto-secundario">
-                {{ vinculados }} {{ vinculados === 1 ? 'es artista registrado' : 'son artistas registrados' }}
-              </div>
+            <q-card-section>
+              <div class="text-subtitle1 text-weight-bold q-mb-sm">Integrantes</div>
+              <IntegrantesTabla :integrantes="agrupacion.integrantes" enlazar-cv />
             </q-card-section>
-            <q-table
-              flat
-              :rows="agrupacion.integrantes"
-              :columns="columnas"
-              row-key="id"
-              hide-bottom
-              :pagination="{ rowsPerPage: 0 }"
-            >
-              <template #body-cell-nombre="props">
-                <q-td :props="props">
-                  <div class="row items-center no-wrap q-gutter-sm">
-                    <q-avatar size="30px" color="primary" text-color="white" class="text-caption">
-                      {{ props.row.nombre?.charAt(0) }}
-                    </q-avatar>
-                    <!-- agente cultural registrado: lleva a su CV en el panel -->
-                    <router-link
-                      v-if="props.row.persona_id && userStore.hasPermission('admin-personas-index')"
-                      :to="{ name: 'PersonaDetalle', params: { id: props.row.persona_id } }"
-                      class="text-weight-medium link-cv"
-                    >
-                      {{ props.row.nombre_completo }}
-                      <ExternalLink :size="13" class="q-ml-xs" />
-                      <q-tooltip>Ver su currículum</q-tooltip>
-                    </router-link>
-                    <span v-else class="text-weight-medium">{{ props.row.nombre_completo }}</span>
-                  </div>
-                </q-td>
-              </template>
-              <template #body-cell-tipo="props">
-                <q-td :props="props">
-                  <q-badge v-if="props.row.es_representante" color="primary" class="q-mr-xs">Representante</q-badge>
-                  <q-badge v-if="props.row.persona_id" color="positive" outline>Artista registrado</q-badge>
-                </q-td>
-              </template>
-            </q-table>
           </q-card>
         </div>
 
@@ -223,6 +186,7 @@ import {
   Globe,
 } from 'lucide-vue-next'
 import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
+import IntegrantesTabla from '@/components/IntegrantesTabla.vue'
 import AgrupacionService from '@/services/AgrupacionService'
 import { estadoPerfil } from '@/config/estadosPerfil'
 import { useNotify } from '@/composables/useNotify'
@@ -241,7 +205,6 @@ const procesando = ref(false)
 const puedeAprobar = computed(() => userStore.hasPermission('admin-agrupaciones-aprobar'))
 const estado = computed(() => estadoPerfil(agrupacion.value?.estado))
 const representante = computed(() => agrupacion.value?.integrantes.find((i) => i.es_representante))
-const vinculados = computed(() => agrupacion.value?.integrantes.filter((i) => i.persona_id).length || 0)
 
 const REDES = {
   facebook: { label: 'Facebook', icono: Facebook },
@@ -258,13 +221,6 @@ const redes = computed(() =>
   })),
 )
 
-// el DNI se ve acá (panel del admin), nunca en el portal
-const columnas = [
-  { name: 'nombre', label: 'Nombre', field: 'nombre_completo', align: 'left' },
-  { name: 'dni', label: 'DNI', field: 'dni', align: 'left' },
-  { name: 'rol', label: 'Rol', field: (r) => r.rol || '—', align: 'left' },
-  { name: 'tipo', label: '', field: 'id', align: 'right' },
-]
 
 async function cargar() {
   cargando.value = true
@@ -308,15 +264,6 @@ onMounted(cargar)
 .tarjeta {
   border-radius: 12px;
   overflow: hidden;
-}
-
-.link-cv {
-  color: var(--q-primary);
-  text-decoration: none;
-}
-
-.link-cv:hover {
-  text-decoration: underline;
 }
 
 .logo img {

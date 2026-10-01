@@ -199,7 +199,7 @@ class MisAgrupacionesController extends Controller
     // todo lo que necesita la pantalla de gestión, en una llamada
     private function detalle(Agrupacion $agrupacion): array
     {
-        $agrupacion->load(['comision:codigo,nombre', 'logo', 'integrantes.persona:id,slug', 'revisiones.usuario:id,name']);
+        $agrupacion->load(['comision:codigo,nombre', 'logo', 'integrantes.persona:id,slug', 'integrantes.persona.foto', 'revisiones.usuario:id,name']);
 
         return [
             ...$agrupacion->toArray(),
