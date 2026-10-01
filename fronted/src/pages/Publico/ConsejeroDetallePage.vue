@@ -379,6 +379,9 @@ async function cargar(slug) {
   cargando.value = true
   relacionados.value = []
   persona.value = await PersonaPublicaService.get(slug)
+  // al navegar dentro de la SPA el <head> no se recarga: el título se actualiza acá
+  // (la carga directa ya llega con el título del servidor, ver SpaController)
+  document.title = `${persona.value.nombre_completo} · ${persona.value.comision || 'Registro cultural'}`
   cargando.value = false
 
   if (persona.value?.cod_grupo) {

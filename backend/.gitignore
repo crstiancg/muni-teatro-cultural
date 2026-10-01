@@ -25,3 +25,8 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# build del front publicado con "php artisan spa:publicar"
+/resources/spa
+/public/assets
+/public/icons
