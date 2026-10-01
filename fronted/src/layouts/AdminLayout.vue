@@ -157,6 +157,10 @@ async function logout() {
 }
 
 onMounted(async () => {
+  // los permisos se guardan al loguearse; se refrescan en cada carga del panel
+  // para que un permiso dado o quitado se aplique sin cerrar sesión
+  userStore.getUser().catch(() => {})
+
   // se muestra siempre al loguearse (montar el layout admin) si el usuario
   // tiene una ficha de persona vinculada; si es un admin sin persona, no sale
   // el recordatorio es opcional: si falla la consulta, el panel igual se usa
