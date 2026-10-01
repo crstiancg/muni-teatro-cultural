@@ -3,9 +3,11 @@
     <div class="login-card">
       <div class="lc-form">
         <div class="lc-form-inner">
+          <span  style="font-size: small; color: #9ca3af;">Registro de Agentes Culturales del Consejo</span>
+          <div style="font-size: small; color: #9ca3af;">Provincial de Cultura</div>
           <div class="lc-brand">
             <q-icon size="24px" color="primary" name="theater_comedy" />
-            <span>Teatro Cultural</span>
+            <span>R A C C</span>
           </div>
 
           <h1>Bienvenido de nuevo</h1>
@@ -55,7 +57,7 @@
             </q-btn>
           </q-form>
 
-          <p class="lc-footer">Sistema exclusivo para personal autorizado</p>
+          <p class="lc-footer">Sistema exclusivo - [OTI] Municipalidad de Puno</p>
         </div>
       </div>
 
@@ -269,7 +271,7 @@ body.body--dark .lc-form {
   font-size: 0.73rem;
   color: #9ca3af;
   text-align: center;
-  margin-top: 24px;
+  margin-top: 10px;
 }
 
 /* --- visual panel --- */

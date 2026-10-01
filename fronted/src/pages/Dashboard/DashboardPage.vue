@@ -9,7 +9,7 @@
 
   <div class="q-pa-md">
     <!-- la clave inicial es el DNI: se recomienda cambiarla mientras lo siga siendo -->
-    <q-banner v-if="passwordEsDni" rounded class="bg-orange-1 text-orange-10 q-mb-md">
+    <q-banner v-if="passwordEsDni" rounded class="bg-grey-2 text-grey-10 q-mb-md">
       <template #avatar>
         <ShieldAlert :size="28" />
       </template>
@@ -21,7 +21,7 @@
         <q-btn
           unelevated
           no-caps
-          color="orange-9"
+          color="negative"
           label="Cambiar contraseña"
           :to="{ name: 'Perfil' }"
         />
@@ -29,7 +29,7 @@
     </q-banner>
 
     <div class="q-mb-lg">
-      <div class="text-h5 text-weight-bold">Hola, {{ primerNombre }} 👋</div>
+      <div class="text-h5 text-weight-bold">Hola, {{ primerNombre }}</div>
       <div class="text-body2" style="opacity: 0.68">
         {{ hoy }} · Esto es lo que pasa hoy en el registro cultural.
       </div>

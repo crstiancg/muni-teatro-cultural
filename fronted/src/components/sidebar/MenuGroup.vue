@@ -12,7 +12,7 @@ const props = defineProps({
   icon: { type: [Object, Function, String], default: null },
   children: { type: Array, default: () => [] },
   activeName: { type: String, default: '' },
-  defaultOpen: { type: Boolean, default: false },
+  defaultOpen: { type: Boolean, default: true },
 })
 
 function hasActiveDescendant(item, activeName) {

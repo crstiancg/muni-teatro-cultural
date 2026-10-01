@@ -6,7 +6,7 @@
     <div class="q-pa-md q-gutter-sm">
       <q-breadcrumbs>
         <q-breadcrumbs-el icon="home" />
-        <q-breadcrumbs-el label="Personas" icon="badge" />
+        <q-breadcrumbs-el label="Agentes culturales" icon="person" />
       </q-breadcrumbs>
     </div>
     <q-separator />
@@ -36,7 +36,7 @@
         :bordered="!$q.dark.isActive"
         :rows-per-page-options="[7, 10, 15]"
         class="my-sticky-header-table htable q-ma-sm"
-        title="LISTA DE PERSONAS"
+        title="LISTA DE AGENTES CULTURALES"
         ref="tableRef"
         :rows="rows"
         :columns="columns"

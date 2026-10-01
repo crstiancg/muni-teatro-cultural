@@ -9,7 +9,7 @@
       <FotoPerfilUploader
         v-if="tienePersona"
         base-path="mi-informacion"
-        size="72px"
+        size="120px"
         :inicial="inicial"
         v-model="foto"
       />
@@ -71,9 +71,9 @@
       </q-form>
     </q-card-section>
 
-    <template v-if="mostrarPassword">
+    <template v-if="mostrarPassword"  class="q-ma-md">
       <q-separator />
-      <q-card-section class="q-pa-md">
+      <q-card-section>
         <div class="text-subtitle1 text-weight-bold q-mb-xs">Cambiar Contraseña</div>
         <div class="text-caption text-grey-6 q-mb-sm">
           Ingresa tu contraseña actual y la nueva contraseña.

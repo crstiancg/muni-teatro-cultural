@@ -9,8 +9,8 @@
 
 export const INSTITUCION = {
   // PENDIENTE: confirmar el nombre oficial y de qué entidad depende
-  nombre: 'RMAC',
-  entidad: 'Registro Municipal de Agentes Culturales y Portafolio del Provincia de Puno',
+  nombre: 'RACC',
+  entidad: 'Registro de Agentes Culturales del Consejo Provincial de Cultura',
   ciudad: 'Puno',
   region: 'Puno, Perú',
 
@@ -23,7 +23,8 @@ export const INSTITUCION = {
     direccion: ['PENDIENTE: dirección', 'Puno, Perú'],
     telefono: ['PENDIENTE: teléfono'],
     correo: ['PENDIENTE: correo'],
-    horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
+    horario: ['Lunes a viernes: 8:00 – 16:00'],
+    // horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
   },
 }
 

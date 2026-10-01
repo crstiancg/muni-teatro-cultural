@@ -10,7 +10,7 @@
           <span class="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span class="brand-text">
             <span class="brand-nombre">{{ INSTITUCION.nombre }}</span>
-            <span class="brand-sub">{{ INSTITUCION.ciudad }} · Registro Municipal de Agentes Culturales y Portafolio</span>
+            <span class="brand-sub">{{ INSTITUCION.ciudad }} · registro de agentes culturales del consejo provincial de cultura</span>
           </span>
         </router-link>
 

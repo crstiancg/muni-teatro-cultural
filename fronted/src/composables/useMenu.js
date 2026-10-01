@@ -41,6 +41,13 @@ export function useMenu() {
     },
     {
       type: 'item',
+      label: 'Mi perfil',
+      routeName: 'Perfil',
+      icon: UsersRound,
+      // secciones del artista: el admin gestiona, no tiene CV ni agrupaciones propias
+    },
+    {
+      type: 'item',
       label: 'Personas',
       routeName: 'Personas',
       icon: Contact,
