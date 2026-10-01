@@ -6,7 +6,9 @@ import { Cookies, Notify } from 'quasar'
 import { useUserStore } from '@/stores/user-store'
 
 const api = axios.create({
-  baseURL: import.meta.env.QCLI_API_BACKEND_URL,
+  // producción: vacío -> '/' (front y API en el mismo dominio). Sin la barra, una
+  // ruta como 'api/user' se resolvería contra la página actual (/gestion/api/user)
+  baseURL: import.meta.env.QCLI_API_BACKEND_URL || '/',
   headers: { Accept: 'application/json' },
 })
 client.useHttpClient(axiosAdapter(api))
