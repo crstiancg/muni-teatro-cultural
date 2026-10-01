@@ -8,6 +8,7 @@ use App\Http\Requests\StorePersonaFotoRequest;
 use App\Models\Agrupacion;
 use App\Models\AgrupacionIntegrante;
 use App\Models\Persona;
+use App\Notifications\AvisoAgrupacion;
 use App\Support\Html;
 use App\Support\Reniec;
 use Illuminate\Http\Request;
@@ -186,6 +187,16 @@ class MisAgrupacionesController extends Controller
 
         $integrante = $agrupacion->integrantes()->create($request->validated());
         $agrupacion->volverARevision("Agregó al integrante {$integrante->nombre_completo}.", $request->user()->id);
+
+        // un artista registrado se entera de que figura en la agrupación (y puede reclamar)
+        $usuario = $integrante->persona?->user;
+        if ($usuario && $usuario->id !== $request->user()->id) {
+            $usuario->notify(new AvisoAgrupacion(
+                'agrupacion_integrante',
+                "{$request->user()->name} te agregó como " . ($integrante->rol ?: 'integrante') . " en la agrupación {$agrupacion->nombre}.",
+                $agrupacion
+            ));
+        }
 
         return response()->json($integrante->load('persona:id,slug'), 201);
     }
