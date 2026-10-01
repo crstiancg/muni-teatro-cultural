@@ -204,13 +204,27 @@
         <ChevronLeft :size="26" />
       </button>
 
+      <!-- la imagen toma el alto que deja el texto: así la descripción nunca queda
+           fuera de pantalla; un texto largo se abre en su propia caja con scroll -->
       <figure class="visor-figura">
-        <img
-          :src="actividades[visorIndex].imagen_url"
-          :alt="actividades[visorIndex].descripcion || ''"
-        />
-        <figcaption v-if="actividades[visorIndex].descripcion">
-          {{ actividades[visorIndex].descripcion }}
+        <div class="visor-imagen">
+          <img
+            :src="actividades[visorIndex].imagen_url"
+            :alt="actividades[visorIndex].descripcion || ''"
+          />
+        </div>
+        <figcaption
+          v-if="actividades[visorIndex].descripcion"
+          :class="{ abierta: textoAbierto }"
+        >
+          <p class="visor-texto">{{ actividades[visorIndex].descripcion }}</p>
+          <button
+            v-if="actividades[visorIndex].descripcion.length > 180"
+            class="visor-mas"
+            @click="textoAbierto = !textoAbierto"
+          >
+            {{ textoAbierto ? 'Ver menos' : 'Ver más' }}
+          </button>
         </figcaption>
       </figure>
 
@@ -308,6 +322,10 @@ async function compartir() {
 // ---------- visor ----------
 const visorAbierto = ref(false)
 const visorIndex = ref(0)
+const textoAbierto = ref(false)
+
+// cada foto arranca con su descripción recortada
+watch(visorIndex, () => (textoAbierto.value = false))
 
 function abrirVisor(i) {
   visorIndex.value = i
@@ -978,10 +996,12 @@ watch(
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: rgba(12, 18, 27, 0.95);
-  display: grid;
-  place-items: center;
-  padding: 72px 60px 40px;
+  /* casi opaco + desenfoque: la página de atrás no compite con la foto */
+  background: rgba(10, 14, 20, 0.97);
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  padding: 72px 80px 24px;
 }
 
 .visor-barra {
@@ -1019,24 +1039,74 @@ watch(
 }
 
 .visor-figura {
+  flex: 1;
+  min-height: 0;
   margin: 0;
-  max-width: 100%;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+
+  figcaption {
+    flex: none;
+    width: 100%;
+    max-width: 68ch;
+    color: rgba(253, 251, 247, 0.85);
+    font-size: var(--t-sm);
+    text-align: center;
+  }
+}
+
+/* ocupa el alto que sobra: la imagen se achica, el texto no se corta */
+.visor-imagen {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   img {
     max-width: 100%;
-    max-height: 74vh;
+    max-height: 100%;
+    object-fit: contain;
     border-radius: var(--r-md);
     display: block;
-    margin: 0 auto;
   }
+}
 
-  figcaption {
-    margin-top: 16px;
-    color: rgba(253, 251, 247, 0.82);
-    font-size: var(--t-sm);
-    max-width: 60ch;
-    margin-inline: auto;
+.visor-texto {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  /* recortado a 3 líneas hasta que se pide "Ver más" */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+figcaption.abierta .visor-texto {
+  display: block;
+  -webkit-line-clamp: unset;
+  max-height: 32vh;
+  overflow-y: auto;
+  text-align: left;
+  padding-right: 6px;
+}
+
+.visor-mas {
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: 0;
+  background: none;
+  color: var(--oro-vivo);
+  font-weight: 700;
+  font-size: var(--t-sm);
+  cursor: pointer;
+
+  &:focus-visible {
+    @include foco;
   }
 }
 
