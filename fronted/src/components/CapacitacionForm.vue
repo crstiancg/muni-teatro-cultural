@@ -119,9 +119,9 @@ const props = defineProps({
 })
 const emit = defineEmits(['save'])
 
+// diplomado y programa ya no se ofrecen (los registros viejos se siguen
+// mostrando: ver CapacitacionList)
 const opcionesTipo = [
-  { label: 'Diplomado', value: 'diplomado' },
-  { label: 'Programa', value: 'programa' },
   { label: 'Especialización', value: 'especializacion' },
   { label: 'Curso', value: 'curso' },
   { label: 'Taller', value: 'taller' },

@@ -14,7 +14,8 @@ class StoreCapacitacionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'capacitacion.tipo' => 'required|in:diplomado,programa,especializacion,curso,taller,seminario,conferencias,reconocimiento,capacitacion,otros',
+            // diplomado y programa siguen en el enum de la base por los registros existentes
+            'capacitacion.tipo' => 'required|in:especializacion,curso,taller,seminario,conferencias,reconocimiento,capacitacion,otros',
             'capacitacion.nombre_evento' => 'required|string|max:255',
             // opcional: no toda capacitación o reconocimiento la da un centro de estudios
             'capacitacion.centro_estudios' => 'nullable|string|max:255',
