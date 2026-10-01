@@ -854,12 +854,17 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   padding: clamp(64px, 8vw, 96px) var(--gutter) clamp(104px, 13vh, 150px);
-  overflow: hidden;
+  /* antes "overflow: hidden": recortaba los paneles del buscador al desplegarse.
+     clip solo en horizontal (nada de scroll lateral) y el fondo se recorta aparte */
+  overflow-x: clip;
+  /* por encima de las secciones siguientes: los paneles pueden pasar sobre ellas */
+  z-index: 5;
 }
 
 .portada-fondo {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 
   img {
     position: absolute;
@@ -945,6 +950,8 @@ onMounted(async () => {
 /* ── buscador segmentado ── */
 .buscador {
   position: relative;
+  /* sobre los puntos del carrusel y la flecha de scroll de la portada */
+  z-index: 30;
   display: flex;
   align-items: stretch;
   gap: 4px;
