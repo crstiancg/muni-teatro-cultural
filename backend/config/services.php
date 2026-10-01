@@ -14,6 +14,12 @@ return [
     |
     */
 
+    // consulta de DNI (RENIEC) para autocompletar el registro de personas
+    'apis_net_pe' => [
+        'token' => env('APIS_NET_PE_TOKEN'),
+        'url' => env('APIS_NET_PE_URL', 'https://api.apis.net.pe'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

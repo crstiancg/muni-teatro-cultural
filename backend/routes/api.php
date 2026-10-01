@@ -7,6 +7,7 @@ use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\PerfilPublicoController;
@@ -83,6 +84,10 @@ Route::middleware('auth:api')->group(function () {
     Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);
 
     Route::get('dashboard/admin', [DashboardController::class, 'admin']);
+    // cada consulta gasta cuota de apis.net.pe: máximo 30 por minuto por usuario
+    Route::get('consulta-dni/{dni}', [ConsultaDniController::class, 'show'])
+        ->where('dni', '[0-9]{8}')
+        ->middleware('throttle:30,1');
 
     Route::get('notificaciones', [NotificacionController::class, 'index']);
     Route::put('notificaciones/leer-todas', [NotificacionController::class, 'leerTodas']);
