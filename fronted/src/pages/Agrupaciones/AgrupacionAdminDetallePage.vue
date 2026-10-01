@@ -148,7 +148,17 @@
                     <q-avatar size="30px" color="primary" text-color="white" class="text-caption">
                       {{ props.row.nombre?.charAt(0) }}
                     </q-avatar>
-                    <span class="text-weight-medium">{{ props.row.nombre_completo }}</span>
+                    <!-- agente cultural registrado: lleva a su CV en el panel -->
+                    <router-link
+                      v-if="props.row.persona_id && userStore.hasPermission('admin-personas-index')"
+                      :to="{ name: 'PersonaDetalle', params: { id: props.row.persona_id } }"
+                      class="text-weight-medium link-cv"
+                    >
+                      {{ props.row.nombre_completo }}
+                      <ExternalLink :size="13" class="q-ml-xs" />
+                      <q-tooltip>Ver su currículum</q-tooltip>
+                    </router-link>
+                    <span v-else class="text-weight-medium">{{ props.row.nombre_completo }}</span>
                   </div>
                 </q-td>
               </template>
@@ -298,6 +308,15 @@ onMounted(cargar)
 .tarjeta {
   border-radius: 12px;
   overflow: hidden;
+}
+
+.link-cv {
+  color: var(--q-primary);
+  text-decoration: none;
+}
+
+.link-cv:hover {
+  text-decoration: underline;
 }
 
 .logo img {
