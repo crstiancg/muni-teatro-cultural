@@ -93,12 +93,13 @@ const routes = [
         component: () => import('@/pages/Agrupaciones/MiAgrupacionPage.vue'),
       },
       {
-        path: 'agrupaciones',
+        // /gestion/...: /agrupaciones es del portal público (directorio y páginas)
+        path: 'gestion/agrupaciones',
         name: 'AgrupacionesAdmin',
         component: () => import('@/pages/Agrupaciones/AgrupacionesAdminPage.vue'),
       },
       {
-        path: 'agrupaciones/:id',
+        path: 'gestion/agrupaciones/:id',
         name: 'AgrupacionAdminDetalle',
         component: () => import('@/pages/Agrupaciones/AgrupacionAdminDetallePage.vue'),
       },

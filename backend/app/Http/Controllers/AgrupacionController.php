@@ -21,7 +21,11 @@ class AgrupacionController extends Controller implements HasMiddleware
     public function index(Request $request)
     {
         $query = Agrupacion::query()
-            ->with(['comision:codigo,nombre', 'logo'])
+            ->with([
+                'comision:codigo,nombre',
+                'logo',
+                'integrantes' => fn ($q) => $q->where('es_representante', true)->select(['id', 'agrupacion_id', 'nombre', 'apellido_paterno', 'apellido_materno']),
+            ])
             ->withCount('integrantes')
             // las que esperan más van primero cuando se filtra la bandeja
             ->orderByRaw("estado = 'pendiente' desc")
@@ -35,7 +39,16 @@ class AgrupacionController extends Controller implements HasMiddleware
             $query->where('nombre', 'like', '%' . $request->string('buscar') . '%');
         }
 
-        return response()->json($query->paginate(min((int) $request->input('por_pagina', 15), 50)));
+        $pagina = $query->paginate(min((int) $request->input('por_pagina', 15), 50));
+
+        return response()->json([
+            ...$pagina->toArray(),
+            // para los contadores de cada filtro (sin el filtro de estado aplicado)
+            'conteos' => Agrupacion::query()
+                ->selectRaw('estado, count(*) as total')
+                ->groupBy('estado')
+                ->pluck('total', 'estado'),
+        ]);
     }
 
     public function show(Agrupacion $agrupacion)
