@@ -71,8 +71,18 @@ async function abrir(aviso) {
     await NotificacionService.leer(aviso.id)
     cargar()
   }
+  const tipo = aviso.data.tipo
+  // agrupaciones: el admin va a revisarla; el representante, a gestionarla
+  if (['agrupacion_solicitud', 'agrupacion_actualizacion'].includes(tipo)) {
+    router.push({ name: 'AgrupacionAdminDetalle', params: { id: aviso.data.agrupacion_id } })
+    return
+  }
+  if (tipo?.startsWith('agrupacion_')) {
+    router.push({ name: 'MiAgrupacion', params: { id: aviso.data.agrupacion_id } })
+    return
+  }
   // al admin le llegan solicitud/actualizacion; al artista aprobado/observado
-  if (['solicitud', 'actualizacion'].includes(aviso.data.tipo)) {
+  if (['solicitud', 'actualizacion'].includes(tipo)) {
     router.push({ name: 'PersonaDetalle', params: { id: aviso.data.persona_id } })
   } else {
     router.push({ name: 'CurriculumVitae' })

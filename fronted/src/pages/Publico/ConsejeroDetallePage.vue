@@ -156,6 +156,19 @@
             </a>
           </div>
 
+          <div v-if="persona.agrupaciones?.length" class="integra">
+            <p class="integra-titulo">Integra</p>
+            <router-link
+              v-for="a in persona.agrupaciones"
+              :key="a.slug"
+              :to="{ name: 'AgrupacionPublica', params: { slug: a.slug } }"
+              class="integra-item"
+            >
+              <span class="integra-nombre">{{ a.nombre }}</span>
+              <span v-if="a.rol" class="integra-rol">{{ a.rol }}</span>
+            </router-link>
+          </div>
+
           <div v-if="persona.comision_alternativo" class="alterna">
             <span class="punto" />
             También en <strong>{{ persona.comision_alternativo }}</strong>
@@ -1041,6 +1054,54 @@ watch(
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: clamp(12px, 2vw, 20px);
+}
+
+/* agrupaciones donde figura el artista */
+.integra {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.integra-titulo {
+  margin: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-suave);
+}
+
+.integra-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  color: var(--tinta);
+  transition: border-color var(--transicion);
+
+  &:hover {
+    border-color: var(--rojo);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.integra-nombre {
+  font-weight: 700;
+  font-size: var(--t-sm);
+  overflow-wrap: anywhere;
+}
+
+.integra-rol {
+  flex: none;
+  font-size: var(--t-xs);
+  color: var(--tinta-suave);
 }
 
 /* ══════════ VISOR ══════════ */

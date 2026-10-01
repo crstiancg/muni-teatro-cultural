@@ -10,6 +10,7 @@ import {
   Briefcase,
   School,
   BookOpen,
+  UsersRound,
 } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
@@ -31,10 +32,23 @@ export function useMenu() {
     },
     {
       type: 'item',
+      label: 'Mis agrupaciones',
+      routeName: 'MisAgrupaciones',
+      icon: UsersRound,
+    },
+    {
+      type: 'item',
       label: 'Personas',
       routeName: 'Personas',
       icon: Contact,
       permission: 'admin-personas-index',
+    },
+    {
+      type: 'item',
+      label: 'Agrupaciones',
+      routeName: 'AgrupacionesAdmin',
+      icon: UsersRound,
+      permission: 'admin-agrupaciones-index',
     },
     {
       type: 'item',
