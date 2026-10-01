@@ -47,12 +47,24 @@
           </div>
         </div>
 
-        <div v-if="editable" class="acciones">
-          <q-btn flat dense round size="sm" icon="edit" color="primary" @click="emit('editar', i)">
+        <div v-if="editable || puedeTransferir(i)" class="acciones">
+          <q-btn
+            v-if="puedeTransferir(i)"
+            flat
+            dense
+            round
+            size="sm"
+            color="primary"
+            @click="emit('transferir', i)"
+          >
+            <Crown :size="15" />
+            <q-tooltip>Hacer representante</q-tooltip>
+          </q-btn>
+          <q-btn v-if="editable" flat dense round size="sm" icon="edit" color="primary" @click="emit('editar', i)">
             <q-tooltip>Editar</q-tooltip>
           </q-btn>
           <q-btn
-            v-if="!i.es_representante"
+            v-if="editable && !i.es_representante"
             flat
             dense
             round
@@ -76,7 +88,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Users, BadgeCheck } from 'lucide-vue-next'
+import { Users, BadgeCheck, Crown } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
 const props = defineProps({
@@ -85,8 +97,13 @@ const props = defineProps({
   editable: { type: Boolean, default: false },
   // admin: el nombre de un agente cultural registrado lleva a su CV
   enlazarCv: { type: Boolean, default: false },
+  // muestra "Hacer representante" en los artistas registrados que no lo son
+  transferible: { type: Boolean, default: false },
 })
-const emit = defineEmits(['editar', 'quitar'])
+const emit = defineEmits(['editar', 'quitar', 'transferir'])
+
+// solo un artista registrado puede ser representante: necesita cuenta para gestionarla
+const puedeTransferir = (i) => props.transferible && i.persona_id && !i.es_representante
 const userStore = useUserStore()
 
 // representante primero, después registrados, después el resto por apellido

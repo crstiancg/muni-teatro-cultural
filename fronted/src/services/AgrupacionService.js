@@ -39,6 +39,10 @@ class AgrupacionService {
     return await api.delete(`/api/mis-agrupaciones/${id}/integrantes/${integranteId}`)
   }
 
+  static async transferirRepresentante(id, integranteId) {
+    return (await api.put(`/api/mis-agrupaciones/${id}/integrantes/${integranteId}/representante`)).data
+  }
+
   // ---------- admin ----------
   static async listar(params) {
     return (await api.get('/api/agrupaciones', { params })).data
@@ -54,6 +58,11 @@ class AgrupacionService {
 
   static async observar(id, observacion) {
     return (await api.put(`/api/agrupaciones/${id}/observar`, { observacion })).data
+  }
+
+  // rescate de una agrupación sin representante activo
+  static async asignarRepresentante(id, integranteId) {
+    return (await api.put(`/api/agrupaciones/${id}/representante/${integranteId}`)).data
   }
 
   // ---------- portal ----------

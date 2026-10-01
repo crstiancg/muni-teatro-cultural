@@ -117,12 +117,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('mis-agrupaciones/{agrupacion}/integrantes', [MisAgrupacionesController::class, 'storeIntegrante']);
     Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'updateIntegrante']);
     Route::delete('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'destroyIntegrante']);
+    Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}/representante', [MisAgrupacionesController::class, 'transferirRepresentante']);
 
     // agrupaciones: revisión del admin
     Route::get('agrupaciones', [AgrupacionController::class, 'index']);
     Route::get('agrupaciones/{agrupacion}', [AgrupacionController::class, 'show']);
     Route::put('agrupaciones/{agrupacion}/aprobar', [AgrupacionController::class, 'aprobar']);
     Route::put('agrupaciones/{agrupacion}/observar', [AgrupacionController::class, 'observar']);
+    Route::put('agrupaciones/{agrupacion}/representante/{integrante}', [AgrupacionController::class, 'transferirRepresentante']);
     // cada consulta gasta cuota de apis.net.pe: máximo 30 por minuto por usuario
     Route::get('consulta-dni/{dni}', [ConsultaDniController::class, 'show'])
         ->where('dni', '[0-9]{8}')

@@ -97,9 +97,13 @@ class MisAgrupacionesController extends Controller
 
         $agrupacion->update($this->datos($request));
 
-        // igual que los perfiles: publicada, el cambio se ve al toque y el admin recibe aviso
-        if ($agrupacion->estado === 'aprobado' && $agrupacion->wasChanged(['nombre', 'codigo_comision', 'descripcion', 'redes_sociales'])) {
-            $agrupacion->notificarAdmins('agrupacion_actualizacion', "La agrupación {$agrupacion->nombre} actualizó sus datos.");
+        // publicada: cambiar datos la devuelve a revisión (el front ya avisó)
+        $cambios = collect([
+            'nombre' => 'nombre', 'codigo_comision' => 'comisión',
+            'descripcion' => 'descripción', 'redes_sociales' => 'redes sociales',
+        ])->filter(fn ($_, $campo) => $agrupacion->wasChanged($campo));
+        if ($cambios->isNotEmpty()) {
+            $agrupacion->volverARevision('Cambió ' . $cambios->implode(', ') . '.', $request->user()->id);
         }
 
         return response()->json($this->detalle($agrupacion));
@@ -181,6 +185,7 @@ class MisAgrupacionesController extends Controller
         $this->soloRepresentante($request, $agrupacion);
 
         $integrante = $agrupacion->integrantes()->create($request->validated());
+        $agrupacion->volverARevision("Agregó al integrante {$integrante->nombre_completo}.", $request->user()->id);
 
         return response()->json($integrante->load('persona:id,slug'), 201);
     }
@@ -195,6 +200,9 @@ class MisAgrupacionesController extends Controller
             ? collect($request->validated())->only('rol')->all()
             : $request->validated();
         $integrante->update($datos);
+        if ($integrante->wasChanged()) {
+            $agrupacion->volverARevision("Modificó al integrante {$integrante->nombre_completo}.", $request->user()->id);
+        }
 
         return response()->json($integrante->load('persona:id,slug'));
     }
@@ -207,6 +215,21 @@ class MisAgrupacionesController extends Controller
         abort_if($integrante->es_representante, 422, 'No se puede quitar al representante de la agrupación.');
 
         $integrante->delete();
+        $agrupacion->volverARevision("Quitó al integrante {$integrante->nombre_completo}.", $request->user()->id);
+
+        return response()->json(true);
+    }
+
+    // el representante cede la gestión (por ejemplo, si deja el grupo)
+    public function transferirRepresentante(Request $request, Agrupacion $agrupacion, AgrupacionIntegrante $integrante)
+    {
+        $this->soloRepresentante($request, $agrupacion);
+        $agrupacion->transferirRepresentante($integrante);
+        $agrupacion->revisiones()->create([
+            'accion' => 'enviado',
+            'observacion' => "Transfirió la representación a {$integrante->nombre_completo}.",
+            'user_id' => $request->user()->id,
+        ]);
 
         return response()->json(true);
     }

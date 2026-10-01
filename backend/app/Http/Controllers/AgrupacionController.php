@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agrupacion;
+use App\Models\AgrupacionIntegrante;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 
@@ -14,7 +15,7 @@ class AgrupacionController extends Controller implements HasMiddleware
     {
         return static::permisos('agrupaciones', [
             'index' => ['index', 'show'],
-            'aprobar' => ['aprobar', 'observar'],
+            'aprobar' => ['aprobar', 'observar', 'transferirRepresentante'],
         ]);
     }
 
@@ -84,6 +85,14 @@ class AgrupacionController extends Controller implements HasMiddleware
 
         $this->resolver($request, $agrupacion, 'observado', $datos['observacion']);
         $agrupacion->notificarRepresentantes('agrupacion_observado', "La agrupación {$agrupacion->nombre} fue observada: {$datos['observacion']}");
+
+        return $this->show($agrupacion);
+    }
+
+    // rescate: una agrupación sin representante activo (dejó el grupo, se borró su ficha)
+    public function transferirRepresentante(Request $request, Agrupacion $agrupacion, AgrupacionIntegrante $integrante)
+    {
+        $agrupacion->transferirRepresentante($integrante);
 
         return $this->show($agrupacion);
     }

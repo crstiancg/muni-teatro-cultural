@@ -138,9 +138,11 @@
             </div>
             <IntegrantesTabla
               editable
+              transferible
               :integrantes="agrupacion.integrantes"
               @editar="abrirIntegrante"
               @quitar="quitar"
+              @transferir="transferir"
             />
           </q-card-section>
         </q-card>
@@ -165,6 +167,7 @@
       <IntegranteDialog
         :agrupacion-id="agrupacion.id"
         :integrante="integranteEditado"
+        :publicada="agrupacion.estado === 'aprobado'"
         @guardado="alGuardarIntegrante"
       />
     </q-dialog>
@@ -174,7 +177,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Home, Plus, Circle, CircleCheck } from 'lucide-vue-next'
 import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
@@ -189,6 +192,7 @@ import { useNotify } from '@/composables/useNotify'
 
 const $q = useQuasar()
 const route = useRoute()
+const router = useRouter()
 const { notifySuccess, notifyError } = useNotify()
 const id = Number(route.params.id)
 
@@ -242,7 +246,11 @@ function alGuardarIntegrante() {
 function quitar(integrante) {
   $q.dialog({
     title: 'Quitar integrante',
-    message: `¿Quitar a ${integrante.nombre_completo} de la agrupación?`,
+    message:
+      `¿Quitar a ${integrante.nombre_completo} de la agrupación?` +
+      (agrupacion.value.estado === 'aprobado'
+        ? ' La agrupación volverá a revisión y dejará de verse en el portal hasta que la aprueben.'
+        : ''),
     cancel: true,
     persistent: true,
   }).onOk(async () => {
@@ -252,6 +260,25 @@ function quitar(integrante) {
       cargar()
     } catch (error) {
       notifyError(error.response?.data?.message || 'No se pudo quitar.')
+    }
+  })
+}
+
+// ceder la gestión: después de esto ya no puede administrarla
+function transferir(integrante) {
+  $q.dialog({
+    title: 'Transferir la representación',
+    message: `${integrante.nombre_completo} pasará a ser el representante y tú dejarás de gestionar esta agrupación. ¿Continuar?`,
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Sí, transferir', color: 'primary', noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await AgrupacionService.transferirRepresentante(id, integrante.id)
+      notifySuccess(`${integrante.nombre_completo} ahora es el representante.`)
+      router.push({ name: 'MisAgrupaciones' })
+    } catch (error) {
+      notifyError(error.response?.data?.message || 'No se pudo transferir.')
     }
   })
 }

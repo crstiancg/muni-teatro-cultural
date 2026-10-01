@@ -76,6 +76,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
+import { useQuasar } from 'quasar'
 import AgrupacionService from '@/services/AgrupacionService'
 import { useNotify } from '@/composables/useNotify'
 
@@ -83,10 +84,13 @@ const props = defineProps({
   agrupacionId: { type: Number, required: true },
   // null = agregar
   integrante: { type: Object, default: null },
+  // publicada: agregar o modificar integrantes la devuelve a revisión
+  publicada: { type: Boolean, default: false },
 })
 const emit = defineEmits(['guardado'])
 
 const { notifySuccess, notifyError, notifyAlert } = useNotify()
+const $q = useQuasar()
 const soloRol = computed(() => !!props.integrante?.es_representante)
 const datos = reactive({
   dni: props.integrante?.dni ?? '',
@@ -120,7 +124,18 @@ async function alEscribirDni(valor) {
   }
 }
 
-async function guardar() {
+function guardar() {
+  if (!props.publicada) return enviar()
+  $q.dialog({
+    title: 'La agrupación volverá a revisión',
+    message: 'Esta agrupación está publicada. Si guardas este cambio, volverá a revisión y dejará de verse en el portal hasta que un administrador la apruebe. ¿Deseas continuar?',
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Sí, guardar', color: 'orange-9', noCaps: true },
+    persistent: true,
+  }).onOk(enviar)
+}
+
+async function enviar() {
   guardando.value = true
   errores.value = {}
   try {

@@ -77,6 +77,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useQuasar } from 'quasar'
 import { Facebook, Instagram, Music2, Youtube, Globe } from 'lucide-vue-next'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
 import AgrupacionService from '@/services/AgrupacionService'
@@ -98,6 +99,7 @@ const REDES = [
 ]
 
 const { notifySuccess, notifyError } = useNotify()
+const $q = useQuasar()
 const datos = reactive({
   nombre: props.agrupacion?.nombre ?? '',
   codigo_comision: props.agrupacion?.codigo_comision ?? null,
@@ -108,7 +110,19 @@ const datos = reactive({
 const errores = ref({})
 const guardando = ref(false)
 
-async function guardar() {
+// publicada: cambiar datos la devuelve a revisión (MisAgrupacionesController::update)
+function guardar() {
+  if (props.agrupacion?.estado !== 'aprobado') return enviar()
+  $q.dialog({
+    title: 'La agrupación volverá a revisión',
+    message: 'Esta agrupación está publicada. Si guardas este cambio, volverá a revisión y dejará de verse en el portal hasta que un administrador la apruebe. ¿Deseas continuar?',
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Sí, guardar', color: 'orange-9', noCaps: true },
+    persistent: true,
+  }).onOk(enviar)
+}
+
+async function enviar() {
   guardando.value = true
   errores.value = {}
   try {

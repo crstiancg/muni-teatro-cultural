@@ -130,7 +130,12 @@
           <q-card flat bordered class="tarjeta">
             <q-card-section>
               <div class="text-subtitle1 text-weight-bold q-mb-sm">Integrantes</div>
-              <IntegrantesTabla :integrantes="agrupacion.integrantes" enlazar-cv />
+              <IntegrantesTabla
+                :integrantes="agrupacion.integrantes"
+                enlazar-cv
+                :transferible="puedeAprobar"
+                @transferir="asignarRepresentante"
+              />
             </q-card-section>
           </q-card>
         </div>
@@ -255,6 +260,22 @@ function observar() {
     cancel: true,
     persistent: true,
   }).onOk((texto) => ejecutar(() => AgrupacionService.observar(id, texto.trim()), 'Observación enviada.'))
+}
+
+// rescate: la agrupación quedó sin un representante que la gestione
+function asignarRepresentante(integrante) {
+  $q.dialog({
+    title: 'Asignar representante',
+    message: `${integrante.nombre_completo} pasará a gestionar la agrupación. ¿Continuar?`,
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    ok: { label: 'Sí, asignar', color: 'primary', noCaps: true },
+    persistent: true,
+  }).onOk(() =>
+    ejecutar(
+      () => AgrupacionService.asignarRepresentante(id, integrante.id),
+      `${integrante.nombre_completo} ahora es el representante.`,
+    ),
+  )
 }
 
 onMounted(cargar)

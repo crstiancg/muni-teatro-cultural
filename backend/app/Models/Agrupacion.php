@@ -164,6 +164,42 @@ class Agrupacion extends Model
         $this->archivos()->where('coleccion', 'portada')->get()->each->delete();
     }
 
+    // Una agrupación PUBLICADA que cambia datos o integrantes vuelve a revisión:
+    // sale del portal hasta que el admin la apruebe (el front avisa antes de guardar).
+    // En borrador, observada o pendiente no hace nada.
+    public function volverARevision(string $motivo, ?int $userId): void
+    {
+        if ($this->estado !== 'aprobado') {
+            return;
+        }
+
+        $this->update(['estado' => 'pendiente', 'observacion' => null]);
+        $this->revisiones()->create(['accion' => 'enviado', 'observacion' => $motivo, 'user_id' => $userId]);
+        $this->notificarAdmins('agrupacion_solicitud', "La agrupación {$this->nombre} volvió a revisión: {$motivo}");
+    }
+
+    // pasa la representación a otro integrante, que tiene que ser artista registrado
+    // (necesita cuenta para gestionarla) y no superar el límite de agrupaciones
+    public function transferirRepresentante(AgrupacionIntegrante $nuevo): void
+    {
+        abort_unless($nuevo->agrupacion_id === $this->id, 404);
+        abort_if($nuevo->es_representante, 422, 'Ya es el representante.');
+        abort_unless($nuevo->persona_id, 422, 'Solo un artista registrado puede ser representante: necesita una cuenta para gestionar la agrupación.');
+
+        $limite = config('agrupaciones.max_por_representante');
+        $representadas = AgrupacionIntegrante::where('persona_id', $nuevo->persona_id)->where('es_representante', true)->count();
+        abort_if($representadas >= $limite, 422, "Esa persona ya representa el máximo de {$limite} agrupaciones.");
+
+        $this->integrantes()->where('es_representante', true)->update(['es_representante' => false]);
+        $nuevo->update(['es_representante' => true]);
+
+        $nuevo->persona?->user?->notify(new AvisoAgrupacion(
+            'agrupacion_representante',
+            "Ahora eres el representante de la agrupación {$this->nombre}.",
+            $this
+        ));
+    }
+
     // ---------- avisos ----------
 
     public function notificarAdmins(string $tipo, string $mensaje): void
