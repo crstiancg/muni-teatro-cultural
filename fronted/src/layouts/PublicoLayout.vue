@@ -26,6 +26,13 @@
             Artistas
           </router-link>
           <router-link
+            :to="{ name: 'AgrupacionesPublico' }"
+            class="nav-link"
+            @click="menuAbierto = false"
+          >
+            Agrupaciones
+          </router-link>
+          <router-link
             :to="{ name: 'Inicio', hash: '#comisiones' }"
             class="nav-link"
             @click="menuAbierto = false"
@@ -70,6 +77,7 @@
           <h2>Explorar</h2>
           <router-link :to="{ name: 'Inicio' }">Inicio</router-link>
           <router-link :to="{ name: 'ConsejerosPublico' }">Artistas</router-link>
+          <router-link :to="{ name: 'AgrupacionesPublico' }">Agrupaciones</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
           <router-link :to="{ name: 'Login' }">Ingresar</router-link>
         </nav>

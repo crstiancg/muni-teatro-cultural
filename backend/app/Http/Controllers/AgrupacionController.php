@@ -40,7 +40,7 @@ class AgrupacionController extends Controller implements HasMiddleware
 
     public function show(Agrupacion $agrupacion)
     {
-        $agrupacion->load(['comision:codigo,nombre', 'logo', 'integrantes.persona:id,slug', 'integrantes.persona.foto', 'revisiones.usuario:id,name']);
+        $agrupacion->load(['comision:codigo,nombre', 'logo', 'portada', 'actividades', 'integrantes.persona:id,slug', 'integrantes.persona.foto', 'revisiones.usuario:id,name']);
 
         return response()->json([
             ...$agrupacion->toArray(),

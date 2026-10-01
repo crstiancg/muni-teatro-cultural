@@ -116,6 +116,23 @@ class MisAgrupacionesController extends Controller
         return response()->json(true);
     }
 
+    // ---------- portada (imagen horizontal de cabecera) ----------
+
+    public function storePortada(StorePersonaFotoRequest $request, Agrupacion $agrupacion)
+    {
+        $this->soloRepresentante($request, $agrupacion);
+
+        return response()->json($agrupacion->reemplazarPortada($request->file('foto')), 201);
+    }
+
+    public function destroyPortada(Request $request, Agrupacion $agrupacion)
+    {
+        $this->soloRepresentante($request, $agrupacion);
+        $agrupacion->eliminarPortada();
+
+        return response()->json(true);
+    }
+
     // ---------- integrantes ----------
 
     // autocompletar al cargar un integrante: primero la base, después RENIEC
@@ -199,7 +216,7 @@ class MisAgrupacionesController extends Controller
     // todo lo que necesita la pantalla de gestión, en una llamada
     private function detalle(Agrupacion $agrupacion): array
     {
-        $agrupacion->load(['comision:codigo,nombre', 'logo', 'integrantes.persona:id,slug', 'integrantes.persona.foto', 'revisiones.usuario:id,name']);
+        $agrupacion->load(['comision:codigo,nombre', 'logo', 'portada', 'actividades', 'integrantes.persona:id,slug', 'integrantes.persona.foto', 'revisiones.usuario:id,name']);
 
         return [
             ...$agrupacion->toArray(),

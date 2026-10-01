@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\AgrupacionActividadController;
 use App\Http\Controllers\AgrupacionController;
 use App\Http\Controllers\AgrupacionPublicaController;
 use App\Http\Controllers\AuthController;
@@ -38,6 +39,7 @@ Route::get('publico/consejeros/grupos', [PersonaPublicaController::class, 'grupo
 Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'actividadesDestacadas']);
 // resuelve por slug (no por id) solo en la parte pública; el admin sigue con id
 Route::get('publico/consejeros/{persona:slug}', [PersonaPublicaController::class, 'show']);
+Route::get('publico/agrupaciones', [AgrupacionPublicaController::class, 'index']);
 Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaController::class, 'show']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
@@ -100,6 +102,18 @@ Route::middleware('auth:api')->group(function () {
     Route::post('mis-agrupaciones/{agrupacion}/enviar-revision', [MisAgrupacionesController::class, 'enviarRevision']);
     Route::post('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'storeLogo']);
     Route::delete('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'destroyLogo']);
+    Route::post('mis-agrupaciones/{agrupacion}/portada', [MisAgrupacionesController::class, 'storePortada']);
+    Route::delete('mis-agrupaciones/{agrupacion}/portada', [MisAgrupacionesController::class, 'destroyPortada']);
+
+    // actividades de la agrupación: mismos endpoints que las del artista (el front
+    // reutiliza ActividadForm, que valida con precognition: sin este middleware
+    // cada validación crearía una actividad de verdad)
+    Route::post('mis-agrupaciones/{agrupacion}/actividades', [AgrupacionActividadController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('mis-agrupaciones/{agrupacion}/actividades/{actividad}', [AgrupacionActividadController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mis-agrupaciones/{agrupacion}/actividades/{actividad}', [AgrupacionActividadController::class, 'destroy']);
+    Route::put('mis-agrupaciones/{agrupacion}/actividades/{actividad}/reactivar', [AgrupacionActividadController::class, 'reactivar']);
+    Route::delete('mis-agrupaciones/{agrupacion}/actividades/{actividad}/permanente', [AgrupacionActividadController::class, 'destroyPermanente']);
+
     Route::post('mis-agrupaciones/{agrupacion}/integrantes', [MisAgrupacionesController::class, 'storeIntegrante']);
     Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'updateIntegrante']);
     Route::delete('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'destroyIntegrante']);

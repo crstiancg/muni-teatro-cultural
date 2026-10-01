@@ -50,8 +50,12 @@ class Agrupacion extends Model
             $agrupacion->slug = $slug;
         });
 
-        // la tabla archivos es polimórfica (sin FK): el logo se borra a mano
-        static::deleting(fn (Agrupacion $agrupacion) => $agrupacion->archivos()->get()->each->delete());
+        // la tabla archivos es polimórfica (sin FK): logo, portada y las imágenes
+        // de sus actividades se borran a mano (uno por uno, para limpiar el disco)
+        static::deleting(function (Agrupacion $agrupacion) {
+            $agrupacion->archivos()->get()->each->delete();
+            $agrupacion->actividades()->get()->each->delete();
+        });
     }
 
     // ---------- relaciones ----------
@@ -76,6 +80,16 @@ class Agrupacion extends Model
     public function logo()
     {
         return $this->morphOne(Archivo::class, 'archivable')->where('coleccion', 'logo');
+    }
+
+    public function portada()
+    {
+        return $this->morphOne(Archivo::class, 'archivable')->where('coleccion', 'portada');
+    }
+
+    public function actividades()
+    {
+        return $this->hasMany(AgrupacionActividad::class)->latest();
     }
 
     public function revisiones()
@@ -132,6 +146,22 @@ class Agrupacion extends Model
     public function eliminarLogo(): void
     {
         $this->archivos()->where('coleccion', 'logo')->get()->each->delete();
+    }
+
+    // imagen horizontal de cabecera en la página pública
+    public function reemplazarPortada(UploadedFile $imagen): Archivo
+    {
+        $this->eliminarPortada();
+
+        return $this->archivos()->create([
+            'coleccion' => 'portada',
+            ...Archivo::datosDesdeSubida($imagen, 'agrupaciones/portadas'),
+        ]);
+    }
+
+    public function eliminarPortada(): void
+    {
+        $this->archivos()->where('coleccion', 'portada')->get()->each->delete();
     }
 
     // ---------- avisos ----------

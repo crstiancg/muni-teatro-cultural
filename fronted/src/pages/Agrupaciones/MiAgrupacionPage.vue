@@ -104,6 +104,16 @@
 
       <!-- derecha: datos e integrantes -->
       <div class="col-12 col-md-8">
+        <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-bold">Portada</div>
+            <div class="text-caption text-grey-7 q-mb-sm">
+              La imagen grande que encabeza la página de la agrupación en el portal.
+            </div>
+            <PortadaUploader :base-path="`mis-agrupaciones/${agrupacion.id}`" v-model="agrupacion.portada" />
+          </q-card-section>
+        </q-card>
+
         <q-card flat :bordered="!$q.dark.isActive">
           <q-card-section>
             <div class="text-subtitle1 text-weight-bold q-mb-md">Datos de la agrupación</div>
@@ -134,6 +144,20 @@
             />
           </q-card-section>
         </q-card>
+
+        <q-card flat :bordered="!$q.dark.isActive" class="q-mt-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-bold">Actividades realizadas</div>
+            <div class="text-caption text-grey-7 q-mb-md">
+              Presentaciones, concursos y eventos de la agrupación. Las públicas se ven en el portal.
+            </div>
+            <!-- mismo CRUD que las actividades de un artista (endpoints equivalentes) -->
+            <ActividadGallery
+              :base-path="`mis-agrupaciones/${agrupacion.id}/actividades`"
+              v-model="agrupacion.actividades"
+            />
+          </q-card-section>
+        </q-card>
       </div>
     </div>
 
@@ -157,6 +181,8 @@ import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
 import AgrupacionDatosForm from '@/components/AgrupacionDatosForm.vue'
 import IntegrantesTabla from '@/components/IntegrantesTabla.vue'
 import IntegranteDialog from '@/components/IntegranteDialog.vue'
+import PortadaUploader from '@/components/PortadaUploader.vue'
+import ActividadGallery from '@/components/ActividadGallery.vue'
 import AgrupacionService from '@/services/AgrupacionService'
 import { estadoPerfil } from '@/config/estadosPerfil'
 import { useNotify } from '@/composables/useNotify'

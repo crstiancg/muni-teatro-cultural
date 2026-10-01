@@ -57,6 +57,11 @@ class AgrupacionService {
   }
 
   // ---------- portal ----------
+  // { data, meta: { pagina, ultima_pagina, total } }
+  static async publicas(params) {
+    return (await api.get('/api/publico/agrupaciones', { params })).data
+  }
+
   static async publica(slug) {
     return (await api.get(`/api/publico/agrupaciones/${slug}`)).data
   }

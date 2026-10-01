@@ -109,6 +109,7 @@ const routes = [
     path: '/agrupaciones',
     component: () => import('@/layouts/PublicoLayout.vue'),
     children: [
+      { path: '', name: 'AgrupacionesPublico', component: () => import('@/pages/Publico/AgrupacionesPage.vue') },
       { path: ':slug', name: 'AgrupacionPublica', component: () => import('@/pages/Publico/AgrupacionPublicaPage.vue') },
     ],
   },
