@@ -67,7 +67,11 @@ php artisan config:cache
 php artisan route:cache
 ```
 
-Si `php -v` muestra una versión vieja, cPanel suele tener varias: usa la ruta completa, por ejemplo `/opt/cpanel/ea-php84/root/usr/bin/php artisan ...`, también en el cron.
+Si `php -v` muestra una versión menor a la del paquete (el vendor exige PHP 8.4), cPanel suele tener varias instaladas (`ls /opt/cpanel/ | grep ea-php`):
+
+- **Web:** cPanel → MultiPHP Manager → solo el subdominio → PHP 8.4. Afecta únicamente a ese dominio (lo guarda en `racc/public/.htaccess`).
+- **SSH:** un alias que no reemplaza al `php` del sistema: `echo "alias php84='/opt/cpanel/ea-php84/root/usr/bin/php'" >> ~/.bashrc && source ~/.bashrc`, y usar `php84 artisan ...` en todos los comandos.
+- **Cron:** la ruta completa, por ejemplo `* * * * * /opt/cpanel/ea-php84/root/usr/bin/php /home2/USUARIO/racc.munipuno.gob.pe/racc/artisan schedule:run >> /dev/null 2>&1` (en algunos servidores el home es `/home2`: confirmarlo con `pwd`).
 
 Después, en cPanel: el subdominio con raíz del documento en `racc/public`, **AutoSSL** activo, y el cron `* * * * * php /home/USUARIO/racc/artisan schedule:run >> /dev/null 2>&1`.
 
@@ -91,7 +95,9 @@ Igual se generan llaves y cliente de Passport **nuevos** (`passport:keys` y `pas
 # en tu máquina: quasar build, spa:publicar y deploy:empaquetar (como arriba)
 # en el servidor:
 cd ~
-unzip -o racc-deploy-FECHA.zip   # pisa el código; el .env y storage/ no vienen en el zip: se conservan
+# -x: no pisar el .htaccess de public/, donde cPanel (MultiPHP Manager) guarda la
+# versión de PHP del subdominio. Si se pisa, el sitio vuelve a la versión por defecto.
+unzip -o racc-deploy-FECHA.zip -x "racc/public/.htaccess"   # el .env y storage/ no vienen en el zip: se conservan
 cd racc
 php artisan migrate --force
 php artisan config:cache
