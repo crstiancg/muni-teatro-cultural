@@ -55,14 +55,18 @@ cd racc
 cp .env.ejemplo-produccion .env
 nano .env                   # completar base de datos, dominio, tokens (ver sección 2)
 
+chmod -R 775 storage bootstrap/cache   # ANTES de las llaves de Passport (ver abajo)
 php artisan key:generate
 php artisan migrate --force
 php artisan db:seed --class=PermissionSeeder --force   # SOLO la primera vez (ver 3.3)
 php artisan passport:keys
+# las llaves de Passport deben quedar en 600: con permisos abiertos (775) la librería
+# OAuth se niega a usarlas y TODA la API autenticada responde 500 (login incluido).
+# Por eso nunca correr "chmod -R" sobre storage después de este paso.
+chmod 600 storage/oauth-private.key storage/oauth-public.key
 php artisan passport:client --password --name="Panel" --provider=users
 nano .env                   # pegar PASSPORT_PASSWORD_CLIENT_ID y _SECRET que imprimió el paso anterior
 php artisan storage:link    # si falla: PUBLIC_DISK_EN_PUBLIC=true en el .env
-chmod -R 775 storage bootstrap/cache
 php artisan config:cache
 php artisan route:cache
 ```
@@ -266,6 +270,7 @@ Si se agregaron permisos nuevos, crearlos con `php artisan tinker` (no correr el
 | "Falta el build del front" | No se corrió `php artisan spa:publicar` |
 | Login: "Falta configurar el cliente de Passport" | Faltan `PASSPORT_PASSWORD_CLIENT_ID` / `_SECRET`, o hay config cacheada vieja: `php artisan config:cache` |
 | Fotos rotas (404 en `/storage/...`) | Falta `storage:link` o `PUBLIC_DISK_EN_PUBLIC=true` |
+| Login y toda la API dan 500 de golpe | Las llaves `storage/oauth-*.key` perdieron los permisos 600 (por ejemplo, tras un `chmod -R` sobre `storage`): `chmod 600 storage/oauth-private.key storage/oauth-public.key` |
 | Los títulos dicen "Laravel" | Falta `APP_NAME` |
 | Un cambio en el `.env` no se aplica | Volver a correr `php artisan config:cache` |
 | Recargar una página del panel da 404 de Apache | El dominio no apunta a `backend/public` o falta su `.htaccess` |
