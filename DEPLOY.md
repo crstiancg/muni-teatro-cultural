@@ -24,8 +24,9 @@ En el servidor **no se instala ni se compila nada**: el paquete ya trae `vendor`
 ### En tu máquina
 
 ```bash
-# 1. fronted/.env de producción: la API vacía (mismo dominio)
+# 1. una sola vez: crear fronted/.env.production con esta línea (la API vacía = mismo dominio)
 #    QCLI_API_BACKEND_URL=
+#    "quasar build" lo carga encima de .env; "quasar dev" sigue usando .env (:8000)
 
 # 2. compilar el front y publicarlo dentro de Laravel
 cd fronted
@@ -99,7 +100,7 @@ php artisan route:cache
 
 ## 1. Preparar el front (en tu máquina)
 
-1. En `fronted/.env` de producción, deja la API **vacía** (rutas relativas, mismo dominio):
+1. Crea `fronted/.env.production` (una sola vez) con la API **vacía** (rutas relativas, mismo dominio). `quasar build` lo carga encima de `.env`; `quasar dev` sigue usando `.env`:
 
    ```env
    QCLI_API_BACKEND_URL=
