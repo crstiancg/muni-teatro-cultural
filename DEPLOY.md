@@ -17,6 +17,86 @@ https://tudominio/sitemap.xml      -> generado por Laravel
 - Cron jobs.
 - El dominio debe poder apuntar a la carpeta `backend/public`.
 
+## Camino recomendado: paquete .zip + SSH
+
+En el servidor **no se instala ni se compila nada**: el paquete ya trae `vendor` de producción y el front compilado. Solo se descomprime, se completa el `.env` y se corren los comandos de `artisan` por SSH. Las secciones 1 a 4 de más abajo explican cada paso en detalle.
+
+### En tu máquina
+
+```bash
+# 1. fronted/.env de producción: la API vacía (mismo dominio)
+#    QCLI_API_BACKEND_URL=
+
+# 2. compilar el front y publicarlo dentro de Laravel
+cd fronted
+quasar build
+cd ../backend
+php artisan spa:publicar
+
+# 3. armar el paquete (agrega --con-datos para llevar la base y las fotos actuales)
+php artisan deploy:empaquetar
+```
+
+Genera `backend/storage/app/deploy/racc-deploy-FECHA.zip`. El comando **se niega a empaquetar** si el front quedó apuntando a `127.0.0.1` (el error más común) y nunca incluye el `.env`, las claves de Passport, la configuración cacheada ni archivos de prueba.
+
+### En el servidor (primera vez)
+
+```bash
+# subir el paquete (o con el Administrador de archivos de cPanel)
+scp backend/storage/app/deploy/racc-deploy-FECHA.zip USUARIO@SERVIDOR:~/
+
+ssh USUARIO@SERVIDOR
+php -v                      # debe ser la misma versión de PHP que en tu máquina o mayor
+cd ~
+unzip racc-deploy-FECHA.zip # crea ~/racc (fuera de public_html: el .env no queda expuesto)
+cd racc
+
+cp .env.ejemplo-produccion .env
+nano .env                   # completar base de datos, dominio, tokens (ver sección 2)
+
+php artisan key:generate
+php artisan migrate --force
+php artisan db:seed --class=PermissionSeeder --force   # SOLO la primera vez (ver 3.3)
+php artisan passport:keys
+php artisan passport:client --password --name="Panel" --provider=users
+nano .env                   # pegar PASSPORT_PASSWORD_CLIENT_ID y _SECRET que imprimió el paso anterior
+php artisan storage:link    # si falla: PUBLIC_DISK_EN_PUBLIC=true en el .env
+chmod -R 775 storage bootstrap/cache
+php artisan config:cache
+php artisan route:cache
+```
+
+Si `php -v` muestra una versión vieja, cPanel suele tener varias: usa la ruta completa, por ejemplo `/opt/cpanel/ea-php84/root/usr/bin/php artisan ...`, también en el cron.
+
+Después, en cPanel: el subdominio con raíz del documento en `racc/public`, **AutoSSL** activo, y el cron `* * * * * php /home/USUARIO/racc/artisan schedule:run >> /dev/null 2>&1`.
+
+### Con datos iniciales (`--con-datos`)
+
+El paquete trae `datos-iniciales/backup-FECHA.zip`. En lugar de `migrate` y `db:seed`:
+
+```bash
+cd ~/racc/datos-iniciales
+unzip backup-FECHA.zip
+mysql -u USUARIO_DB -p NOMBRE_DB < base.sql
+cp -r storage/* ~/racc/storage/app/public/   # o a public/storage si usas PUBLIC_DISK_EN_PUBLIC
+cd ~/racc && rm -rf datos-iniciales
+```
+
+Igual se generan llaves y cliente de Passport **nuevos** (`passport:keys` y `passport:client`), y se cambia la contraseña del admin.
+
+### Actualizaciones
+
+```bash
+# en tu máquina: quasar build, spa:publicar y deploy:empaquetar (como arriba)
+# en el servidor:
+cd ~
+unzip -o racc-deploy-FECHA.zip   # pisa el código; el .env y storage/ no vienen en el zip: se conservan
+cd racc
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+```
+
 ## 1. Preparar el front (en tu máquina)
 
 1. En `fronted/.env` de producción, deja la API **vacía** (rutas relativas, mismo dominio):
