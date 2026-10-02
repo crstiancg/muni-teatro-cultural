@@ -29,6 +29,11 @@ class PublicarSpa extends Command
         File::ensureDirectoryExists(resource_path('spa'));
         File::copy("{$origen}/index.html", resource_path('spa/index.html'));
 
+        // cada build genera nombres nuevos (axios-AbC123.js): sin limpiar, los del
+        // build anterior quedan en public/assets y se suben al servidor para siempre.
+        // public/assets es solo del build del front.
+        File::deleteDirectory(public_path('assets'));
+
         foreach (File::allFiles($origen) as $archivo) {
             $relativa = $archivo->getRelativePathname();
             if ($relativa === 'index.html') {

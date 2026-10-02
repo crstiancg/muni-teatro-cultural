@@ -87,7 +87,7 @@ class EmpaquetarDeploy extends Command
 
         $this->newLine();
         $this->info('Paquete listo: ' . $zipRuta . ' (' . round(filesize($zipRuta) / 1048576, 1) . ' MB)');
-        $this->line('Siguiente paso: DEPLOY.md, sección "Subir el paquete".');
+        $this->line('Siguiente paso: DEPLOY.md, sección "Camino recomendado: paquete .zip + SSH".');
         $this->warn('El servidor debe tener la misma versión de PHP (o mayor) que esta máquina: ' . PHP_VERSION);
 
         return self::SUCCESS;
