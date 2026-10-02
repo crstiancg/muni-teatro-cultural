@@ -3,7 +3,7 @@
 
 import { defineConfig } from '#q-app'
 
-export default defineConfig((/* ctx */) => {
+export default defineConfig((ctx) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
@@ -41,6 +41,12 @@ export default defineConfig((/* ctx */) => {
 
       vueRouterMode: 'history', // available values: 'hash', 'history'
       // vueRouterBase,
+
+      // "quasar build" carga además .env.production, que pisa a .env: ahí la API
+      // va vacía (mismo dominio, rutas relativas). "quasar dev" sigue con .env (:8000)
+      env: {
+        file: ctx.prod ? ['.env.production'] : [],
+      },
 
       // publicPath: '/',
       // define: {},
