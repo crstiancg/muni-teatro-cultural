@@ -269,7 +269,7 @@
               @mouseenter="hojaActiva = i"
               @focus="hojaActiva = i"
             >
-              <img v-if="g.imagen_url" :src="g.imagen_url" alt="" loading="lazy" />
+              <img v-if="comisionDe(g.cod_grupo).foto || g.imagen_url" :src="comisionDe(g.cod_grupo).foto || g.imagen_url" alt="" loading="lazy" />
               <div v-else class="hoja-sin-foto">
                 <component :is="iconoDe(g.cod_grupo)" :size="30" />
               </div>
@@ -508,7 +508,7 @@ import {
   Megaphone,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, FOTOS_CARTEL, comisionDe } from '@/config/institucion'
+import { INSTITUCION, FOTOS_CARTEL, COMISIONES, comisionDe } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const router = useRouter()
@@ -581,20 +581,7 @@ function teclasDisciplina(e) {
   }
 }
 
-const danzas = [
-  'Sikuris',
-  'Diablada',
-  'Morenada',
-  'Caporales',
-  'Llamerada',
-  'Waca Waca',
-  'Kullawada',
-  'Tinkus',
-  'Pinkillada',
-  'Estudiantina',
-  'Rey Moreno',
-  'Tobas',
-]
+const danzas = Object.values(COMISIONES).map((c) => c.corto)
 
 
 const iconosPorGrupo = {
