@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StorePerfilPublicoRequest;
+use App\Http\Requests\StoreRegistrosRequest;
 use App\Models\Persona;
 use App\Notifications\AvisoPerfil;
 use Illuminate\Http\Request;
@@ -32,6 +33,17 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         if ($persona->estado === 'aprobado' && $persona->wasChanged(['biografia', 'redes_sociales'])) {
             $persona->notificarAdmins('actualizacion', "{$persona->nombre_completo} actualizó su perfil público.");
         }
+
+        return response()->json($persona);
+    }
+
+    // RUC, RNP, RNA y RENTOCA: los guarda el propio artista y nunca salen en la API publica
+    public function updateRegistros(StoreRegistrosRequest $request)
+    {
+        $persona = $this->miPersona($request);
+        $persona->update([
+            'registros' => array_filter($request->input('registros', [])) ?: null,
+        ]);
 
         return response()->json($persona);
     }

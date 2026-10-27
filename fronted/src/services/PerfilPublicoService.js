@@ -6,6 +6,10 @@ class PerfilPublicoService {
     return (await api.put(`/api/${basePath}/perfil-publico`, datos)).data
   }
 
+  static async guardarRegistros(datos) {
+    return (await api.put('/api/mi-informacion/registros', datos)).data
+  }
+
   static async enviarRevision() {
     return (await api.post('/api/mi-informacion/enviar-revision')).data
   }

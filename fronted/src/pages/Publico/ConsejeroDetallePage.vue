@@ -156,6 +156,15 @@
             </a>
           </div>
 
+          <div v-if="registros.length" class="registros">
+            <p class="registros-titulo">Registros</p>
+            <div class="registros-lista">
+              <span v-for="r in registros" :key="r.clave" class="registro">
+                <Check :size="14" /> {{ r.label }}
+              </span>
+            </div>
+          </div>
+
           <div v-if="persona.agrupaciones?.length" class="integra">
             <p class="integra-titulo">Integra</p>
             <router-link
@@ -287,6 +296,7 @@ import {
   Music2,
   Youtube,
   Globe,
+  Check,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import { INSTITUCION, comisionDe, urlCompartirPerfil } from '@/config/institucion'
@@ -329,6 +339,15 @@ const redes = computed(() =>
     url: persona.value.redes_sociales[r.clave],
   })),
 )
+
+// el backend solo manda tiene_ruc, tiene_rnp, etc. (true/false), nunca el numero
+const REGISTROS = [
+  { clave: 'ruc', label: 'RUC' },
+  { clave: 'rnp', label: 'RNP' },
+  { clave: 'rna', label: 'RNA' },
+  { clave: 'rentoca', label: 'RENTOCA' },
+]
+const registros = computed(() => REGISTROS.filter((r) => persona.value?.[`tiene_${r.clave}`]))
 
 async function compartir() {
   try {
@@ -748,6 +767,38 @@ watch(
   :deep(a) {
     color: var(--rojo);
   }
+}
+
+.registros {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 8px;
+}
+
+.registros-titulo {
+  margin: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-suave);
+}
+
+.registros-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+}
+
+.registro {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--tinta);
 }
 
 .redes {

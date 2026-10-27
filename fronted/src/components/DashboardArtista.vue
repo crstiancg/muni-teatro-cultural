@@ -269,6 +269,7 @@ const ACCIONES = {
   actividad: { label: 'Subir', ruta: 'CurriculumVitae' },
   redes: { label: 'Agregar', ruta: 'CurriculumVitae' },
   trayectoria: { label: 'Agregar', ruta: 'CurriculumVitae' },
+  registros: { label: 'Completar', ruta: 'CurriculumVitae' },
 }
 
 const porcentaje = computed(() => {
