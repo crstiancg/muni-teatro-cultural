@@ -23,6 +23,7 @@ class MiInformacionController extends Controller
         'fecha_nacimiento', 'direccion', 'estado_civil', 'celular',
         'celular_emergencia', 'correo', 'ubigeo_cod_nacimiento', 'ubigeo_cod_residencia',
         'codigo_comision', 'codigo_comision_alternativo',
+        'flag_celular_publico', 'flag_correo_publico',
     ];
 
     private const CAMPOS_FORMACION = [

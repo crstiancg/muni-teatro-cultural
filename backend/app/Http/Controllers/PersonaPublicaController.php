@@ -160,8 +160,8 @@ class PersonaPublicaController extends Controller
     private function datosContacto(Persona $persona): array
     {
         return [
-            'celular' => $persona->celular,
-            'correo' => $persona->correo,
+            'celular' => $persona->flag_celular_publico ? $persona->celular : null,
+            'correo' => $persona->flag_correo_publico ? $persona->correo : null,
         ];
     }
 

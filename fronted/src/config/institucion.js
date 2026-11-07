@@ -20,9 +20,9 @@ export const INSTITUCION = {
   lema: 'Puno, Capital Folclórica del Perú',
 
   contacto: {
-    direccion: ['PENDIENTE: dirección', 'Puno, Perú'],
-    telefono: ['PENDIENTE: teléfono'],
-    correo: ['PENDIENTE: correo'],
+    direccion: ['dirección: Jr. Deustua N° 458:', 'Puno, Perú'],
+    telefono: ['teléfono: (051) 601000'],
+    correo: ['correo: alcaldia@munipuno.gob.pe'],
     horario: ['Lunes a viernes: 8:00 – 16:00'],
     // horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
   },

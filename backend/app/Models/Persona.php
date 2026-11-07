@@ -44,6 +44,8 @@ class Persona extends Model
         'observacion',
         'revisado_por',
         'revisado_en',
+        'flag_celular_publico',
+        'flag_correo_publico',
     ];
 
     public const REDES = ['facebook', 'instagram', 'tiktok', 'youtube', 'web'];
@@ -57,6 +59,8 @@ class Persona extends Model
             'redes_sociales' => 'array',
             'registros' => 'array',
             'revisado_en' => 'datetime',
+            'flag_celular_publico' => 'boolean',
+            'flag_correo_publico' => 'boolean',
         ];
     }
 

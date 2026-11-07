@@ -27,13 +27,13 @@
           class="text-white q-mx-sm"
           style="border-radius: 10px"
         >
-          <q-item-section avatar>
+          <q-item-section avatar> 
             <q-avatar rounded size="40px" color="secondary" text-color="white">
               <q-icon name="theater_comedy" size="30px" />
             </q-avatar>
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-white text-weight-bold text-h6"> R A C C </q-item-label>
+            <q-item-label class="text-white text-weight-bold text-h6"> CPC </q-item-label>
             <q-item-label class="text-white text-caption">Registro de Agentes Culturales</q-item-label>
           </q-item-section>
         </q-item>
