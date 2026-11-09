@@ -39,19 +39,28 @@ class Persona extends Model
         'user_id',
         'biografia',
         'redes_sociales',
+        'registros',
         'estado',
         'observacion',
         'revisado_por',
         'revisado_en',
+        'flag_celular_publico',
+        'flag_correo_publico',
     ];
 
     public const REDES = ['facebook', 'instagram', 'tiktok', 'youtube', 'web'];
+
+    // numeros privados: al publico solo viaja si los tiene (tiene_ruc, etc.), nunca el numero
+    public const REGISTROS = ['ruc', 'rnp', 'rna', 'rentoca'];
 
     protected function casts(): array
     {
         return [
             'redes_sociales' => 'array',
+            'registros' => 'array',
             'revisado_en' => 'datetime',
+            'flag_celular_publico' => 'boolean',
+            'flag_correo_publico' => 'boolean',
         ];
     }
 
@@ -60,6 +69,14 @@ class Persona extends Model
     public function scopePublicado(Builder $query): void
     {
         $query->where('personas.estado', 'aprobado')->whereNotNull('personas.codigo_comision');
+    }
+
+    // al publico solo se manda si lo tiene, nunca el numero
+    public function tieneRegistros(): array
+    {
+        return collect(self::REGISTROS)
+            ->mapWithKeys(fn ($r) => ["tiene_{$r}" => filled($this->registros[$r] ?? null)])
+            ->all();
     }
 
     public static function biografiaLimpia(?string $html): ?string
@@ -82,6 +99,8 @@ class Persona extends Model
                 'cumple' => filled($this->biografia)],
             ['clave' => 'actividad', 'label' => 'Al menos una actividad pública', 'obligatorio' => true,
                 'cumple' => $this->actividades()->where('flag_activo', true)->where('flag_publico', true)->exists()],
+            ['clave' => 'registros', 'label' => 'RUC, RNP, RNA y RENTOCA', 'obligatorio' => true,
+                'cumple' => collect(self::REGISTROS)->every(fn ($r) => filled($this->registros[$r] ?? null))],
             ['clave' => 'redes', 'label' => 'Al menos una red social', 'obligatorio' => false,
                 'cumple' => filled($this->redes_sociales)],
             ['clave' => 'trayectoria', 'label' => 'Formación o capacitación', 'obligatorio' => false,

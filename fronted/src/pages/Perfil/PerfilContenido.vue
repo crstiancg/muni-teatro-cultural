@@ -286,6 +286,13 @@
                   <div>{{ form.errors['persona.correo'] }}</div>
                 </template>
               </q-input>
+              <q-checkbox
+                v-model="form.persona.flag_correo_publico"
+                :true-value="1"
+                :false-value="0"
+                dense
+                label="Mostrar en mi perfil público"
+              />
             </div>
 
             <div class="col-12 col-md-4">
@@ -331,6 +338,13 @@
                 v-model="form.persona.celular"
                 label="Celular"
                 maxlength="9"
+              />
+              <q-checkbox
+                v-model="form.persona.flag_celular_publico"
+                :true-value="1"
+                :false-value="0"
+                dense
+                label="Mostrar en mi perfil público"
               />
             </div>
 
@@ -553,12 +567,14 @@ function hidratar({ usuario, persona }) {
       apellido_paterno: persona.apellido_paterno,
       apellido_materno: persona.apellido_materno,
       correo: persona.correo,
+      flag_correo_publico: persona.flag_correo_publico ? 1 : 0,
       correo_original: persona.correo,
       correo_modificado: false,
       genero: persona.genero,
       estado_civil: persona.estado_civil,
       fecha_nacimiento: persona.fecha_nacimiento,
       celular: persona.celular,
+      flag_celular_publico: persona.flag_celular_publico ? 1 : 0,
       celular_emergencia: persona.celular_emergencia,
       direccion: persona.direccion,
       ubigeo_cod_nacimiento: persona.ubigeo_cod_nacimiento,

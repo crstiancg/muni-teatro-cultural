@@ -27,7 +27,7 @@
           class="text-white q-mx-sm"
           style="border-radius: 10px"
         >
-          <q-item-section avatar>
+          <q-item-section avatar> 
             <q-avatar rounded size="40px" color="secondary" text-color="white">
               <q-icon name="theater_comedy" size="30px" />
             </q-avatar>

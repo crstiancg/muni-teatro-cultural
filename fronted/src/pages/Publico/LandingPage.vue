@@ -269,7 +269,7 @@
               @mouseenter="hojaActiva = i"
               @focus="hojaActiva = i"
             >
-              <img v-if="g.imagen_url" :src="g.imagen_url" alt="" loading="lazy" />
+              <img v-if="comisionDe(g.cod_grupo).foto || g.imagen_url" :src="comisionDe(g.cod_grupo).foto || g.imagen_url" alt="" loading="lazy" />
               <div v-else class="hoja-sin-foto">
                 <component :is="iconoDe(g.cod_grupo)" :size="30" />
               </div>
@@ -507,7 +507,7 @@ import {
   Megaphone,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, FOTOS_CARTEL, comisionDe } from '@/config/institucion'
+import { INSTITUCION, FOTOS_CARTEL, COMISIONES, comisionDe } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const router = useRouter()
@@ -580,20 +580,7 @@ function teclasDisciplina(e) {
   }
 }
 
-const danzas = [
-  'Sikuris',
-  'Diablada',
-  'Morenada',
-  'Caporales',
-  'Llamerada',
-  'Waca Waca',
-  'Kullawada',
-  'Tinkus',
-  'Pinkillada',
-  'Estudiantina',
-  'Rey Moreno',
-  'Tobas',
-]
+const danzas = Object.values(COMISIONES).map((c) => c.corto)
 
 
 const iconosPorGrupo = {
@@ -1601,6 +1588,15 @@ onMounted(async () => {
   place-items: center;
   color: var(--tinta-tenue);
 }
+/* Color de cada disciplina (en formato R, G, B para poder usar rgba) */
+.hoja:nth-child(1) { --c: 249, 166, 10;  --c-oscuro: 150, 88, 0;   } /* Artes escénicas  */
+.hoja:nth-child(2) { --c: 240, 84, 95;   --c-oscuro: 150, 35, 55;  } /* Artes plásticas  */
+.hoja:nth-child(3) { --c: 123, 79, 181;  --c-oscuro: 70, 40, 115;  } /* Audiovisuales    */
+.hoja:nth-child(4) { --c: 30, 158, 130;  --c-oscuro: 10, 90, 75;   } /* Danza            */
+.hoja:nth-child(5) { --c: 58, 143, 209;  --c-oscuro: 25, 80, 140;  } /* Bordado y trajes */
+.hoja:nth-child(6) { --c: 30, 90, 160;   --c-oscuro: 10, 45, 95;   } /* Literatura       */
+.hoja:nth-child(7) { --c: 138, 92, 196;  --c-oscuro: 80, 50, 125;  } /* Música           */
+.hoja:nth-child(8) { --c: 244, 123, 42;  --c-oscuro: 170, 70, 10;  } /* Gestión cultural */
 
 /* Color de cada disciplina (en formato R, G, B para poder usar rgba) */
 .hoja:nth-child(1) { --c: 249, 166, 10;  --c-oscuro: 150, 88, 0;   } /* Artes escénicas  */

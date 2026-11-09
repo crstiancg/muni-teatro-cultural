@@ -68,6 +68,13 @@
           </q-card-section>
         </q-card>
 
+        <q-card v-if="persona" flat :bordered="!$q.dark.isActive" class="q-mb-md">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">RUC, RNP, RNA y RENTOCA</div>
+            <RegistrosForm v-model="persona" />
+          </q-card-section>
+        </q-card>
+
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
             <div class="text-subtitle1 text-weight-bold q-mb-md">
@@ -116,6 +123,7 @@ import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
 import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
 import PerfilPublicoForm from '@/components/PerfilPublicoForm.vue'
+import RegistrosForm from '@/components/RegistrosForm.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 
 const $q = useQuasar()

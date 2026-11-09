@@ -87,6 +87,7 @@ Route::middleware('auth:api')->group(function () {
     // POST (no PUT) porque PHP no llena $_FILES en requests PUT con multipart/form-data
     Route::put('mi-informacion/perfil-publico', [PerfilPublicoController::class, 'updateMio']);
     Route::post('mi-informacion/enviar-revision', [PerfilPublicoController::class, 'enviarRevision']);
+    Route::put('mi-informacion/registros', [PerfilPublicoController::class, 'updateRegistros']);
     Route::put('personas/{persona}/perfil-publico', [PerfilPublicoController::class, 'update']);
     Route::put('personas/{persona}/aprobar', [PerfilPublicoController::class, 'aprobar']);
     Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);

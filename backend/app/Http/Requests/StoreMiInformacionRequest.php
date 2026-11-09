@@ -30,6 +30,8 @@ class StoreMiInformacionRequest extends FormRequest
             'persona.fecha_nacimiento' => 'nullable|date',
             'persona.direccion' => 'nullable|string',
             'persona.celular' => 'nullable|digits:9',
+            'persona.flag_celular_publico' => 'nullable|boolean',
+            'persona.flag_correo_publico' => 'nullable|boolean',
             'persona.celular_emergencia' => 'nullable|digits:9',
             'persona.ubigeo_cod_nacimiento' => 'nullable|exists:ubigeos,codigo',
             'persona.ubigeo_cod_residencia' => 'nullable|exists:ubigeos,codigo',

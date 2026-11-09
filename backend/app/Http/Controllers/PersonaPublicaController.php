@@ -85,6 +85,8 @@ class PersonaPublicaController extends Controller
             // HTML ya sanitizado al guardar (Persona::biografiaLimpia)
             'biografia' => $persona->biografia,
             'redes_sociales' => $persona->redes_sociales ?? (object) [],
+            // solo si lo tiene (tiene_ruc, etc.), nunca el numero
+            ...$persona->tieneRegistros(),
             // agrupaciones publicadas donde figura como integrante (vinculado por DNI)
             'agrupaciones' => $persona->agrupaciones()
                 ->publicado()
@@ -158,8 +160,8 @@ class PersonaPublicaController extends Controller
     private function datosContacto(Persona $persona): array
     {
         return [
-            'celular' => $persona->celular,
-            'correo' => $persona->correo,
+            'celular' => $persona->flag_celular_publico ? $persona->celular : null,
+            'correo' => $persona->flag_correo_publico ? $persona->correo : null,
         ];
     }
 
