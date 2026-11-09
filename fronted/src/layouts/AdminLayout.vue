@@ -32,7 +32,7 @@
             </q-avatar>
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-white text-weight-bold text-h6"> TEATRO CULTURAL </q-item-label>
+            <q-item-label class="text-white text-weight-bold text-h6"> CPC </q-item-label>
           </q-item-section>
         </q-item>
 

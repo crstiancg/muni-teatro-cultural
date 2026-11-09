@@ -5,7 +5,7 @@
         <div class="lc-form-inner">
           <div class="lc-brand">
             <q-icon size="24px" color="primary" name="theater_comedy" />
-            <span>Teatro Cultural</span>
+            <span>CPC</span>
           </div>
 
           <h1>Bienvenido de nuevo</h1>

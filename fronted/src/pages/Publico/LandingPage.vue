@@ -122,8 +122,8 @@
 
           <div class="head-lado">
             <p class="subtitulo">
-              Desde las bandas de sikuris hasta quienes bordan los trajes de luces: cada comisión
-              reúne el trabajo de los artistas de su disciplina.
+              La cultura de Puno vive en su gente Reconocemos, conectamos y
+              fortalecemos a quienes hacen de nuestra cultura una expresión viva de identidad, memoria y futuro.
             </p>
             <p class="head-dato">
               <strong>{{ grupos.length || 8 }}</strong> disciplinas
@@ -240,15 +240,14 @@
       <div class="candelaria-inner">
         <div v-revelar class="candelaria-texto">
           <p class="kicker">Febrero en {{ INSTITUCION.ciudad }}</p>
-          <h2>La Candelaria es <em>Patrimonio</em> de la Humanidad</h2>
+          <h2>LA CULTURA DE  <em>PUNO VIVE EN SU GENTE</em> </h2>
           <p class="parrafo">
-            Cada febrero más de doscientos conjuntos salen a las calles. La UNESCO la declaró
-            Patrimonio Cultural Inmaterial en 2014 — para nosotros es el trabajo de todo un año.
+            El consejo provincial de cultura de puno es una organización sin fines de lucro, que de la mano con la Gerencia de Cultura y Turismo, tiene el objetivo de reconocer, conectar y fortalecer a quienes hacen de nuestra cultura una expresión viva de identidad, memoria y futuro
           </p>
 
           <dl class="datos">
             <div>
-              <dt>2014</dt>
+              <dt>2010</dt>
               <dd>Declaratoria UNESCO</dd>
             </div>
             <div>
@@ -1073,25 +1072,38 @@ onMounted(async () => {
   color: var(--tinta-tenue);
 }
 
+/* Color de cada disciplina (en formato R, G, B para poder usar rgba) */
+.hoja:nth-child(1) { --c: 249, 166, 10;  --c-oscuro: 150, 88, 0;   } /* Artes escénicas  */
+.hoja:nth-child(2) { --c: 240, 84, 95;   --c-oscuro: 150, 35, 55;  } /* Artes plásticas  */
+.hoja:nth-child(3) { --c: 123, 79, 181;  --c-oscuro: 70, 40, 115;  } /* Audiovisuales    */
+.hoja:nth-child(4) { --c: 30, 158, 130;  --c-oscuro: 10, 90, 75;   } /* Danza            */
+.hoja:nth-child(5) { --c: 58, 143, 209;  --c-oscuro: 25, 80, 140;  } /* Bordado y trajes */
+.hoja:nth-child(6) { --c: 30, 90, 160;   --c-oscuro: 10, 45, 95;   } /* Literatura       */
+.hoja:nth-child(7) { --c: 138, 92, 196;  --c-oscuro: 80, 50, 125;  } /* Música           */
+.hoja:nth-child(8) { --c: 244, 123, 42;  --c-oscuro: 170, 70, 10;  } /* Gestión cultural */
+
 .hoja-velo {
   position: absolute;
   inset: 0;
+  /* Cerrada: color casi sólido, un poco más oscuro abajo */
   background: linear-gradient(
     to top,
-    rgba(22, 32, 46, 0.94) 0%,
-    rgba(22, 32, 46, 0.62) 40%,
-    rgba(22, 32, 46, 0.34) 100%
+    rgba(var(--c-oscuro), 0.96) 0%,
+    rgba(var(--c), 0.94) 45%,
+    rgba(var(--c), 0.90) 100%
   );
   transition: background 0.5s ease;
 }
 
 .hoja.abierta .hoja-velo {
+  /* Abierta: la foto se ve arriba y el color queda abajo para leer el texto */
   background: linear-gradient(
     to top,
-    rgba(22, 32, 46, 0.92) 2%,
-    rgba(22, 32, 46, 0.42) 46%,
-    rgba(22, 32, 46, 0.1) 100%
+    rgba(var(--c-oscuro), 0.92) 2%,
+    rgba(var(--c), 0.40) 46%,
+    rgba(var(--c), 0.05) 100%
   );
+
 }
 
 /* lomo: el nombre en vertical mientras la hoja está cerrada */

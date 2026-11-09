@@ -14,7 +14,8 @@
           </span>
         </router-link>
 
-        <nav class="nav" :class="{ abierto: menuAbierto }" aria-label="Principal">
+       
+<nav class="nav" :class="{ abierto: menuAbierto }" aria-label="Principal">
           <router-link :to="{ name: 'Inicio' }" class="nav-link" @click="menuAbierto = false">
             Inicio
           </router-link>
@@ -32,10 +33,20 @@
           >
             Comisiones
           </router-link>
+          <router-link
+            :to="{ name: 'Inicio', hash: '#calendario' }"
+            class="nav-link"
+            @click="menuAbierto = false"
+          >
+            Calendario
+          </router-link>
           <router-link :to="{ name: 'Login' }" class="cta" @click="menuAbierto = false">
+
+            
             Ingresar
           </router-link>
         </nav>
+
 
         <button
           class="menu-btn"
@@ -71,7 +82,9 @@
           <router-link :to="{ name: 'Inicio' }">Inicio</router-link>
           <router-link :to="{ name: 'ConsejerosPublico' }">Artistas</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
+          <router-link :to="{ name: 'Inicio', hash: '#calendario' }">Calendario</router-link>
           <router-link :to="{ name: 'Login' }">Ingresar</router-link>
+          
         </nav>
 
         <div class="foot-col">
