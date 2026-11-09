@@ -33,8 +33,7 @@
             </q-avatar>
           </q-item-section>
           <q-item-section>
-            <q-item-label class="text-white text-weight-bold text-h6"> R A C C </q-item-label>
-            <q-item-label class="text-white text-caption">Registro de Agentes Culturales</q-item-label>
+            <q-item-label class="text-white text-weight-bold text-h6"> CPC </q-item-label>
           </q-item-section>
         </q-item>
 

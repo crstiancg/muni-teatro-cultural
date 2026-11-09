@@ -7,7 +7,7 @@
           <div style="font-size: small; color: #9ca3af;">Provincial de Cultura</div>
           <div class="lc-brand">
             <q-icon size="24px" color="primary" name="theater_comedy" />
-            <span>R A C C</span>
+            <span>CPC</span>
           </div>
 
           <h1>Bienvenido de nuevo</h1>
