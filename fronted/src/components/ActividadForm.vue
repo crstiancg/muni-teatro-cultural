@@ -1,5 +1,5 @@
 <template>
-  <q-card :style="{ width: '100%', maxWidth: $q.screen.gt.sm ? '30vw' : '100vw' }">
+  <q-card :style="{ width: '100%', maxWidth: $q.screen.gt.sm ? '680px' : '100vw' }">
     <q-card-section class="row items-center">
       <div class="text-h6">{{ props.item ? 'Editar' : 'Agregar' }} Actividad</div>
       <q-space />
@@ -14,14 +14,35 @@
         <q-input
           dense
           outlined
-          type="textarea"
-          v-model="form.actividad.descripcion"
-          label="Descripción *"
-          autogrow
-          @change="form.validate('actividad.descripcion')"
-          :error="form.invalid('actividad.descripcion')"
-          :error-message="form.errors['actividad.descripcion']"
+          v-model="form.actividad.titulo"
+          label="Título del evento *"
+          maxlength="150"
+          counter
+          @change="form.validate('actividad.titulo')"
+          :error="form.invalid('actividad.titulo')"
+          :error-message="form.errors['actividad.titulo']"
         />
+
+        <div>
+          <div class="text-caption text-grey-7 q-mb-xs">
+            Descripción: qué fue, dónde y cuándo se realizó
+          </div>
+          <!-- mismo editor que "Sobre su trabajo"; el HTML se sanitiza en el backend -->
+          <q-editor
+            v-model="form.actividad.descripcion"
+            min-height="8rem"
+            placeholder="Cuenta sobre este evento..."
+            :toolbar="[
+              ['bold', 'italic', 'underline'],
+              ['unordered', 'ordered', 'quote'],
+              ['link'],
+              ['removeFormat', 'undo', 'redo'],
+            ]"
+          />
+          <div v-if="form.invalid('actividad.descripcion')" class="text-negative text-caption q-mt-xs">
+            {{ form.errors['actividad.descripcion'] }}
+          </div>
+        </div>
 
         <q-file
           dense
@@ -80,6 +101,7 @@ const url = props.item ? `api/${props.basePath}/${props.item.id}` : `api/${props
 
 const form = useForm('post', url, {
   actividad: {
+    titulo: props.item?.titulo ?? '',
     descripcion: props.item?.descripcion ?? '',
     imagen: null,
     flag_publico: props.item?.flag_publico ? 1 : props.item ? 0 : 1,

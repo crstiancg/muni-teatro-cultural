@@ -1,12 +1,22 @@
 <?php
 
 use App\Http\Controllers\ActividadController;
+use App\Http\Controllers\AgrupacionActividadController;
+use App\Http\Controllers\AgrupacionController;
+use App\Http\Controllers\AgrupacionPublicaController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CapacitacionController;
 use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
+use App\Http\Controllers\MisAgrupacionesController;
 use App\Http\Controllers\PermisoController;
+use App\Http\Controllers\ConsultaDniController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificacionController;
+use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\PersonaController;
+use App\Http\Controllers\PersonaFotoController;
 use App\Http\Controllers\PersonaPublicaController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\UbigeoController;
@@ -19,13 +29,20 @@ use App\Http\Controllers\NivelController;
 use App\Http\Controllers\UniversidadController;
 use App\Http\Controllers\CarreraController;
 
+// login del panel: el client secret de Passport lo agrega el backend
+Route::post('login', [AuthController::class, 'login']);
+
 // endpoints públicos, sin auth: solo datos seguros para la galería de consejeros
 Route::get('publico/portada', [PersonaPublicaController::class, 'portada']);
+// buscador en vivo de la portada: se llama mientras se escribe
+Route::get('publico/buscar', [PersonaPublicaController::class, 'buscar'])->middleware('throttle:60,1');
 Route::get('publico/consejeros', [PersonaPublicaController::class, 'index']);
 Route::get('publico/consejeros/grupos', [PersonaPublicaController::class, 'grupos']);
 Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'actividadesDestacadas']);
 // resuelve por slug (no por id) solo en la parte pública; el admin sigue con id
 Route::get('publico/consejeros/{persona:slug}', [PersonaPublicaController::class, 'show']);
+Route::get('publico/agrupaciones', [AgrupacionPublicaController::class, 'index']);
+Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaController::class, 'show']);
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user = $request->user();
@@ -51,9 +68,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('personas', PersonaController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);
-    Route::apiResource('profesiones', ProfesionController::class);
-    Route::apiResource('universidades', UniversidadController::class);
-    Route::apiResource('carreras', CarreraController::class);
+    Route::apiResource('profesiones', ProfesionController::class)->middleware([HandlePrecognitiveRequests::class]);
+    Route::apiResource('universidades', UniversidadController::class)->middleware([HandlePrecognitiveRequests::class]);
+    Route::apiResource('carreras', CarreraController::class)->middleware([HandlePrecognitiveRequests::class]);
 
     Route::get('comisiones', [ComisionController::class, 'index']);
     Route::get('comisiones/{codigo}', [ComisionController::class, 'show'])->whereAlphaNumeric('codigo');
@@ -68,35 +85,94 @@ Route::middleware('auth:api')->group(function () {
     Route::put('mi-password', [MiInformacionController::class, 'updatePassword'])->middleware([HandlePrecognitiveRequests::class]);
 
     // POST (no PUT) porque PHP no llena $_FILES en requests PUT con multipart/form-data
-    Route::post('mi-informacion/curriculum-vitaes', [MiInformacionController::class, 'storeFormacion']);
-    Route::post('mi-informacion/curriculum-vitaes/{formacionAcademica}', [MiInformacionController::class, 'updateFormacion']);
-    Route::delete('mi-informacion/curriculum-vitaes/{formacionAcademica}', [MiInformacionController::class, 'destroyFormacion']);
-    Route::put('mi-informacion/curriculum-vitaes/{formacionAcademica}/reactivar', [MiInformacionController::class, 'reactivarFormacion']);
+    Route::put('mi-informacion/perfil-publico', [PerfilPublicoController::class, 'updateMio']);
+    Route::post('mi-informacion/enviar-revision', [PerfilPublicoController::class, 'enviarRevision']);
+    Route::put('personas/{persona}/perfil-publico', [PerfilPublicoController::class, 'update']);
+    Route::put('personas/{persona}/aprobar', [PerfilPublicoController::class, 'aprobar']);
+    Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);
 
-    Route::post('personas/{persona}/curriculum-vitaes', [FormacionAcademicaController::class, 'store']);
-    Route::post('personas/{persona}/curriculum-vitaes/{formacionAcademica}', [FormacionAcademicaController::class, 'update']);
-    Route::delete('personas/{persona}/curriculum-vitaes/{formacionAcademica}', [FormacionAcademicaController::class, 'destroy']);
-    Route::put('personas/{persona}/curriculum-vitaes/{formacionAcademica}/reactivar', [FormacionAcademicaController::class, 'reactivar']);
+    Route::get('dashboard/admin', [DashboardController::class, 'admin']);
 
-    Route::post('mi-informacion/capacitaciones', [MiInformacionController::class, 'storeCapacitacion']);
-    Route::post('mi-informacion/capacitaciones/{capacitacion}', [MiInformacionController::class, 'updateCapacitacion']);
-    Route::delete('mi-informacion/capacitaciones/{capacitacion}', [MiInformacionController::class, 'destroyCapacitacion']);
-    Route::put('mi-informacion/capacitaciones/{capacitacion}/reactivar', [MiInformacionController::class, 'reactivarCapacitacion']);
+    // agrupaciones: panel del artista (cada acción verifica que sea representante)
+    Route::get('mis-agrupaciones', [MisAgrupacionesController::class, 'index']);
+    Route::post('mis-agrupaciones', [MisAgrupacionesController::class, 'store']);
+    Route::get('mis-agrupaciones/consulta-dni/{dni}', [MisAgrupacionesController::class, 'consultarDni'])
+        ->where('dni', '[0-9]{8}')
+        ->middleware('throttle:20,1');
+    Route::get('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'show'])->whereNumber('agrupacion');
+    Route::put('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'update'])->whereNumber('agrupacion');
+    Route::delete('mis-agrupaciones/{agrupacion}', [MisAgrupacionesController::class, 'destroy'])->whereNumber('agrupacion');
+    Route::post('mis-agrupaciones/{agrupacion}/enviar-revision', [MisAgrupacionesController::class, 'enviarRevision']);
+    Route::post('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'storeLogo']);
+    Route::delete('mis-agrupaciones/{agrupacion}/foto', [MisAgrupacionesController::class, 'destroyLogo']);
+    Route::post('mis-agrupaciones/{agrupacion}/portada', [MisAgrupacionesController::class, 'storePortada']);
+    Route::delete('mis-agrupaciones/{agrupacion}/portada', [MisAgrupacionesController::class, 'destroyPortada']);
 
-    Route::post('personas/{persona}/capacitaciones', [CapacitacionController::class, 'store']);
-    Route::post('personas/{persona}/capacitaciones/{capacitacion}', [CapacitacionController::class, 'update']);
-    Route::delete('personas/{persona}/capacitaciones/{capacitacion}', [CapacitacionController::class, 'destroy']);
-    Route::put('personas/{persona}/capacitaciones/{capacitacion}/reactivar', [CapacitacionController::class, 'reactivar']);
+    // actividades de la agrupación: mismos endpoints que las del artista (el front
+    // reutiliza ActividadForm, que valida con precognition: sin este middleware
+    // cada validación crearía una actividad de verdad)
+    Route::post('mis-agrupaciones/{agrupacion}/actividades', [AgrupacionActividadController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('mis-agrupaciones/{agrupacion}/actividades/{actividad}', [AgrupacionActividadController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mis-agrupaciones/{agrupacion}/actividades/{actividad}', [AgrupacionActividadController::class, 'destroy']);
+    Route::put('mis-agrupaciones/{agrupacion}/actividades/{actividad}/reactivar', [AgrupacionActividadController::class, 'reactivar']);
+    Route::delete('mis-agrupaciones/{agrupacion}/actividades/{actividad}/permanente', [AgrupacionActividadController::class, 'destroyPermanente']);
 
-    Route::post('mi-informacion/actividades', [MiInformacionController::class, 'storeActividad']);
-    Route::post('mi-informacion/actividades/{actividad}', [MiInformacionController::class, 'updateActividad']);
-    Route::delete('mi-informacion/actividades/{actividad}', [MiInformacionController::class, 'destroyActividad']);
-    Route::put('mi-informacion/actividades/{actividad}/reactivar', [MiInformacionController::class, 'reactivarActividad']);
-    Route::delete('mi-informacion/actividades/{actividad}/permanente', [MiInformacionController::class, 'destroyActividadPermanente']);
+    Route::post('mis-agrupaciones/{agrupacion}/integrantes', [MisAgrupacionesController::class, 'storeIntegrante']);
+    Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'updateIntegrante']);
+    Route::delete('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'destroyIntegrante']);
+    Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}/representante', [MisAgrupacionesController::class, 'transferirRepresentante']);
 
-    Route::post('personas/{persona}/actividades', [ActividadController::class, 'store']);
-    Route::post('personas/{persona}/actividades/{actividad}', [ActividadController::class, 'update']);
-    Route::delete('personas/{persona}/actividades/{actividad}', [ActividadController::class, 'destroy']);
-    Route::put('personas/{persona}/actividades/{actividad}/reactivar', [ActividadController::class, 'reactivar']);
-    Route::delete('personas/{persona}/actividades/{actividad}/permanente', [ActividadController::class, 'destroyPermanente']);
+    // agrupaciones: revisión del admin
+    Route::get('agrupaciones', [AgrupacionController::class, 'index']);
+    Route::get('agrupaciones/{agrupacion}', [AgrupacionController::class, 'show']);
+    Route::put('agrupaciones/{agrupacion}/aprobar', [AgrupacionController::class, 'aprobar']);
+    Route::delete('agrupaciones/{agrupacion}', [AgrupacionController::class, 'destroy']);
+    Route::put('agrupaciones/{agrupacion}/observar', [AgrupacionController::class, 'observar']);
+    Route::put('agrupaciones/{agrupacion}/representante/{integrante}', [AgrupacionController::class, 'transferirRepresentante']);
+    // cada consulta gasta cuota de apis.net.pe: máximo 30 por minuto por usuario
+    Route::get('consulta-dni/{dni}', [ConsultaDniController::class, 'show'])
+        ->where('dni', '[0-9]{8}')
+        ->middleware('throttle:30,1');
+
+    Route::get('notificaciones', [NotificacionController::class, 'index']);
+    Route::put('notificaciones/leer-todas', [NotificacionController::class, 'leerTodas']);
+    Route::put('notificaciones/{id}/leer', [NotificacionController::class, 'leer']);
+
+    Route::post('mi-informacion/foto', [MiInformacionController::class, 'storeFoto'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mi-informacion/foto', [MiInformacionController::class, 'destroyFoto']);
+
+    Route::post('personas/{persona}/foto', [PersonaFotoController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('personas/{persona}/foto', [PersonaFotoController::class, 'destroy']);
+
+    Route::post('mi-informacion/curriculum-vitaes',[MiInformacionController::class, 'storeFormacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('mi-informacion/curriculum-vitaes/{formacionAcademica}', [MiInformacionController::class, 'updateFormacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mi-informacion/curriculum-vitaes/{formacionAcademica}', [MiInformacionController::class, 'destroyFormacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-informacion/curriculum-vitaes/{formacionAcademica}/reactivar', [MiInformacionController::class, 'reactivarFormacion'])->middleware([HandlePrecognitiveRequests::class]);
+
+    Route::post('personas/{persona}/curriculum-vitaes', [FormacionAcademicaController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('personas/{persona}/curriculum-vitaes/{formacionAcademica}', [FormacionAcademicaController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('personas/{persona}/curriculum-vitaes/{formacionAcademica}', [FormacionAcademicaController::class, 'destroy'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('personas/{persona}/curriculum-vitaes/{formacionAcademica}/reactivar', [FormacionAcademicaController::class, 'reactivar'])->middleware([HandlePrecognitiveRequests::class]);
+
+    Route::post('mi-informacion/capacitaciones', [MiInformacionController::class, 'storeCapacitacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('mi-informacion/capacitaciones/{capacitacion}', [MiInformacionController::class, 'updateCapacitacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mi-informacion/capacitaciones/{capacitacion}', [MiInformacionController::class, 'destroyCapacitacion'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-informacion/capacitaciones/{capacitacion}/reactivar', [MiInformacionController::class, 'reactivarCapacitacion'])->middleware([HandlePrecognitiveRequests::class]);
+
+    Route::post('personas/{persona}/capacitaciones', [CapacitacionController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('personas/{persona}/capacitaciones/{capacitacion}', [CapacitacionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('personas/{persona}/capacitaciones/{capacitacion}', [CapacitacionController::class, 'destroy'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('personas/{persona}/capacitaciones/{capacitacion}/reactivar', [CapacitacionController::class, 'reactivar'])->middleware([HandlePrecognitiveRequests::class]);
+
+    Route::post('mi-informacion/actividades', [MiInformacionController::class, 'storeActividad'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('mi-informacion/actividades/{actividad}', [MiInformacionController::class, 'updateActividad'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mi-informacion/actividades/{actividad}', [MiInformacionController::class, 'destroyActividad'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-informacion/actividades/{actividad}/reactivar', [MiInformacionController::class, 'reactivarActividad'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('mi-informacion/actividades/{actividad}/permanente', [MiInformacionController::class, 'destroyActividadPermanente'])->middleware([HandlePrecognitiveRequests::class]);
+
+    Route::post('personas/{persona}/actividades', [ActividadController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('personas/{persona}/actividades/{actividad}', [ActividadController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('personas/{persona}/actividades/{actividad}', [ActividadController::class, 'destroy'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('personas/{persona}/actividades/{actividad}/reactivar', [ActividadController::class, 'reactivar'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::delete('personas/{persona}/actividades/{actividad}/permanente', [ActividadController::class, 'destroyPermanente'])->middleware([HandlePrecognitiveRequests::class]);
 });

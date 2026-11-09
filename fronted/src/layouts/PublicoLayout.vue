@@ -10,7 +10,7 @@
           <span class="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span class="brand-text">
             <span class="brand-nombre">{{ INSTITUCION.nombre }}</span>
-            <span class="brand-sub">{{ INSTITUCION.ciudad }} · Capital Folclórica</span>
+            <span class="brand-sub">{{ INSTITUCION.ciudad }} · registro de agentes culturales del consejo provincial de cultura</span>
           </span>
         </router-link>
 
@@ -25,6 +25,13 @@
             @click="menuAbierto = false"
           >
             Artistas
+          </router-link>
+          <router-link
+            :to="{ name: 'AgrupacionesPublico' }"
+            class="nav-link"
+            @click="menuAbierto = false"
+          >
+            Agrupaciones
           </router-link>
           <router-link
             :to="{ name: 'Inicio', hash: '#comisiones' }"
@@ -81,6 +88,8 @@
           <h2>Explorar</h2>
           <router-link :to="{ name: 'Inicio' }">Inicio</router-link>
           <router-link :to="{ name: 'ConsejerosPublico' }">Artistas</router-link>
+          <router-link :to="{ name: 'AgrupacionesPublico' }">Agrupaciones</router-link>
+          <router-link :to="{ name: 'Privacidad' }">Privacidad</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#calendario' }">Calendario</router-link>
           <router-link :to="{ name: 'Login' }">Ingresar</router-link>

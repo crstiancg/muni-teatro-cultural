@@ -2,21 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreActividadRequest;
 use App\Models\Actividad;
+use App\Support\Html;
 use App\Models\Persona;
-use Illuminate\Support\Facades\Storage;
 
-class ActividadController extends Controller
+class ActividadController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas', [
+            'editar' => ['store', 'update', 'destroy', 'reactivar'],
+            'eliminar' => ['destroyPermanente'],
+        ]);
+    }
+
     public function store(StoreActividadRequest $request, Persona $persona)
     {
         $actividad = Actividad::create([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
             'persona_id' => $persona->id,
-            ...$this->datosImagen($request),
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad, 201);
     }
@@ -25,17 +35,12 @@ class ActividadController extends Controller
     {
         abort_unless($actividad->persona_id === $persona->id, 404);
 
-        $imagenNueva = $this->datosImagen($request);
-
-        if ($imagenNueva && $actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
-
         $actividad->update([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
-            ...$imagenNueva,
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad);
     }
@@ -66,24 +71,8 @@ class ActividadController extends Controller
     {
         abort_unless($actividad->persona_id === $persona->id, 404);
 
-        if ($actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
+        $actividad->eliminarAdjunto();
 
         return response()->json($actividad->delete());
-    }
-
-    private function datosImagen(StoreActividadRequest $request): array
-    {
-        if (! $request->hasFile('actividad.imagen')) {
-            return [];
-        }
-
-        $imagen = $request->file('actividad.imagen');
-
-        return [
-            'imagen_path' => $imagen->store('actividades', 'public'),
-            'imagen_nombre_original' => $imagen->getClientOriginalName(),
-        ];
     }
 }

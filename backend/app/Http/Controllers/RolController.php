@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreRolRequest;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
-class RolController extends Controller
+class RolController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('roles');
+    }
+
     public function index(Request $request)
     {
         return $this->generateViewSetList(

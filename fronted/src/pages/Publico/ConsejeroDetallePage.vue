@@ -45,7 +45,10 @@
       <section v-if="actividades.length" class="mosaico-zona">
         <div class="mosaico" :class="`piezas-${Math.min(actividades.length, 5)}`">
           <button class="pieza principal" @click="abrirVisor(0)">
-            <img :src="actividades[0].imagen_url" :alt="actividades[0].descripcion || ''" />
+            <img
+              :src="actividades[0].imagen_url"
+              :alt="actividades[0].titulo || actividades[0].descripcion_texto || ''"
+            />
           </button>
 
           <button
@@ -54,7 +57,7 @@
             class="pieza"
             @click="abrirVisor(i + 1)"
           >
-            <img :src="act.imagen_url" :alt="act.descripcion || ''" loading="lazy" />
+            <img :src="act.imagen_url" :alt="act.titulo || act.descripcion_texto || ''" loading="lazy" />
           </button>
         </div>
 
@@ -73,7 +76,9 @@
         <div class="columna">
           <section class="bloque">
             <h2>Sobre su trabajo</h2>
-            <p class="texto">
+            <!-- HTML sanitizado en el backend al guardar (HTMLPurifier), por eso v-html es seguro -->
+            <div v-if="persona.biografia" class="texto biografia" v-html="persona.biografia" />
+            <p v-else class="texto">
               <strong>{{ persona.nombre }}</strong> integra la comisión de
               <strong>{{ comision.corto.toLowerCase() }}</strong> del registro cultural de
               {{ INSTITUCION.ciudad }}, dentro de la familia <strong>{{ persona.comision }}</strong
@@ -99,7 +104,11 @@
                 <button class="act-foto" @click="abrirVisor(i)">
                   <img :src="act.imagen_url" alt="" loading="lazy" />
                 </button>
-                <p>{{ act.descripcion || 'Actividad sin descripción' }}</p>
+                <div class="act-texto">
+                  <p class="act-titulo">{{ act.titulo || 'Actividad' }}</p>
+                  <!-- con formato (negritas, listas): HTML sanitizado en el backend -->
+                  <div v-if="act.descripcion" class="act-html" v-html="act.descripcion" />
+                </div>
               </li>
             </ul>
           </section>
@@ -109,7 +118,8 @@
         <aside class="tarjeta">
           <div class="tarjeta-cabecera">
             <span class="avatar" :style="{ '--acento': comision.color }">
-              {{ inicial }}
+              <img v-if="persona.foto_url" :src="persona.foto_url" :alt="persona.nombre_completo" />
+              <template v-else>{{ inicial }}</template>
             </span>
             <div>
               <p class="tarjeta-nombre">{{ persona.nombre_completo }}</p>
@@ -130,11 +140,34 @@
                 <a :href="`mailto:${persona.correo}`">{{ persona.correo }}</a>
               </dd>
             </div>
-            <div v-if="persona.dni">
-              <dt><IdCard :size="15" /> Documento</dt>
-              <dd>{{ persona.dni }}</dd>
-            </div>
           </dl>
+
+          <div v-if="redes.length" class="redes">
+            <a
+              v-for="red in redes"
+              :key="red.clave"
+              :href="red.url"
+              target="_blank"
+              rel="noopener nofollow"
+              :title="red.label"
+              :aria-label="red.label"
+            >
+              <component :is="red.icono" :size="18" />
+            </a>
+          </div>
+
+          <div v-if="persona.agrupaciones?.length" class="integra">
+            <p class="integra-titulo">Integra</p>
+            <router-link
+              v-for="a in persona.agrupaciones"
+              :key="a.slug"
+              :to="{ name: 'AgrupacionPublica', params: { slug: a.slug } }"
+              class="integra-item"
+            >
+              <span class="integra-nombre">{{ a.nombre }}</span>
+              <span v-if="a.rol" class="integra-rol">{{ a.rol }}</span>
+            </router-link>
+          </div>
 
           <div v-if="persona.comision_alternativo" class="alterna">
             <span class="punto" />
@@ -174,36 +207,53 @@
     </template>
 
     <!-- ══════════ VISOR ══════════ -->
-    <div
-      v-if="visorAbierto"
-      class="visor"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Fotografía"
-      @click.self="cerrarVisor"
-    >
-      <div class="visor-barra">
-        <span>{{ visorIndex + 1 }} / {{ actividades.length }}</span>
-        <button aria-label="Cerrar" @click="cerrarVisor"><X :size="21" /></button>
+    <!-- panel lateral (como Instagram/Facebook en escritorio): la foto usa todo el
+         alto y la descripción se lee completa al costado, con su propio scroll.
+         En celular el panel pasa abajo. -->
+    <div v-if="visorAbierto" class="visor" role="dialog" aria-modal="true" aria-label="Fotografía">
+      <button class="visor-cerrar" aria-label="Cerrar" @click="cerrarVisor"><X :size="21" /></button>
+
+      <div class="visor-escena" @click.self="cerrarVisor">
+        <img
+          class="visor-img"
+          :src="actividades[visorIndex].imagen_url"
+          :alt="actividades[visorIndex].titulo || actividades[visorIndex].descripcion_texto || ''"
+        />
+        <button class="visor-nav izq" aria-label="Anterior" @click="navegar(-1)">
+          <ChevronLeft :size="26" />
+        </button>
+        <button class="visor-nav der" aria-label="Siguiente" @click="navegar(1)">
+          <ChevronRight :size="26" />
+        </button>
       </div>
 
-      <button class="visor-nav izq" aria-label="Anterior" @click="navegar(-1)">
-        <ChevronLeft :size="26" />
-      </button>
+      <aside class="visor-panel">
+        <div class="visor-autor">
+          <span class="visor-avatar" :style="{ '--acento': comision.color }">
+            <img v-if="persona.foto_url" :src="persona.foto_url" alt="" />
+            <template v-else>{{ inicial }}</template>
+          </span>
+          <div class="visor-autor-texto">
+            <p class="visor-nombre">{{ persona.nombre_completo }}</p>
+            <p class="visor-familia">{{ persona.comision }}</p>
+          </div>
+        </div>
 
-      <figure class="visor-figura">
-        <img
-          :src="actividades[visorIndex].imagen_url"
-          :alt="actividades[visorIndex].descripcion || ''"
-        />
-        <figcaption v-if="actividades[visorIndex].descripcion">
-          {{ actividades[visorIndex].descripcion }}
-        </figcaption>
-      </figure>
+        <div class="visor-descripcion">
+          <h3 v-if="actividades[visorIndex].titulo" class="visor-titulo">
+            {{ actividades[visorIndex].titulo }}
+          </h3>
+          <!-- HTML sanitizado en el backend al guardar (App\Support\Html::limpio) -->
+          <div
+            v-if="actividades[visorIndex].descripcion"
+            class="visor-html"
+            v-html="actividades[visorIndex].descripcion"
+          />
+          <p v-else class="visor-sin-texto">Esta fotografía no tiene descripción.</p>
+        </div>
 
-      <button class="visor-nav der" aria-label="Siguiente" @click="navegar(1)">
-        <ChevronRight :size="26" />
-      </button>
+        <div class="visor-pie">Foto {{ visorIndex + 1 }} de {{ actividades.length }}</div>
+      </aside>
     </div>
   </q-page>
 </template>
@@ -220,7 +270,6 @@ import {
   LayoutGrid,
   Sparkles,
   MapPin,
-  IdCard,
   Phone,
   Mail,
   Share2,
@@ -233,9 +282,14 @@ import {
   Video,
   Palette,
   Megaphone,
+  Facebook,
+  Instagram,
+  Music2,
+  Youtube,
+  Globe,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, comisionDe } from '@/config/institucion'
+import { INSTITUCION, comisionDe, urlCompartirPerfil } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const route = useRoute()
@@ -261,9 +315,25 @@ const iconoComision = computed(() => iconosPorGrupo[persona.value?.cod_grupo] ||
 const actividades = computed(() => persona.value?.actividades || [])
 const inicial = computed(() => (persona.value?.nombre?.charAt(0) || '?').toUpperCase())
 
+// mismas claves que Persona::REDES en el backend; solo se muestran las cargadas
+const REDES = [
+  { clave: 'facebook', label: 'Facebook', icono: Facebook },
+  { clave: 'instagram', label: 'Instagram', icono: Instagram },
+  { clave: 'tiktok', label: 'TikTok', icono: Music2 },
+  { clave: 'youtube', label: 'YouTube', icono: Youtube },
+  { clave: 'web', label: 'Página web', icono: Globe },
+]
+const redes = computed(() =>
+  REDES.filter((r) => persona.value?.redes_sociales?.[r.clave]).map((r) => ({
+    ...r,
+    url: persona.value.redes_sociales[r.clave],
+  })),
+)
+
 async function compartir() {
   try {
-    await navigator.clipboard.writeText(window.location.href)
+    // el link del backend trae la vista previa (Open Graph) para WhatsApp/Facebook
+    await navigator.clipboard.writeText(urlCompartirPerfil(persona.value.slug))
     copiado.value = true
     setTimeout(() => (copiado.value = false), 2200)
   } catch {
@@ -309,6 +379,9 @@ async function cargar(slug) {
   cargando.value = true
   relacionados.value = []
   persona.value = await PersonaPublicaService.get(slug)
+  // al navegar dentro de la SPA el <head> no se recarga: el título se actualiza acá
+  // (la carga directa ya llega con el título del servidor, ver SpaController)
+  document.title = `${persona.value.nombre_completo} · ${persona.value.comision || 'Registro cultural'}`
   cargando.value = false
 
   if (persona.value?.cod_grupo) {
@@ -653,6 +726,54 @@ watch(
   }
 }
 
+.biografia {
+  :deep(p),
+  :deep(div) {
+    margin: 0 0 0.8em;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    padding-left: 1.3em;
+    margin: 0 0 0.8em;
+  }
+
+  :deep(blockquote) {
+    margin: 0 0 0.8em;
+    padding-left: 1em;
+    border-left: 3px solid var(--acento, currentColor);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--rojo);
+  }
+}
+
+.redes {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+
+  a {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--tinta) 15%, transparent);
+    color: var(--tinta);
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+
+    &:hover {
+      color: var(--rojo);
+      border-color: var(--rojo);
+    }
+  }
+}
+
 .enlace {
   display: inline-flex;
   align-items: center;
@@ -682,7 +803,8 @@ watch(
   li {
     display: flex;
     gap: 16px;
-    align-items: center;
+    /* arriba: con una descripción larga la foto no queda flotando en el medio */
+    align-items: flex-start;
     background: var(--blanco);
     border: 1px solid var(--borde);
     border-radius: var(--r-md);
@@ -694,6 +816,51 @@ watch(
     font-size: var(--t-sm);
     line-height: 1.6;
     color: var(--tinta-suave);
+  }
+}
+
+.act-texto {
+  min-width: 0;
+  font-size: var(--t-sm);
+  line-height: 1.6;
+  color: var(--tinta-suave);
+  overflow-wrap: anywhere;
+}
+
+.lista-actividades .act-titulo {
+  margin: 0 0 2px;
+  font-weight: 700;
+  color: var(--tinta);
+}
+
+/* el HTML del editor llega por v-html: los estilos scoped necesitan :deep */
+.act-html {
+  :deep(p),
+  :deep(div),
+  :deep(blockquote) {
+    margin: 0 0 0.5em;
+  }
+
+  :deep(strong),
+  :deep(b) {
+    font-weight: 700;
+    color: var(--tinta);
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin: 0 0 0.5em;
+    padding-left: 1.2em;
+  }
+
+  :deep(blockquote) {
+    padding-left: 0.8em;
+    border-left: 3px solid var(--borde);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--rojo);
   }
 }
 
@@ -756,6 +923,13 @@ watch(
   color: var(--acento);
   @include display(800);
   font-size: 1.3rem;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .tarjeta-nombre {
@@ -885,81 +1059,70 @@ watch(
   gap: clamp(12px, 2vw, 20px);
 }
 
+/* agrupaciones donde figura el artista */
+.integra {
+  margin: 0 0 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.integra-titulo {
+  margin: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--tinta-suave);
+}
+
+.integra-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  color: var(--tinta);
+  transition: border-color var(--transicion);
+
+  &:hover {
+    border-color: var(--rojo);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.integra-nombre {
+  font-weight: 700;
+  font-size: var(--t-sm);
+  overflow-wrap: anywhere;
+}
+
+.integra-rol {
+  flex: none;
+  font-size: var(--t-xs);
+  color: var(--tinta-suave);
+}
+
 /* ══════════ VISOR ══════════ */
 .visor {
   position: fixed;
   inset: 0;
   z-index: 3000;
-  background: rgba(12, 18, 27, 0.95);
+  /* casi opaco + desenfoque: la página de atrás no compite con la foto */
+  background: rgba(10, 14, 20, 0.97);
+  backdrop-filter: blur(6px);
   display: grid;
-  place-items: center;
-  padding: 72px 60px 40px;
+  grid-template-columns: minmax(0, 1fr) 360px;
 }
 
-.visor-barra {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 22px;
-  color: rgba(253, 251, 247, 0.85);
-  font-size: var(--t-sm);
-  font-weight: 600;
-
-  button {
-    display: grid;
-    place-items: center;
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    border: 1px solid rgba(253, 251, 247, 0.3);
-    background: rgba(253, 251, 247, 0.12);
-    color: var(--sobre-foto);
-    cursor: pointer;
-
-    &:hover {
-      background: rgba(253, 251, 247, 0.26);
-    }
-
-    &:focus-visible {
-      @include foco;
-    }
-  }
-}
-
-.visor-figura {
-  margin: 0;
-  max-width: 100%;
-  text-align: center;
-
-  img {
-    max-width: 100%;
-    max-height: 74vh;
-    border-radius: var(--r-md);
-    display: block;
-    margin: 0 auto;
-  }
-
-  figcaption {
-    margin-top: 16px;
-    color: rgba(253, 251, 247, 0.82);
-    font-size: var(--t-sm);
-    max-width: 60ch;
-    margin-inline: auto;
-  }
-}
-
+.visor-cerrar,
 .visor-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
   border-radius: 50%;
   border: 1px solid rgba(253, 251, 247, 0.3);
   background: rgba(253, 251, 247, 0.12);
@@ -975,31 +1138,202 @@ watch(
   }
 }
 
+.visor-cerrar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+}
+
+/* la foto toma todo el alto disponible, centrada */
+.visor-escena {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 88px;
+}
+
+.visor-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--r-md);
+  display: block;
+}
+
+.visor-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+}
+
 .visor-nav.izq {
-  left: 16px;
+  left: 20px;
 }
 
 .visor-nav.der {
-  right: 16px;
+  right: 20px;
 }
 
-@media (max-width: 640px) {
+.visor-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: rgba(253, 251, 247, 0.04);
+  border-left: 1px solid rgba(253, 251, 247, 0.1);
+  color: rgba(253, 251, 247, 0.88);
+}
+
+.visor-autor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* deja lugar al botón de cerrar, que flota arriba a la derecha */
+  padding: 20px 72px 18px 22px;
+  border-bottom: 1px solid rgba(253, 251, 247, 0.1);
+}
+
+.visor-avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--acento) 35%, transparent);
+  color: var(--sobre-foto);
+  font-weight: 800;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.visor-autor-texto {
+  min-width: 0;
+}
+
+.visor-nombre {
+  margin: 0;
+  font-weight: 700;
+  font-size: var(--t-sm);
+  color: var(--sobre-foto);
+  line-height: 1.3;
+}
+
+.visor-familia {
+  margin: 2px 0 0;
+  font-size: var(--t-xs);
+  color: rgba(253, 251, 247, 0.6);
+}
+
+/* la descripción completa, con su propio scroll */
+.visor-descripcion {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 22px;
+  font-size: var(--t-sm);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.visor-titulo {
+  margin: 0 0 10px;
+  font-size: var(--t-base);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--sobre-foto);
+}
+
+/* el HTML del editor llega por v-html: los estilos scoped necesitan :deep */
+.visor-html {
+  :deep(p),
+  :deep(div),
+  :deep(blockquote) {
+    margin: 0 0 0.7em;
+  }
+
+  :deep(ul),
+  :deep(ol) {
+    margin: 0 0 0.7em;
+    padding-left: 1.3em;
+  }
+
+  :deep(blockquote) {
+    padding-left: 0.9em;
+    border-left: 3px solid rgba(253, 251, 247, 0.3);
+    font-style: italic;
+  }
+
+  :deep(a) {
+    color: var(--oro-vivo);
+  }
+}
+
+.visor-sin-texto {
+  color: rgba(253, 251, 247, 0.5);
+  font-style: italic;
+}
+
+.visor-pie {
+  padding: 14px 22px;
+  border-top: 1px solid rgba(253, 251, 247, 0.1);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: rgba(253, 251, 247, 0.6);
+}
+
+/* celular y tablet: la foto arriba, el panel abajo con alto máximo */
+@media (max-width: 900px) {
   .visor {
-    padding: 72px 16px 90px;
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .visor-escena {
+    padding: 64px 16px 16px;
   }
 
   .visor-nav {
-    top: auto;
-    bottom: 22px;
-    transform: none;
+    width: 40px;
+    height: 40px;
   }
 
   .visor-nav.izq {
-    left: 28%;
+    left: 8px;
   }
 
   .visor-nav.der {
-    right: 28%;
+    right: 8px;
+  }
+
+  .visor-panel {
+    max-height: 38vh;
+    border-left: 0;
+    border-top: 1px solid rgba(253, 251, 247, 0.1);
+  }
+
+  .visor-autor {
+    padding: 14px 16px 12px;
+  }
+
+  .visor-descripcion {
+    padding: 12px 16px;
+  }
+
+  .visor-pie {
+    padding: 10px 16px;
   }
 }
 </style>

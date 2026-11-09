@@ -57,6 +57,8 @@ class ArtistasDemoSeeder extends Seeder
                 'correo' => $user->email,
                 'genero' => fake()->randomElement(['masculino', 'femenino']),
                 'codigo_comision' => fake()->randomElement($familias),
+                // sin esto quedan en borrador y no aparecen en el portal
+                'estado' => 'aprobado',
                 'user_id' => $user->id,
             ]);
 
@@ -72,11 +74,14 @@ class ArtistasDemoSeeder extends Seeder
 
                 Actividad::create([
                     'persona_id' => $persona->id,
-                    'descripcion' => fake()->sentence(10),
-                    'imagen_path' => $nuevoPath,
-                    'imagen_nombre_original' => 'actividad.jpg',
+                    'titulo' => fake()->sentence(4),
+                    'descripcion' => fake()->paragraph(3),
                     'flag_activo' => true,
                     'flag_publico' => fake()->boolean(80),
+                ])->archivos()->create([
+                    'coleccion' => Actividad::COLECCION_ADJUNTO,
+                    'path' => $nuevoPath,
+                    'nombre_original' => 'actividad.jpg',
                 ]);
             }
         }

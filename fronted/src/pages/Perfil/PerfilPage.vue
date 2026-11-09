@@ -7,7 +7,7 @@
       </q-breadcrumbs>
     </div>
     <q-separator />
-    <q-card class="q-ma-sm" flat :bordered="!$q.dark.isActive">
+    <q-card class="q-ma-md" flat :bordered="!$q.dark.isActive">
       <PerfilContenido />
     </q-card>
   </q-page>

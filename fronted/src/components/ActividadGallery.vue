@@ -35,7 +35,8 @@
           </q-img>
 
           <q-card-section class="q-pa-sm">
-            <div class="text-caption gallery-desc">{{ item.descripcion }}</div>
+            <div class="text-body2 text-weight-bold ellipsis">{{ item.titulo || 'Sin título' }}</div>
+            <div class="text-caption gallery-desc">{{ item.descripcion_texto }}</div>
           </q-card-section>
 
           <q-card-actions class="q-pa-xs" align="right">

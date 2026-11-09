@@ -17,7 +17,17 @@ class StoreMiPasswordRequest extends FormRequest
     {
         return [
             'password.actual' => 'required',
-            'password.nueva' => 'required|min:8|confirmed',
+            'password.nueva' => [
+                'required',
+                'min:8',
+                'confirmed',
+                // el DNI es la clave inicial: volver a usarlo anula el cambio
+                function (string $atributo, mixed $valor, \Closure $fail) {
+                    if ($valor === $this->user()->persona?->dni) {
+                        $fail('La nueva contraseña no puede ser tu DNI.');
+                    }
+                },
+            ],
         ];
     }
 

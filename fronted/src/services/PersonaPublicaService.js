@@ -1,6 +1,11 @@
 import { api } from '@/boot/axios'
 
 class PersonaPublicaService {
+  // buscador en vivo de la portada: { artistas, agrupaciones }
+  static async buscar(params) {
+    return (await api.get('/api/publico/buscar', { params })).data
+  }
+
   // devuelve { data, meta } — el directorio se pagina porque el registro
   // puede tener cientos de artistas
   static async getData(params) {

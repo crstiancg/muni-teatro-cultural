@@ -5,7 +5,15 @@
 
   <template v-else>
     <q-card-section class="text-center q-pb-none">
-      <q-avatar size="72px" color="primary" text-color="white" class="text-h5">
+      <!-- un admin sin ficha de persona no tiene dónde guardar la foto -->
+      <FotoPerfilUploader
+        v-if="tienePersona"
+        base-path="mi-informacion"
+        size="120px"
+        :inicial="inicial"
+        v-model="foto"
+      />
+      <q-avatar v-else size="72px" color="primary" text-color="white" class="text-h5">
         {{ inicial }}
       </q-avatar>
       <div class="text-h6 q-mt-sm">{{ nombreCompleto || formUsuario.usuario.name }}</div>
@@ -63,9 +71,9 @@
       </q-form>
     </q-card-section>
 
-    <template v-if="mostrarPassword">
+    <template v-if="mostrarPassword"  class="q-ma-md">
       <q-separator />
-      <q-card-section class="q-pa-md">
+      <q-card-section>
         <div class="text-subtitle1 text-weight-bold q-mb-xs">Cambiar Contraseña</div>
         <div class="text-caption text-grey-6 q-mb-sm">
           Ingresa tu contraseña actual y la nueva contraseña.
@@ -383,6 +391,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
+import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 import formPerfil, { formUsuarioPerfil, formPasswordPerfil } from './FormPerfil'
 
@@ -396,6 +405,11 @@ const props = defineProps({
 })
 const cargando = ref(!props.dataInicial)
 const tienePersona = ref(false)
+// la foto se sube sola (no viaja en el form de datos personales)
+const foto = ref(null)
+// para avisar que cambiar de comisión devuelve un perfil publicado a revisión
+const estadoPerfil = ref(null)
+const comisionesOriginales = ref({ principal: null, alternativa: null })
 
 const opcionesGenero = [
   { label: 'Masculino', value: 'masculino' },
@@ -425,6 +439,10 @@ const requisitosPassword = computed(() => {
     { label: 'Una letra mayúscula', cumple: /[A-Z]/.test(pass) },
     { label: 'Una letra minúscula', cumple: /[a-z]/.test(pass) },
     { label: 'Un número', cumple: /[0-9]/.test(pass) },
+    // mismo chequeo que StoreMiPasswordRequest; un admin sin persona no tiene DNI
+    ...(tienePersona.value
+      ? [{ label: 'Distinta a tu DNI', cumple: pass.length > 0 && pass !== form.persona.dni }]
+      : []),
   ]
 })
 
@@ -468,12 +486,37 @@ const submitPassword = () => {
     .catch(() => {})
 }
 
+const cambioComision = () =>
+  form.persona.codigo_comision !== comisionesOriginales.value.principal ||
+  form.persona.codigo_comision_alternativo !== comisionesOriginales.value.alternativa
+
+// mismo criterio que MiInformacionController::update
 const submit = () => {
+  if (estadoPerfil.value === 'aprobado' && cambioComision()) {
+    $q.dialog({
+      title: 'Tu perfil volverá a revisión',
+      message:
+        'Si cambias tu comisión, tu perfil dejará de verse en el portal hasta que un administrador lo apruebe de nuevo. ¿Deseas continuar?',
+      cancel: { label: 'Cancelar', flat: true, noCaps: true },
+      ok: { label: 'Sí, cambiar comisión', color: 'orange-9', noCaps: true },
+      persistent: true,
+    }).onOk(guardar)
+    return
+  }
+  guardar()
+}
+
+const guardar = () => {
   form.persona.correo_modificado = form.persona.correo !== form.persona.correo_original
 
   form
     .submit()
-    .then(() => {
+    .then((respuesta) => {
+      estadoPerfil.value = respuesta?.data?.estado ?? estadoPerfil.value
+      comisionesOriginales.value = {
+        principal: form.persona.codigo_comision,
+        alternativa: form.persona.codigo_comision_alternativo,
+      }
       form.persona.correo_original = form.persona.correo
       form.persona.correo_modificado = false
       emits('save')
@@ -495,6 +538,13 @@ function hidratar({ usuario, persona }) {
 
   tienePersona.value = !!persona
   if (!persona) return
+
+  foto.value = persona.foto ?? null
+  estadoPerfil.value = persona.estado
+  comisionesOriginales.value = {
+    principal: persona.codigo_comision,
+    alternativa: persona.codigo_comision_alternativo,
+  }
 
   form.setData({
     persona: {

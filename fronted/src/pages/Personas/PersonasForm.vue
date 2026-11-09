@@ -18,15 +18,29 @@
               dense
               outlined
               v-model="form.persona.dni"
-              :loading="form.validating"
+              :loading="form.validating || consultandoDni"
               label="DNI *"
               maxlength="8"
+              @update:model-value="alEscribirDni"
               @change="form.validate('persona.dni')"
               :error="form.invalid('persona.dni')"
               :class="form.invalid('persona.dni') ? 'q-mb-sm' : ''"
             >
               <template v-slot:prepend>
                 <q-icon name="badge" />
+              </template>
+              <!-- solo al registrar: al editar, nombre y apellidos ya están cargados -->
+              <template v-if="!props.id" v-slot:append>
+                <q-btn
+                  flat
+                  dense
+                  round
+                  icon="search"
+                  :disable="!/^\d{8}$/.test(form.persona.dni || '') || consultandoDni"
+                  @click="consultarDni"
+                >
+                  <q-tooltip>Buscar en RENIEC</q-tooltip>
+                </q-btn>
               </template>
               <template v-slot:error>
                 <div>{{ form.errors['persona.dni'] }}</div>
@@ -204,6 +218,9 @@ import { useForm } from 'laravel-precognition-vue'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
 import formPersona from './FormPersona'
+import { ref } from 'vue'
+import ConsultaDniService from '@/services/ConsultaDniService'
+import { useNotify } from '@/composables/useNotify'
 
 const emits = defineEmits(['save'])
 const props = defineProps({
@@ -227,6 +244,34 @@ const opcionesEstadoCivil = [
 const form = props.id
   ? useForm('put', 'api/personas/' + props.id, formPersona)
   : useForm('post', 'api/personas', formPersona)
+
+const { notifySuccess, notifyAlert } = useNotify()
+const consultandoDni = ref(false)
+
+// al completar los 8 dígitos de una persona nueva se consulta solo
+function alEscribirDni(valor) {
+  if (!props.id && /^\d{8}$/.test(valor || '')) consultarDni()
+}
+
+async function consultarDni() {
+  consultandoDni.value = true
+  try {
+    const datos = await ConsultaDniService.consultar(form.persona.dni)
+    if (datos.existe) {
+      notifyAlert(`Este DNI ya está registrado: ${datos.persona.nombre_completo}.`)
+      return
+    }
+    form.persona.nombre = datos.nombre
+    form.persona.apellido_paterno = datos.apellido_paterno
+    form.persona.apellido_materno = datos.apellido_materno
+    notifySuccess('Datos completados desde RENIEC.')
+  } catch (error) {
+    // RENIEC caída o DNI inexistente: se sigue a mano, nunca bloquea el registro
+    notifyAlert(error.response?.data?.message || 'No se pudo consultar el DNI. Completa los datos a mano.')
+  } finally {
+    consultandoDni.value = false
+  }
+}
 
 const submit = () => {
   // el backend solo actualiza el email del usuario si detecta que cambió

@@ -14,7 +14,9 @@ class StoreFormacionAcademicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'formacion.tipo' => 'required|in:primaria,secundaria,tecnica_basica,tecnica_superior,universitaria,maestria,doctorado',
+            // primaria, secundaria, maestria y doctorado siguen en el enum de la base
+            // por los registros existentes, pero ya no se aceptan
+            'formacion.tipo' => 'required|in:tecnica_basica,tecnica_superior,universitaria',
             'formacion.nivel_alcanzado' => 'nullable|in:egresado,tecnico,bachiller,titulado,maestria,doctorado',
             'formacion.centro_estudios' => 'required|string|max:255',
             'formacion.profesion' => 'nullable|string|max:255',

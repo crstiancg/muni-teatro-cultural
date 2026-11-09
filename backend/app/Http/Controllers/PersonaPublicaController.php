@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Actividad;
+use App\Models\Agrupacion;
 use App\Models\Comision;
 use App\Models\Persona;
+use App\Support\UserAgent;
 use Illuminate\Http\Request;
 
 // Endpoints SIN autenticación: solo exponen lo mínimo seguro para mostrar
@@ -15,9 +17,10 @@ class PersonaPublicaController extends Controller
     public function index(Request $request)
     {
         $query = Persona::query()
-            ->whereNotNull('codigo_comision')
+            ->publicado()
             ->with([
                 'comision:codigo,cod_grupo,cod_familia,nombre',
+                'foto',
                 // una sola actividad por persona: la que se usa como foto de la
                 // tarjeta en el directorio
                 'actividades' => fn ($q) => $q->where('flag_activo', true)
@@ -60,13 +63,18 @@ class PersonaPublicaController extends Controller
         ]);
     }
 
-    public function show(Persona $persona)
+    public function show(Request $request, Persona $persona)
     {
-        abort_unless($persona->codigo_comision, 404);
+        abort_unless($persona->estado === 'aprobado' && $persona->codigo_comision, 404);
+
+        if (! UserAgent::esBot($request->userAgent())) {
+            $persona->registrarVisita($request->ip() . '|' . $request->userAgent());
+        }
 
         $persona->load([
             'comision:codigo,cod_grupo,cod_familia,nombre',
             'comisionAlternativo:codigo,cod_grupo,cod_familia,nombre',
+            'foto',
             'actividades' => fn ($q) => $q->where('flag_activo', true)->where('flag_publico', true),
         ]);
 
@@ -74,22 +82,82 @@ class PersonaPublicaController extends Controller
             ...$this->datosPublicos($persona),
             ...$this->datosContacto($persona),
             'comision_alternativo' => $persona->comisionAlternativo?->nombre,
+            // HTML ya sanitizado al guardar (Persona::biografiaLimpia)
+            'biografia' => $persona->biografia,
+            'redes_sociales' => $persona->redes_sociales ?? (object) [],
+            // agrupaciones publicadas donde figura como integrante (vinculado por DNI)
+            'agrupaciones' => $persona->agrupaciones()
+                ->publicado()
+                ->orderBy('agrupaciones.nombre')
+                ->get(['agrupaciones.id', 'agrupaciones.nombre', 'agrupaciones.slug'])
+                ->map(fn ($a) => ['nombre' => $a->nombre, 'slug' => $a->slug, 'rol' => $a->pivot->rol]),
             'actividades' => $persona->actividades->map(fn ($a) => [
                 'id' => $a->id,
+                'titulo' => $a->titulo,
+                // HTML ya sanitizado al guardar (App\Support\Html::limpio)
                 'descripcion' => $a->descripcion,
+                'descripcion_texto' => $a->descripcion_texto,
                 'imagen_url' => $a->imagen_url,
             ]),
         ]);
     }
 
+    // Buscador de la portada: resultados en vivo mientras se escribe. Artistas y
+    // agrupaciones publicados, por nombre o por comisión (familia), opcionalmente
+    // dentro de una disciplina. Pocos resultados: es un adelanto, no el directorio.
+    public function buscar(Request $request)
+    {
+        $termino = trim((string) $request->input('q'));
+        abort_if(mb_strlen($termino) < 2, 422, 'Escribe al menos 2 letras.');
+
+        $like = '%' . $termino . '%';
+        $grupo = $request->input('grupo');
+
+        $artistas = Persona::query()
+            ->publicado()
+            ->where(fn ($q) => $q->where('nombre_completo', 'like', $like)
+                ->orWhereHas('comision', fn ($c) => $c->where('nombre', 'like', $like)))
+            ->when($grupo, fn ($q) => $q->whereHas('comision', fn ($c) => $c->where('cod_grupo', $grupo)))
+            ->with(['comision:codigo,cod_grupo,nombre', 'foto'])
+            ->orderBy('nombre_completo')
+            ->limit(5)
+            ->get();
+
+        $agrupaciones = Agrupacion::query()
+            ->publicado()
+            ->where(fn ($q) => $q->where('nombre', 'like', $like)
+                ->orWhereHas('comision', fn ($c) => $c->where('nombre', 'like', $like)))
+            ->when($grupo, fn ($q) => $q->whereHas('comision', fn ($c) => $c->where('cod_grupo', $grupo)))
+            ->with(['comision:codigo,cod_grupo,nombre', 'logo'])
+            ->orderBy('nombre')
+            ->limit(3)
+            ->get();
+
+        return response()->json([
+            'artistas' => $artistas->map(fn (Persona $p) => [
+                'nombre' => $p->nombre_completo,
+                'slug' => $p->slug,
+                'comision' => $p->comision?->nombre,
+                'cod_grupo' => $p->comision?->cod_grupo,
+                'foto_url' => $p->foto?->miniatura_url,
+            ]),
+            'agrupaciones' => $agrupaciones->map(fn (Agrupacion $a) => [
+                'nombre' => $a->nombre,
+                'slug' => $a->slug,
+                'comision' => $a->comision?->nombre,
+                'cod_grupo' => $a->comision?->cod_grupo,
+                'logo_url' => $a->logo?->miniatura_url,
+            ]),
+        ]);
+    }
+
     // ÚNICO lugar donde se decide qué datos de contacto salen al público.
-    // Decisión del cliente (18/09/2026): se publica también el DNI, aun habiendo
-    // advertido el riesgo de suplantación y la Ley 29733. Para dejar de exponer
-    // un campo, basta con sacarlo de este arreglo.
+    // El DNI NO se publica (decisión 30/09/2026): además de la Ley 29733, es la
+    // contraseña inicial de cada artista. Para dejar de exponer un campo, basta
+    // con sacarlo de este arreglo.
     private function datosContacto(Persona $persona): array
     {
         return [
-            'dni' => $persona->dni,
             'celular' => $persona->celular,
             'correo' => $persona->correo,
         ];
@@ -101,7 +169,7 @@ class PersonaPublicaController extends Controller
         $actividades = Actividad::query()
             ->where('flag_activo', true)
             ->where('flag_publico', true)
-            ->whereHas('persona', fn ($q) => $q->whereNotNull('codigo_comision'))
+            ->whereHas('persona', fn ($q) => $q->publicado())
             ->with('persona:id,slug,nombre_completo')
             ->latest()
             ->limit(8)
@@ -109,7 +177,8 @@ class PersonaPublicaController extends Controller
 
         return response()->json($actividades->map(fn (Actividad $a) => [
             'id' => $a->id,
-            'descripcion' => $a->descripcion,
+            'titulo' => $a->titulo,
+            'descripcion' => $a->descripcion_texto,
             'imagen_url' => $a->imagen_url,
             'persona_slug' => $a->persona->slug,
             'persona_nombre' => $a->persona->nombre_completo,
@@ -121,7 +190,7 @@ class PersonaPublicaController extends Controller
     public function grupos()
     {
         $porGrupo = Persona::query()
-            ->whereNotNull('personas.codigo_comision')
+            ->publicado()
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
             ->groupBy('comisions.cod_grupo')
             ->selectRaw('comisions.cod_grupo as cod_grupo, count(*) as total')
@@ -147,13 +216,15 @@ class PersonaPublicaController extends Controller
             ->where('actividades.flag_activo', true)
             ->where('actividades.flag_publico', true)
             ->join('personas', 'actividades.persona_id', '=', 'personas.id')
+            ->where('personas.estado', 'aprobado')
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
-            ->select('actividades.imagen_path', 'comisions.cod_grupo')
+            // el id alcanza: la imagen llega por el eager load de "adjunto" (Actividad::$with)
+            ->select('actividades.id', 'comisions.cod_grupo')
             ->get()
             ->groupBy('cod_grupo');
 
         $consejerosPorGrupo = Persona::query()
-            ->whereNotNull('personas.codigo_comision')
+            ->publicado()
             ->join('comisions', 'personas.codigo_comision', '=', 'comisions.codigo')
             ->groupBy('comisions.cod_grupo')
             ->selectRaw('comisions.cod_grupo as cod_grupo, count(*) as total')
@@ -163,26 +234,44 @@ class PersonaPublicaController extends Controller
             ->orderBy('nombre')
             ->get(['cod_grupo', 'nombre'])
             ->map(function (Comision $grupo) use ($actividadesPorGrupo, $consejerosPorGrupo) {
-                $imagen = $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_path;
 
                 return [
                     'cod_grupo' => $grupo->cod_grupo,
                     'nombre' => $grupo->nombre,
                     'consejeros' => (int) ($consejerosPorGrupo[$grupo->cod_grupo] ?? 0),
-                    'imagen_url' => Actividad::resolverImagenUrl($imagen),
+                    'imagen_url' => $actividadesPorGrupo->get($grupo->cod_grupo)?->first()?->imagen_miniatura_url,
                 ];
             });
 
         return response()->json([
             'stats' => [
-                'consejeros' => Persona::whereNotNull('codigo_comision')->count(),
+                'consejeros' => Persona::publicado()->count(),
                 'comisiones' => Comision::where('tipo', 'familia')->count(),
                 'grupos' => $grupos->count(),
-                'actividades' => Actividad::where('flag_activo', true)->where('flag_publico', true)->count(),
+                'agrupaciones' => Agrupacion::publicado()->count(),
+                'actividades' => Actividad::where('flag_activo', true)->where('flag_publico', true)
+                    ->whereHas('persona', fn ($q) => $q->publicado())->count(),
             ],
             'grupos' => $grupos,
             'destacadas' => $this->actividadesDestacadas()->getData(true),
             'artistas' => $this->artistasDestacados(),
+            // las agrupaciones también tienen su vidriera en la portada
+            'agrupaciones' => Agrupacion::query()
+                ->publicado()
+                ->with(['comision:codigo,cod_grupo,nombre', 'logo', 'portada'])
+                ->withCount('integrantes')
+                ->inRandomOrder()
+                ->limit(4)
+                ->get()
+                ->map(fn (Agrupacion $a) => [
+                    'nombre' => $a->nombre,
+                    'slug' => $a->slug,
+                    'comision' => $a->comision?->nombre,
+                    'cod_grupo' => $a->comision?->cod_grupo,
+                    'logo_url' => $a->logo?->miniatura_url,
+                    'portada_url' => $a->portada?->miniatura_url,
+                    'total_integrantes' => $a->integrantes_count,
+                ]),
         ]);
     }
 
@@ -192,10 +281,11 @@ class PersonaPublicaController extends Controller
     private function artistasDestacados(int $limite = 8): array
     {
         return Persona::query()
-            ->whereNotNull('codigo_comision')
+            ->publicado()
             ->whereHas('actividades', fn ($q) => $q->where('flag_activo', true)->where('flag_publico', true))
             ->with([
                 'comision:codigo,cod_grupo,cod_familia,nombre',
+                'foto',
                 'actividades' => fn ($q) => $q->where('flag_activo', true)
                     ->where('flag_publico', true)
                     ->latest()
@@ -206,9 +296,9 @@ class PersonaPublicaController extends Controller
             ->get()
             ->map(fn (Persona $persona) => [
                 ...$this->datosPublicos($persona),
-                'imagen_url' => $persona->actividades->first()?->imagen_url,
+                'imagen_url' => $persona->actividades->first()?->imagen_miniatura_url,
                 'miniaturas' => $persona->actividades->skip(1)->take(3)
-                    ->pluck('imagen_url')->values(),
+                    ->pluck('imagen_miniatura_url')->values(),
                 'total_actividades' => $persona->actividades_count
                     ?? $persona->actividades->count(),
             ])
@@ -228,9 +318,13 @@ class PersonaPublicaController extends Controller
             // el directorio se presenta con fotos, así que cada persona viaja
             // con su imagen de portada y cuántas actividades tiene publicadas
             'imagen_url' => $persona->relationLoaded('actividades')
-                ? $persona->actividades->first()?->imagen_url
+                ? $persona->actividades->first()?->imagen_miniatura_url
                 : null,
             'total_actividades' => $persona->actividades_count ?? null,
+            // foto de perfil (tabla archivos); distinta de imagen_url, que es la
+            // portada tomada de la última actividad
+            // miniatura: se usa en tarjetas y avatares, nunca a pantalla completa
+            'foto_url' => $persona->relationLoaded('foto') ? $persona->foto?->miniatura_url : null,
         ];
     }
 }

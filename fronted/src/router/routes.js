@@ -82,6 +82,42 @@ const routes = [
         name: 'CurriculumVitae',
         component: () => import('@/pages/Perfil/CurriculumVitaePage.vue'),
       },
+      {
+        path: 'mis-agrupaciones',
+        name: 'MisAgrupaciones',
+        component: () => import('@/pages/Agrupaciones/MisAgrupacionesPage.vue'),
+      },
+      {
+        path: 'mis-agrupaciones/:id',
+        name: 'MiAgrupacion',
+        component: () => import('@/pages/Agrupaciones/MiAgrupacionPage.vue'),
+      },
+      {
+        // /gestion/...: /agrupaciones es del portal público (directorio y páginas)
+        path: 'gestion/agrupaciones',
+        name: 'AgrupacionesAdmin',
+        component: () => import('@/pages/Agrupaciones/AgrupacionesAdminPage.vue'),
+      },
+      {
+        path: 'gestion/agrupaciones/:id',
+        name: 'AgrupacionAdminDetalle',
+        component: () => import('@/pages/Agrupaciones/AgrupacionAdminDetallePage.vue'),
+      },
+    ],
+  },
+
+  {
+    path: '/privacidad',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [{ path: '', name: 'Privacidad', component: () => import('@/pages/Publico/PrivacidadPage.vue') }],
+  },
+
+  {
+    path: '/agrupaciones',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [
+      { path: '', name: 'AgrupacionesPublico', component: () => import('@/pages/Publico/AgrupacionesPage.vue') },
+      { path: ':slug', name: 'AgrupacionPublica', component: () => import('@/pages/Publico/AgrupacionPublicaPage.vue') },
     ],
   },
 
