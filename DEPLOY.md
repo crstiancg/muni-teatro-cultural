@@ -57,8 +57,8 @@ nano .env                   # completar base de datos, dominio, tokens (ver secc
 
 chmod -R 775 storage bootstrap/cache   # ANTES de las llaves de Passport (ver abajo)
 php artisan key:generate
-php artisan migrate --force
-php artisan db:seed --class=PermissionSeeder --force   # SOLO la primera vez (ver 3.3)
+php artisan migrate --force                            # también crea los permisos (config/permisos.php)
+php artisan db:seed --class=PermissionSeeder --force   # crea el admin inicial (ver 3.3)
 php artisan passport:keys
 # las llaves de Passport deben quedar en 600: con permisos abiertos (775) la librería
 # OAuth se niega a usarlas y TODA la API autenticada responde 500 (login incluido).
@@ -182,13 +182,15 @@ Desde la carpeta `backend`:
    php artisan migrate --force
    ```
 
-3. Roles y permisos (**una sola vez**):
+3. Usuario administrador inicial:
 
    ```bash
    php artisan db:seed --class=PermissionSeeder --force
    ```
 
-   > ⚠️ Este seeder crea el admin `password@gmail.com` con contraseña `password`. **Cámbiala apenas entres.** No vuelvas a correrlo después: vuelve a poner esa contraseña.
+   > ⚠️ Crea el admin `password@gmail.com` con contraseña `password`. **Cámbiala apenas entres.** Si el admin ya existe, el seeder no le toca la contraseña, así que correrlo de nuevo es seguro.
+
+   Los permisos no hace falta crearlos: se declaran en `config/permisos.php` y se sincronizan solos con cada `php artisan migrate`. Para forzarlo a mano: `php artisan permisos:sincronizar`.
 
 4. Passport (llaves y cliente del login):
 
@@ -234,12 +236,14 @@ cd fronted && quasar build && cd ../backend && php artisan spa:publicar
 
 # en el servidor, después de subir el código
 composer install --no-dev --optimize-autoloader
-php artisan migrate --force
+# config:cache ANTES de migrate: si no, migrate lee la configuración cacheada del
+# deploy anterior y no ve los permisos nuevos de config/permisos.php
 php artisan config:cache
 php artisan route:cache
+php artisan migrate --force
 ```
 
-Si se agregaron permisos nuevos, crearlos con `php artisan tinker` (no correr el `PermissionSeeder` completo).
+Los permisos nuevos (un módulo agregado en `config/permisos.php`) se crean solos en el `migrate` y quedan asignados al Administrador. No hace falta tinker ni el seeder.
 
 ## 5. Verificar después de publicar
 
