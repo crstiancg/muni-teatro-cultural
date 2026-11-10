@@ -41,7 +41,7 @@
             Comisiones
           </router-link>
           <router-link
-            :to="{ name: 'Inicio', hash: '#calendario' }"
+            :to="{ name: 'AgendaPublica' }"
             class="nav-link"
             @click="menuAbierto = false"
           >
@@ -91,7 +91,7 @@
           <router-link :to="{ name: 'AgrupacionesPublico' }">Agrupaciones</router-link>
           <router-link :to="{ name: 'Privacidad' }">Privacidad</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
-          <router-link :to="{ name: 'Inicio', hash: '#calendario' }">Calendario</router-link>
+          <router-link :to="{ name: 'AgendaPublica' }">Calendario</router-link>
           <router-link :to="{ name: 'Login' }">Ingresar</router-link>
           
         </nav>

@@ -225,6 +225,25 @@
       </div>
     </div>
 
+    <!-- ══════════ ②b PRÓXIMOS EVENTOS — lo que vence va arriba; sin eventos, no se muestra ══════════ -->
+    <section v-if="proximos.length" class="agenda-home">
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Agenda cultural</p>
+            <h2 class="titulo">Próximos eventos</h2>
+          </div>
+
+          <router-link :to="{ name: 'AgendaPublica' }" class="btn-linea">
+            Ver el calendario completo
+            <ArrowRight :size="16" />
+          </router-link>
+        </header>
+
+        <ProximosEventos :eventos="proximos" />
+      </div>
+    </section>
+
     <!-- ══════════ ③ COMISIONES — acordeón ══════════ -->
     <section id="comisiones" class="comisiones">
       <span class="cenefa cenefa-arriba" aria-hidden="true" />
@@ -507,8 +526,10 @@ import {
   Megaphone,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
+import EventoService from '@/services/EventoService'
 import { INSTITUCION, FOTOS_CARTEL, COMISIONES, comisionDe } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
+import ProximosEventos from '@/components/agenda/ProximosEventos.vue'
 
 const router = useRouter()
 
@@ -517,6 +538,7 @@ const grupos = ref([])
 const destacadas = ref([])
 const artistas = ref([])
 const agrupaciones = ref([])
+const proximos = ref([])
 const termino = ref('')
 const grupoElegido = ref('')
 const abierto = ref(false)
@@ -727,6 +749,11 @@ onBeforeUnmount(() => {
 })
 
 onMounted(async () => {
+  // en paralelo y aparte: si la agenda falla, la portada se ve igual (sin esa sección)
+  EventoService.proximos(4)
+    .then((r) => (proximos.value = r.data))
+    .catch(() => {})
+
   const data = await PersonaPublicaService.getPortada()
   stats.value = data.stats
   grupos.value = data.grupos
@@ -1926,6 +1953,11 @@ onMounted(async () => {
 
 /* ═══════════ ④b AGRUPACIONES ═══════════ */
 .agrupaciones-home {
+  padding: var(--seccion-y) 0;
+}
+
+.agenda-home {
+  /* aire arriba Y abajo: sin el de abajo la tarjeta queda pegada a la guarda de Comisiones */
   padding: var(--seccion-y) 0;
 }
 

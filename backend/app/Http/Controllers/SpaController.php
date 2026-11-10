@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agrupacion;
+use App\Models\Evento;
 use App\Models\Persona;
 use App\Support\Html;
 use Illuminate\Http\Request;
@@ -69,8 +70,14 @@ class SpaController extends Controller
                 'descripcion' => 'Conjuntos, comparsas y elencos que mantienen viva la cultura de ' . config('seo.ciudad') . '.',
                 'canonica' => "{$base}/agrupaciones",
             ], 200],
+            $ruta === 'agenda' => [[
+                'titulo' => "Agenda cultural · {$sitio}",
+                'descripcion' => 'Funciones, conciertos, ferias y talleres en ' . config('seo.ciudad') . ': el calendario cultural de la ciudad.',
+                'canonica' => "{$base}/agenda",
+            ], 200],
             count($segmentos) >= 2 && $segmentos[0] === 'consejeros' => $this->metaPersona($segmentos[1], $segmentos[2] ?? null),
             count($segmentos) === 2 && $segmentos[0] === 'agrupaciones' => $this->metaAgrupacion($segmentos[1]),
+            count($segmentos) === 2 && $segmentos[0] === 'agenda' => $this->metaEvento($segmentos[1]),
             // cualquier otra URL: la SPA muestra su "no encontrado" y el estado es 404
             default => [$this->noEncontrado(), 404],
         };
@@ -163,6 +170,59 @@ class SpaController extends Controller
                         ->all(),
                 ]),
                 $this->migas([['Agrupaciones', "{$base}/agrupaciones"], [$agrupacion->nombre, $url]]),
+            ],
+        ], 200];
+    }
+
+    // /agenda/{id}-{slug}: se busca por id; el slug es decorativo
+    private function metaEvento(string $segmento): array
+    {
+        $id = preg_match('/^(\d+)(?:-|$)/', $segmento, $m) ? (int) $m[1] : null;
+        $evento = $id ? Evento::publicado()->with('comision:codigo,nombre')->find($id) : null;
+
+        if (! $evento) {
+            return [$this->noEncontrado(), 404];
+        }
+
+        $base = $this->base();
+        // canónica con el slug actual: si cambió el título, Google indexa la URL nueva
+        $url = "{$base}/agenda/{$evento->ruta_publica}";
+        $cuando = $evento->fecha_inicio->locale('es')->isoFormat('dddd D [de] MMMM, HH:mm');
+        $donde = $evento->modalidad === 'virtual' ? 'virtual' : $evento->lugar;
+        $descripcion = Str::limit(Html::texto($evento->descripcion), 160)
+            ?: "{$evento->titulo}: {$cuando} · {$donde}.";
+
+        return [[
+            'titulo' => "{$evento->titulo} · Agenda cultural | " . config('seo.sitio'),
+            'descripcion' => $descripcion,
+            'canonica' => $url,
+            'imagen' => $evento->imagen_url,
+            'jsonld' => [
+                array_filter([
+                    '@context' => 'https://schema.org',
+                    '@type' => 'Event',
+                    'name' => $evento->titulo,
+                    'url' => $url,
+                    'image' => $evento->imagen_url,
+                    'description' => $descripcion,
+                    // hora de pared de la ciudad, con su zona explícita
+                    'startDate' => $evento->fecha_inicio->shiftTimezone(Evento::ZONA)->toIso8601String(),
+                    'endDate' => $evento->fecha_fin?->shiftTimezone(Evento::ZONA)->toIso8601String(),
+                    'eventStatus' => 'https://schema.org/EventScheduled',
+                    'eventAttendanceMode' => $evento->modalidad === 'virtual'
+                        ? 'https://schema.org/OnlineEventAttendanceMode'
+                        : 'https://schema.org/OfflineEventAttendanceMode',
+                    'location' => $evento->modalidad === 'virtual'
+                        ? ['@type' => 'VirtualLocation', 'url' => $evento->enlace]
+                        : array_filter([
+                            '@type' => 'Place',
+                            'name' => $evento->lugar,
+                            'address' => trim(($evento->direccion ? "{$evento->direccion}, " : '') . config('seo.ciudad')),
+                        ]),
+                    'isAccessibleForFree' => $evento->flag_gratuito,
+                    'organizer' => ['@type' => 'Organization', 'name' => config('seo.sitio')],
+                ]),
+                $this->migas([['Agenda cultural', "{$base}/agenda"], [$evento->titulo, $url]]),
             ],
         ], 200];
     }

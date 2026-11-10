@@ -103,6 +103,12 @@ const routes = [
         name: 'AgrupacionAdminDetalle',
         component: () => import('@/pages/Agrupaciones/AgrupacionAdminDetallePage.vue'),
       },
+      {
+        // /gestion/...: /agenda es la del portal público
+        path: 'gestion/eventos',
+        name: 'EventosAdmin',
+        component: () => import('@/pages/Eventos/EventosList.vue'),
+      },
     ],
   },
 
@@ -118,6 +124,16 @@ const routes = [
     children: [
       { path: '', name: 'AgrupacionesPublico', component: () => import('@/pages/Publico/AgrupacionesPage.vue') },
       { path: ':slug', name: 'AgrupacionPublica', component: () => import('@/pages/Publico/AgrupacionPublicaPage.vue') },
+    ],
+  },
+
+  {
+    path: '/agenda',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [
+      { path: '', name: 'AgendaPublica', component: () => import('@/pages/Publico/AgendaPage.vue') },
+      // ":evento" = "{id}-{slug}": se busca por el id, el slug es solo para que se lea
+      { path: ':evento', name: 'EventoPublico', component: () => import('@/pages/Publico/EventoPage.vue') },
     ],
   },
 
