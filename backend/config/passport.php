@@ -45,4 +45,11 @@ return [
 
     'connection' => env('PASSPORT_CONNECTION'),
 
+    // cliente "password grant" que usa POST /api/login. El secret vive solo en
+    // el servidor: nunca más en el bundle del front.
+    'password_client' => [
+        'id' => env('PASSPORT_PASSWORD_CLIENT_ID'),
+        'secret' => env('PASSPORT_PASSWORD_CLIENT_SECRET'),
+    ],
+
 ];

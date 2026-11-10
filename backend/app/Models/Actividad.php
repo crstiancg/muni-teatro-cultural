@@ -2,20 +2,31 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\TieneAdjunto;
+use App\Support\Html;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Actividad extends Model
 {
+    use TieneAdjunto;
+
+    const COLECCION_ADJUNTO = 'imagen';
+
+    const CARPETA_ADJUNTO = 'actividades';
+
     protected $table = 'actividades';
 
-    protected $appends = ['imagen_url'];
+    protected $appends = ['imagen_url', 'imagen_nombre_original', 'descripcion_texto'];
+
+    // siempre se necesita para imagen_url; oculto porque ya sale aplanado
+    protected $with = ['adjunto'];
+
+    protected $hidden = ['adjunto'];
 
     protected $fillable = [
         'persona_id',
+        'titulo',
         'descripcion',
-        'imagen_path',
-        'imagen_nombre_original',
         'flag_activo',
         'flag_publico',
     ];
@@ -33,23 +44,27 @@ class Actividad extends Model
         return $this->belongsTo(Persona::class);
     }
 
-    public function getImagenUrlAttribute()
+    // mismos nombres que cuando eran columnas: el front no cambia.
+    // Las URLs externas de los seeders (picsum) las resuelve Archivo::url
+    public function getImagenUrlAttribute(): ?string
     {
-        return static::resolverImagenUrl($this->imagen_path);
+        return $this->adjunto?->url;
     }
 
-    // los seeders de prueba guardan URLs externas (picsum) en vez de un archivo
-    // subido, asi que las devolvemos tal cual en vez de prefijarlas con storage/
-    public static function resolverImagenUrl(?string $imagenPath): ?string
+    // para tarjetas y listados: 600 px en vez de la original
+    public function getImagenMiniaturaUrlAttribute(): ?string
     {
-        if (! $imagenPath) {
-            return null;
-        }
+        return $this->adjunto?->miniatura_url;
+    }
 
-        if (Str::startsWith($imagenPath, ['http://', 'https://'])) {
-            return $imagenPath;
-        }
+    // la descripción sin HTML: para alt de imágenes y vistas previas cortas
+    public function getDescripcionTextoAttribute(): string
+    {
+        return Html::texto($this->descripcion);
+    }
 
-        return asset('storage/' . $imagenPath);
+    public function getImagenNombreOriginalAttribute(): ?string
+    {
+        return $this->adjunto?->nombre_original;
     }
 }

@@ -1,18 +1,15 @@
 <?php
 
+use App\Http\Controllers\CompartirPerfilController;
+use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\SpaController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Tipo;
 
-Route::get('/', function () {
+// link para compartir perfiles con vista previa (Open Graph) en WhatsApp/Facebook
+Route::get('/compartir/{persona:slug}', CompartirPerfilController::class)->name('compartir.perfil');
 
-    return view('welcome');
+Route::get('/sitemap.xml', [SitemapController::class, 'sitemap']);
+Route::get('/robots.txt', [SitemapController::class, 'robots']);
 
-});
-
-Route::get('/tipos', function () {
-
-    $tipos = Tipo::all();
-
-    return view('tipos', compact('tipos'));
-
-});
+// todo lo demás es la SPA, con el <head> de cada página escrito por SpaController
+Route::fallback(SpaController::class);

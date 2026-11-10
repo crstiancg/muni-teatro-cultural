@@ -5,6 +5,7 @@
         <q-btn flat dense round icon="menu" @click="drawer = !drawer" />
         <q-toolbar-title />
         <AppClock class="q-mr-md" />
+        <NotificacionesBell />
         <SwitchDarkMode />
       </q-toolbar>
     </q-header>
@@ -13,22 +14,22 @@
       v-model="drawer"
       show-if-above
       side="left"
-      :width="280"
+      :width="250"
       :breakpoint="1023"
       bordered
       :style="drawerStyle"
     >
-      <div class="absolute-top q-pa-none" style="height: 165px">
+      <div class="absolute-top q-pa-none" style="height: 160px">
         <q-item
           :to="{ name: 'Dashboard' }"
           clickable
           v-ripple
-          class="text-white q-mx-sm q-mt-sm"
+          class="text-white q-mx-sm"
           style="border-radius: 10px"
         >
           <q-item-section avatar>
-            <q-avatar rounded size="48px" color="secondary" text-color="white">
-              <q-icon name="theater_comedy" size="28px" />
+            <q-avatar rounded size="40px" color="secondary" text-color="white">
+              <q-icon name="theater_comedy" size="30px" />
             </q-avatar>
           </q-item-section>
           <q-item-section>
@@ -37,27 +38,27 @@
         </q-item>
 
         <q-item
-          :to="{ name: 'Perfil' }"
-          clickable
-          v-ripple
-          class="text-white q-ma-sm"
-          style="border-radius: 10px; border: 1px solid #ffffff50"
+        :to="{ name: 'Perfil' }"
+        clickable
+        v-ripple
+        class="text-white q-ma-sm"
+        style="border-radius: 10px; border: 1px solid #ffffff50"
         >
-          <q-item-section>
-            <q-item-label lines="2" class="text-weight-bold">
-              {{ userStore.getName || 'Usuario' }}
-            </q-item-label>
-            <q-item-label caption class="text-white text-weight-bold">
-              {{ userStore.getEmail || 'Correo' }} {{ userStore.getRole || 'Administrador' }}
-            </q-item-label>
-          </q-item-section>
-          <q-item-section side>
-            <q-avatar color="secondary" text-color="white">
-              {{ initialMayus }}
-            </q-avatar>
-          </q-item-section>
-        </q-item>
-        <q-separator spaced dark />
+        <q-item-section>
+          <q-item-label lines="2" class="text-weight-bold">
+            {{ userStore.getName || 'Usuario' }}
+          </q-item-label>
+          <q-item-label caption class="text-white text-weight-bold">
+            {{ userStore.getEmail || 'Correo' }} {{ userStore.getRole || 'Administrador' }}
+          </q-item-label>
+        </q-item-section>
+        <q-item-section side>
+          <q-avatar color="secondary" text-color="white">
+            {{ initialMayus }}
+          </q-avatar>
+        </q-item-section>
+      </q-item>
+      <q-separator spaced dark />
       </div>
 
       <q-scroll-area style="height: calc(100% - 165px - 80px); margin-top: 165px" class="q-mx-sm">
@@ -122,6 +123,7 @@ import { LogOut } from 'lucide-vue-next'
 import MenuItem from '@/components/sidebar/MenuItem.vue'
 import MenuGroup from '@/components/sidebar/MenuGroup.vue'
 import AppClock from '@/components/AppClock.vue'
+import NotificacionesBell from '@/components/NotificacionesBell.vue'
 import SwitchDarkMode from '@/components/SwitchDarkMode.vue'
 import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
 import MiInformacionService from '@/services/MiInformacionService'
@@ -155,12 +157,21 @@ async function logout() {
 }
 
 onMounted(async () => {
+  // los permisos se guardan al loguearse; se refrescan en cada carga del panel
+  // para que un permiso dado o quitado se aplique sin cerrar sesión
+  userStore.getUser().catch(() => {})
+
   // se muestra siempre al loguearse (montar el layout admin) si el usuario
   // tiene una ficha de persona vinculada; si es un admin sin persona, no sale
-  const datos = await MiInformacionService.get()
-  if (datos?.persona) {
-    miInformacion.value = datos
-    mostrarMiInformacion.value = true
+  // el recordatorio es opcional: si falla la consulta, el panel igual se usa
+  try {
+    const datos = await MiInformacionService.get()
+    if (datos?.persona) {
+      miInformacion.value = datos
+      mostrarMiInformacion.value = true
+    }
+  } catch {
+    // sin recordatorio
   }
 })
 </script>

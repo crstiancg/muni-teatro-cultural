@@ -4,7 +4,7 @@
     class="artista"
     :style="{ '--acento': comision.color }"
   >
-    <img v-if="artista.imagen_url" :src="artista.imagen_url" alt="" loading="lazy" />
+    <img v-if="portada" :src="portada" alt="" loading="lazy" />
     <div v-else class="sin-foto"><UserRound :size="30" /></div>
 
     <span class="velo" />
@@ -33,6 +33,8 @@ const props = defineProps({
 })
 
 const comision = computed(() => comisionDe(props.artista.cod_grupo))
+// la foto de perfil manda; si no subió una, se usa la de su última actividad
+const portada = computed(() => props.artista.foto_url || props.artista.imagen_url)
 </script>
 
 <style scoped lang="scss">

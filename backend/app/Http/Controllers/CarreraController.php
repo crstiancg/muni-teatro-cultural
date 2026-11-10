@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Models\Carrera;
 use Illuminate\Http\Request;
 
-class CarreraController extends Controller
+class CarreraController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('carreras');
+    }
+
     /**
      * Display a listing of the resource.
      */

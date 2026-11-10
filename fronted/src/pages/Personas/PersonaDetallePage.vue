@@ -15,17 +15,25 @@
       <q-spinner color="primary" size="40px" />
     </div>
 
+    <div v-else-if="errorCarga" class="text-center q-pa-lg">
+      <div class="text-body1 q-mb-sm">No se pudo cargar la información.</div>
+      <q-btn outline no-caps color="primary" label="Reintentar" @click="cargar" />
+    </div>
+
     <div v-else class="row q-col-gutter-md q-ma-sm">
       <div class="col-12 col-md-3">
         <q-card flat :bordered="!$q.dark.isActive">
           <q-card-section class="text-center">
-            <q-avatar size="88px" color="primary" text-color="white" class="text-h4">
-              {{ inicial }}
-            </q-avatar>
+            <FotoPerfilUploader
+              :base-path="`personas/${personaId}`"
+              :inicial="inicial"
+              v-model="persona.foto"
+            />
             <div class="text-subtitle1 text-weight-bold q-mt-md">{{ persona?.dni }}</div>
             <div class="text-body2">{{ persona?.nombre_completo }}</div>
             <div class="text-caption text-grey-7">{{ persona?.correo }}</div>
             <q-btn
+              v-if="userStore.hasPermission('admin-personas-editar')"
               outline
               no-caps
               rounded
@@ -38,9 +46,24 @@
             </q-btn>
           </q-card-section>
         </q-card>
+
+        <q-card v-if="persona" flat :bordered="!$q.dark.isActive" class="q-mt-md">
+          <q-card-section>
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">Historial de revisiones</div>
+            <HistorialRevisiones :revisiones="persona.revisiones" />
+          </q-card-section>
+        </q-card>
       </div>
 
       <div class="col-12 col-md-9">
+        <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle1 text-weight-bold q-mb-sm">Perfil público — Sobre su trabajo</div>
+            <EstadoPerfilPublico modo="admin" v-model="persona" class="q-mb-md" />
+            <PerfilPublicoForm :base-path="`personas/${personaId}`" v-model="persona" />
+          </q-card-section>
+        </q-card>
+
         <q-card flat :bordered="!$q.dark.isActive" class="q-mb-md">
           <q-card-section class="q-pa-md">
             <div class="text-subtitle1 text-weight-bold q-mb-md">
@@ -97,14 +120,21 @@ import { Home, Contact, Pencil } from 'lucide-vue-next'
 import CurriculumVitaeList from '@/components/CurriculumVitaeList.vue'
 import CapacitacionList from '@/components/CapacitacionList.vue'
 import ActividadGallery from '@/components/ActividadGallery.vue'
+import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
+import HistorialRevisiones from '@/components/HistorialRevisiones.vue'
+import EstadoPerfilPublico from '@/components/EstadoPerfilPublico.vue'
+import PerfilPublicoForm from '@/components/PerfilPublicoForm.vue'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import PersonaService from '@/services/PersonaService'
+import { useUserStore } from '@/stores/user-store'
 
 const $q = useQuasar()
 const route = useRoute()
+const userStore = useUserStore()
 const personaId = Number(route.params.id)
 
 const cargando = ref(true)
+const errorCarga = ref(false)
 const persona = ref(null)
 const curriculum = ref([])
 const capacitaciones = ref([])
@@ -115,12 +145,20 @@ const personasFormRef = ref()
 const inicial = computed(() => (persona.value?.nombre?.charAt(0) || '?').toUpperCase())
 
 async function cargar() {
-  const datos = await PersonaService.get(personaId)
-  persona.value = datos
-  curriculum.value = datos.formaciones_academicas || []
-  capacitaciones.value = datos.capacitaciones || []
-  actividades.value = datos.actividades || []
-  cargando.value = false
+  cargando.value = true
+  errorCarga.value = false
+  try {
+    const datos = await PersonaService.get(personaId)
+    persona.value = datos
+    curriculum.value = datos.formaciones_academicas || []
+    capacitaciones.value = datos.capacitaciones || []
+    actividades.value = datos.actividades || []
+  } catch {
+    // sin esto la página se queda con el spinner para siempre si falla el backend
+    errorCarga.value = true
+  } finally {
+    cargando.value = false
+  }
 }
 
 async function abrirEditar() {

@@ -8,12 +8,13 @@ use App\Http\Requests\StoreFormacionAcademicaRequest;
 use App\Http\Requests\StoreMiInformacionRequest;
 use App\Http\Requests\StoreMiPasswordRequest;
 use App\Http\Requests\StoreMiUsuarioRequest;
+use App\Http\Requests\StorePersonaFotoRequest;
 use App\Models\Actividad;
+use App\Support\Html;
 use App\Models\Capacitacion;
 use App\Models\FormacionAcademica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
 
 class MiInformacionController extends Controller
 {
@@ -36,11 +37,16 @@ class MiInformacionController extends Controller
     {
         $usuario = $request->user();
         // un admin sin ficha de persona también puede entrar a "Mi Perfil"
-        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades']);
+        $persona = $usuario->persona?->load(['ubigeoNacimiento', 'ubigeoResidencia', 'comision', 'comisionAlternativo', 'formacionesAcademicas', 'capacitaciones', 'actividades', 'foto', 'revisiones.usuario:id,name']);
 
         return response()->json([
             'usuario' => ['id' => $usuario->id, 'name' => $usuario->name, 'email' => $usuario->email],
             'persona' => $persona,
+            // la clave inicial es el DNI: el dashboard recomienda cambiarla mientras lo siga siendo
+            'password_es_dni' => $persona && Hash::check($persona->dni, $usuario->password),
+            // checklist del dashboard del artista
+            'requisitos' => $persona?->requisitosPerfil() ?? [],
+            'visitas' => $persona?->resumenVisitas(),
         ]);
     }
 
@@ -66,6 +72,18 @@ class MiInformacionController extends Controller
             $persona->user()->update(['email' => $persona->correo]);
         }
 
+        // la comisión decide en qué disciplina aparece en el portal: si un perfil
+        // publicado la cambia, vuelve a revisión (el front ya le avisó antes)
+        if ($persona->estado === 'aprobado' && $persona->wasChanged(['codigo_comision', 'codigo_comision_alternativo'])) {
+            $persona->update(['estado' => 'pendiente', 'observacion' => null]);
+            $persona->revisiones()->create([
+                'accion' => 'enviado',
+                'observacion' => 'Cambió de comisión: el perfil volvió a revisión.',
+                'user_id' => $request->user()->id,
+            ]);
+            $persona->notificarAdmins('solicitud', "{$persona->nombre_completo} cambió de comisión y su perfil volvió a revisión.");
+        }
+
         return response()->json($persona);
     }
 
@@ -86,8 +104,8 @@ class MiInformacionController extends Controller
         $formacion = FormacionAcademica::create([
             ...collect($datos)->only(self::CAMPOS_FORMACION)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivoFormacion($request),
         ]);
+        $formacion->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacion, 201);
     }
@@ -97,16 +115,10 @@ class MiInformacionController extends Controller
         abort_unless($formacionAcademica->persona_id === $request->user()->persona?->id, 404);
 
         $datos = data_get($request, 'formacion');
-        $archivoNuevo = $this->datosArchivoFormacion($request);
-
-        if ($archivoNuevo && $formacionAcademica->archivo_path) {
-            Storage::disk('public')->delete($formacionAcademica->archivo_path);
-        }
-
         $formacionAcademica->update([
             ...collect($datos)->only(self::CAMPOS_FORMACION)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $formacionAcademica->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacionAcademica);
     }
@@ -131,19 +143,6 @@ class MiInformacionController extends Controller
         return response()->json($formacionAcademica);
     }
 
-    private function datosArchivoFormacion(StoreFormacionAcademicaRequest $request): array
-    {
-        if (! $request->hasFile('formacion.archivo')) {
-            return [];
-        }
-
-        $archivo = $request->file('formacion.archivo');
-
-        return [
-            'archivo_path' => $archivo->store('formacion_academica', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
-    }
 
     public function storeCapacitacion(StoreCapacitacionRequest $request)
     {
@@ -153,8 +152,8 @@ class MiInformacionController extends Controller
         $capacitacion = Capacitacion::create([
             ...collect($datos)->only(self::CAMPOS_CAPACITACION)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivoCapacitacion($request),
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion, 201);
     }
@@ -164,16 +163,10 @@ class MiInformacionController extends Controller
         abort_unless($capacitacion->persona_id === $request->user()->persona?->id, 404);
 
         $datos = data_get($request, 'capacitacion');
-        $archivoNuevo = $this->datosArchivoCapacitacion($request);
-
-        if ($archivoNuevo && $capacitacion->archivo_path) {
-            Storage::disk('public')->delete($capacitacion->archivo_path);
-        }
-
         $capacitacion->update([
             ...collect($datos)->only(self::CAMPOS_CAPACITACION)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $capacitacion->reemplazarAdjunto($request->file('capacitacion.archivo'));
 
         return response()->json($capacitacion);
     }
@@ -198,18 +191,24 @@ class MiInformacionController extends Controller
         return response()->json($capacitacion);
     }
 
-    private function datosArchivoCapacitacion(StoreCapacitacionRequest $request): array
+
+    public function storeFoto(StorePersonaFotoRequest $request)
     {
-        if (! $request->hasFile('capacitacion.archivo')) {
-            return [];
-        }
+        // un admin sin ficha de persona no tiene dónde colgar la foto
+        $persona = $request->user()->persona;
+        abort_unless($persona, 404);
 
-        $archivo = $request->file('capacitacion.archivo');
+        return response()->json($persona->reemplazarFoto($request->file('foto')), 201);
+    }
 
-        return [
-            'archivo_path' => $archivo->store('capacitaciones', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
+    public function destroyFoto(Request $request)
+    {
+        $persona = $request->user()->persona;
+        abort_unless($persona, 404);
+
+        $persona->eliminarFoto();
+
+        return response()->json(true);
     }
 
     public function storeActividad(StoreActividadRequest $request)
@@ -217,11 +216,12 @@ class MiInformacionController extends Controller
         $persona = $request->user()->persona;
 
         $actividad = Actividad::create([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
             'persona_id' => $persona->id,
-            ...$this->datosImagenActividad($request),
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad, 201);
     }
@@ -230,17 +230,12 @@ class MiInformacionController extends Controller
     {
         abort_unless($actividad->persona_id === $request->user()->persona?->id, 404);
 
-        $imagenNueva = $this->datosImagenActividad($request);
-
-        if ($imagenNueva && $actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
-
         $actividad->update([
-            'descripcion' => data_get($request, 'actividad.descripcion'),
+            'titulo' => data_get($request, 'actividad.titulo'),
+            'descripcion' => Html::limpio(data_get($request, 'actividad.descripcion')),
             'flag_publico' => $request->boolean('actividad.flag_publico', true),
-            ...$imagenNueva,
         ]);
+        $actividad->reemplazarAdjunto($request->file('actividad.imagen'));
 
         return response()->json($actividad);
     }
@@ -271,24 +266,8 @@ class MiInformacionController extends Controller
     {
         abort_unless($actividad->persona_id === $request->user()->persona?->id, 404);
 
-        if ($actividad->imagen_path) {
-            Storage::disk('public')->delete($actividad->imagen_path);
-        }
+        $actividad->eliminarAdjunto();
 
         return response()->json($actividad->delete());
-    }
-
-    private function datosImagenActividad(StoreActividadRequest $request): array
-    {
-        if (! $request->hasFile('actividad.imagen')) {
-            return [];
-        }
-
-        $imagen = $request->file('actividad.imagen');
-
-        return [
-            'imagen_path' => $imagen->store('actividades', 'public'),
-            'imagen_nombre_original' => $imagen->getClientOriginalName(),
-        ];
     }
 }

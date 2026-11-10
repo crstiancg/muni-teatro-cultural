@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- RACC en dos filas: a 16 px cuatro letras en una línea no se leen -->
+  <rect width="64" height="64" rx="14" fill="#004173"/>
+  <g fill="#ffffff" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="25" text-anchor="middle" letter-spacing="-0.5">
+    <text x="32" y="29">RA</text>
+    <text x="32" y="54">CC</text>
+  </g>
+</svg>

@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Http\Requests\StoreFormacionAcademicaRequest;
 use App\Models\FormacionAcademica;
 use App\Models\Persona;
-use Illuminate\Support\Facades\Storage;
 
-class FormacionAcademicaController extends Controller
+class FormacionAcademicaController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('personas', ['editar' => ['store', 'update', 'destroy', 'reactivar']]);
+    }
+
     private const CAMPOS = [
         'tipo', 'nivel_alcanzado', 'centro_estudios', 'profesion', 'folio', 'fecha_expedicion',
     ];
@@ -20,8 +25,8 @@ class FormacionAcademicaController extends Controller
         $formacion = FormacionAcademica::create([
             ...collect($datos)->only(self::CAMPOS)->toArray(),
             'persona_id' => $persona->id,
-            ...$this->datosArchivo($request),
         ]);
+        $formacion->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacion, 201);
     }
@@ -31,16 +36,10 @@ class FormacionAcademicaController extends Controller
         abort_unless($formacionAcademica->persona_id === $persona->id, 404);
 
         $datos = data_get($request, 'formacion');
-        $archivoNuevo = $this->datosArchivo($request);
-
-        if ($archivoNuevo && $formacionAcademica->archivo_path) {
-            Storage::disk('public')->delete($formacionAcademica->archivo_path);
-        }
-
         $formacionAcademica->update([
             ...collect($datos)->only(self::CAMPOS)->toArray(),
-            ...$archivoNuevo,
         ]);
+        $formacionAcademica->reemplazarAdjunto($request->file('formacion.archivo'));
 
         return response()->json($formacionAcademica);
     }
@@ -63,19 +62,5 @@ class FormacionAcademicaController extends Controller
         $formacionAcademica->update(['flag_activo' => true]);
 
         return response()->json($formacionAcademica);
-    }
-
-    private function datosArchivo(StoreFormacionAcademicaRequest $request): array
-    {
-        if (! $request->hasFile('formacion.archivo')) {
-            return [];
-        }
-
-        $archivo = $request->file('formacion.archivo');
-
-        return [
-            'archivo_path' => $archivo->store('formacion_academica', 'public'),
-            'archivo_nombre_original' => $archivo->getClientOriginalName(),
-        ];
     }
 }

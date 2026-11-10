@@ -9,8 +9,8 @@
 
 export const INSTITUCION = {
   // PENDIENTE: confirmar el nombre oficial y de qué entidad depende
-  nombre: 'Teatro Cultural',
-  entidad: 'Municipalidad Provincial de Puno',
+  nombre: 'RACC',
+  entidad: 'Registro de Agentes Culturales del Consejo Provincial de Cultura',
   ciudad: 'Puno',
   region: 'Puno, Perú',
 
@@ -23,7 +23,8 @@ export const INSTITUCION = {
     direccion: ['PENDIENTE: dirección', 'Puno, Perú'],
     telefono: ['PENDIENTE: teléfono'],
     correo: ['PENDIENTE: correo'],
-    horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
+    horario: ['Lunes a viernes: 8:00 – 16:00'],
+    // horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
   },
 }
 
@@ -59,4 +60,14 @@ export const COMISIONES = {
 
 export function comisionDe(codGrupo) {
   return COMISIONES[codGrupo] || { corto: 'Cultura', color: 'var(--oro)' }
+}
+
+// Link para compartir un perfil: lo sirve el backend (/compartir/{slug}) con las
+// etiquetas Open Graph, así WhatsApp/Facebook muestran foto y nombre. Una
+// persona que lo abre es redirigida al perfil del portal.
+// En producción QCLI_API_BACKEND_URL va vacío (front y API en el mismo dominio,
+// rutas relativas): WhatsApp necesita una URL absoluta, así que se usa el dominio actual.
+export function urlCompartirPerfil(slug) {
+  const base = String(import.meta.env.QCLI_API_BACKEND_URL || window.location.origin).replace(/\/$/, '')
+  return `${base}/compartir/${slug}`
 }

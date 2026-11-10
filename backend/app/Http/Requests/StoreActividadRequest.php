@@ -14,7 +14,9 @@ class StoreActividadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'actividad.descripcion' => 'required|string',
+            'actividad.titulo' => 'required|string|max:150',
+            // HTML del editor: se sanitiza en el controller (App\Support\Html)
+            'actividad.descripcion' => 'nullable|string|max:10000',
             // acá solo se acepta imagen (no PDF), a diferencia de las otras secciones
             'actividad.imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
             // en multipart/form-data el valor llega como string ("true"/"false"), no como bool nativo;

@@ -55,7 +55,7 @@
               dense
               outlined
               v-model="form.capacitacion.centro_estudios"
-              label="Centro de Estudio *"
+              label="Centro de Estudio"
               @change="form.validate('capacitacion.centro_estudios')"
               :error="form.invalid('capacitacion.centro_estudios')"
               :error-message="form.errors['capacitacion.centro_estudios']"
@@ -119,14 +119,16 @@ const props = defineProps({
 })
 const emit = defineEmits(['save'])
 
+// diplomado y programa ya no se ofrecen (los registros viejos se siguen
+// mostrando: ver CapacitacionList)
 const opcionesTipo = [
-  { label: 'Diplomado', value: 'diplomado' },
-  { label: 'Programa', value: 'programa' },
   { label: 'Especialización', value: 'especializacion' },
   { label: 'Curso', value: 'curso' },
   { label: 'Taller', value: 'taller' },
   { label: 'Seminario', value: 'seminario' },
   { label: 'Conferencias', value: 'conferencias' },
+  { label: 'Capacitación', value: 'capacitacion' },
+  { label: 'Reconocimiento', value: 'reconocimiento' },
   { label: 'Otros', value: 'otros' },
 ]
 

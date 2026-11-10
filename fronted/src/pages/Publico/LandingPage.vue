@@ -31,52 +31,168 @@
           {{ INSTITUCION.ciudad }}.
         </p>
 
-        <!-- buscador segmentado: a quién busco + en qué disciplina -->
-        <form class="buscador" @submit.prevent="buscarArtistas">
+        <!-- buscador: resultados reales en vivo (artistas y agrupaciones), con teclado.
+             Combobox accesible: el input controla la lista de opciones -->
+        <form class="buscador" role="search" @submit.prevent="enviar" @keydown="teclas">
           <div class="segmento">
-            <label for="q-artista">Artista</label>
+            <label for="q-artista">Buscar</label>
             <input
               id="q-artista"
               v-model="termino"
               type="search"
-              placeholder="Nombre, familia o disciplina"
+              placeholder="Artista, agrupación o familia"
               autocomplete="off"
-              @focus="sugerenciasVisibles = true"
-              @blur="ocultarSugerencias"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-controls="buscador-opciones"
+              :aria-expanded="abierto"
+              :aria-activedescendant="activo >= 0 ? `opcion-${activo}` : undefined"
+              @input="alEscribir"
+              @focus="abierto = true"
+              @blur="abierto = false"
             />
           </div>
 
           <span class="divisor" aria-hidden="true" />
 
+          <!-- desplegable propio en vez del <select> nativo (que no se puede estilizar):
+               listbox accesible con teclado -->
           <div class="segmento segmento-select">
-            <label for="q-disciplina">Disciplina</label>
-            <div class="select-caja">
-              <select id="q-disciplina" v-model="grupoElegido">
-                <option value="">Todas</option>
-                <option v-for="g in grupos" :key="g.cod_grupo" :value="g.cod_grupo">
-                  {{ comisionDe(g.cod_grupo).corto }}
-                </option>
-              </select>
-              <ChevronDown :size="16" />
-            </div>
+            <span id="q-disciplina-label" class="segmento-label">Disciplina</span>
+            <button
+              type="button"
+              class="disciplina-btn"
+              aria-haspopup="listbox"
+              aria-labelledby="q-disciplina-label"
+              :aria-expanded="disciplinaAbierta"
+              @click="alternarDisciplinas"
+              @keydown="teclasDisciplina"
+              @blur="disciplinaAbierta = false"
+            >
+              <span
+                class="disciplina-punto"
+                :style="{ background: grupoElegido ? comisionDe(grupoElegido).color : 'var(--borde-fuerte)' }"
+              />
+              <span class="disciplina-texto">
+                {{ grupoElegido ? comisionDe(grupoElegido).corto : 'Todas' }}
+              </span>
+              <ChevronDown :size="16" class="disciplina-chevron" :class="{ girado: disciplinaAbierta }" />
+            </button>
+
+            <Transition name="caer">
+              <ul v-if="disciplinaAbierta" class="disciplinas" role="listbox" aria-labelledby="q-disciplina-label">
+                <li
+                  v-for="(op, i) in opcionesDisciplina"
+                  :key="op.valor || 'todas'"
+                  role="option"
+                  :aria-selected="grupoElegido === op.valor"
+                  class="disciplina-op"
+                  :class="{ activo: disciplinaActiva === i, elegido: grupoElegido === op.valor }"
+                  :style="{ '--acento': op.color }"
+                  @mousedown.prevent="elegirDisciplina(op.valor)"
+                  @mouseenter="disciplinaActiva = i"
+                >
+                  <span class="disciplina-icono">
+                    <component :is="op.icono" :size="16" />
+                  </span>
+                  <span class="disciplina-nombre">{{ op.nombre }}</span>
+                  <span v-if="op.cuenta !== null" class="disciplina-cuenta">{{ op.cuenta }}</span>
+                  <Check v-if="grupoElegido === op.valor" :size="16" class="disciplina-check" />
+                </li>
+              </ul>
+            </Transition>
           </div>
 
           <button type="submit" class="buscador-btn" aria-label="Buscar">
             <Search :size="20" />
           </button>
 
-          <!-- sugerencias al enfocar, como en los buscadores de viaje -->
           <Transition name="caer">
-            <div v-if="sugerenciasVisibles" class="sugerencias">
-              <p class="sugerencias-titulo">Búsquedas frecuentes</p>
-              <ul>
-                <li v-for="a in atajos" :key="a">
-                  <button type="button" @mousedown.prevent="buscarRapido(a)">
-                    <TrendingUp :size="15" />
-                    {{ a }}
+            <div v-if="abierto" id="buscador-opciones" class="sugerencias" role="listbox">
+              <!-- sin texto: las disciplinas reales, que siempre llevan a resultados -->
+              <template v-if="termino.trim().length < 2">
+                <p class="sugerencias-titulo">Explorar por disciplina</p>
+                <ul class="sug-chips">
+                  <li v-for="g in grupos" :key="g.cod_grupo">
+                    <button type="button" @mousedown.prevent="irDisciplina(g.cod_grupo)">
+                      <component :is="iconoDe(g.cod_grupo)" :size="15" />
+                      {{ comisionDe(g.cod_grupo).corto }}
+                      <span class="sug-cuenta">{{ g.consejeros }}</span>
+                    </button>
+                  </li>
+                </ul>
+              </template>
+
+              <template v-else>
+                <template v-if="resultados.artistas.length">
+                  <p class="sugerencias-titulo">Artistas</p>
+                  <button
+                    v-for="o in opcionesDe('artista')"
+                    :id="`opcion-${o.indice}`"
+                    :key="`a-${o.slug}`"
+                    type="button"
+                    role="option"
+                    class="sug-item"
+                    :class="{ activo: activo === o.indice }"
+                    :aria-selected="activo === o.indice"
+                    @mousedown.prevent="abrir(o)"
+                    @mouseenter="activo = o.indice"
+                  >
+                    <span class="sug-avatar" :style="{ '--acento': comisionDe(o.cod_grupo).color }">
+                      <img v-if="o.foto_url" :src="o.foto_url" alt="" />
+                      <template v-else>{{ o.nombre.charAt(0) }}</template>
+                    </span>
+                    <span class="sug-texto">
+                      <strong>{{ o.nombre }}</strong>
+                      <small>{{ o.comision }}</small>
+                    </span>
                   </button>
-                </li>
-              </ul>
+                </template>
+
+                <template v-if="resultados.agrupaciones.length">
+                  <p class="sugerencias-titulo">Agrupaciones</p>
+                  <button
+                    v-for="o in opcionesDe('agrupacion')"
+                    :id="`opcion-${o.indice}`"
+                    :key="`g-${o.slug}`"
+                    type="button"
+                    role="option"
+                    class="sug-item"
+                    :class="{ activo: activo === o.indice }"
+                    :aria-selected="activo === o.indice"
+                    @mousedown.prevent="abrir(o)"
+                    @mouseenter="activo = o.indice"
+                  >
+                    <span class="sug-avatar cuadrado" :style="{ '--acento': comisionDe(o.cod_grupo).color }">
+                      <img v-if="o.logo_url" :src="o.logo_url" alt="" />
+                      <template v-else>{{ o.nombre.charAt(0) }}</template>
+                    </span>
+                    <span class="sug-texto">
+                      <strong>{{ o.nombre }}</strong>
+                      <small>Agrupación · {{ o.comision }}</small>
+                    </span>
+                  </button>
+                </template>
+
+                <p v-if="buscando && !hayResultados" class="sug-estado">Buscando…</p>
+                <p v-else-if="!buscando && !hayResultados" class="sug-estado">
+                  No encontramos coincidencias para “{{ termino.trim() }}”.
+                </p>
+
+                <!-- siempre al final: el directorio completo con el filtro aplicado -->
+                <button
+                  :id="`opcion-${opciones.length - 1}`"
+                  type="button"
+                  role="option"
+                  class="sug-todos"
+                  :class="{ activo: activo === opciones.length - 1 }"
+                  :aria-selected="activo === opciones.length - 1"
+                  @mousedown.prevent="enviar"
+                  @mouseenter="activo = opciones.length - 1"
+                >
+                  Ver todos los artistas para “{{ termino.trim() }}” <ArrowRight :size="15" />
+                </button>
+              </template>
             </div>
           </Transition>
         </form>
@@ -234,6 +350,46 @@
       </div>
     </section>
 
+    <!-- ══════════ ④b AGRUPACIONES ══════════ -->
+    <section v-if="agrupaciones.length" class="agrupaciones-home">
+      <div class="seccion">
+        <header v-revelar class="seccion-head">
+          <div>
+            <p class="kicker">Conjuntos y comparsas</p>
+            <h2 class="titulo">Agrupaciones</h2>
+          </div>
+
+          <router-link :to="{ name: 'AgrupacionesPublico' }" class="btn-linea">
+            {{ stats.agrupaciones === 1 ? 'Ver la agrupación' : `Ver las ${stats.agrupaciones} agrupaciones` }}
+            <ArrowRight :size="16" />
+          </router-link>
+        </header>
+
+        <div class="agr-grilla">
+          <router-link
+            v-for="(a, i) in agrupaciones"
+            :key="a.slug"
+            v-revelar="i * 60"
+            :to="{ name: 'AgrupacionPublica', params: { slug: a.slug } }"
+            class="agr-tarjeta"
+            :style="{ '--acento': comisionDe(a.cod_grupo).color }"
+          >
+            <div class="agr-portada">
+              <img v-if="a.portada_url" :src="a.portada_url" alt="" loading="lazy" />
+            </div>
+            <div class="agr-cuerpo">
+              <span class="agr-logo">
+                <img v-if="a.logo_url" :src="a.logo_url" :alt="a.nombre" loading="lazy" />
+                <template v-else>{{ a.nombre.charAt(0) }}</template>
+              </span>
+              <h3>{{ a.nombre }}</h3>
+              <p>{{ comisionDe(a.cod_grupo).corto }} · {{ a.total_integrantes }} integrantes</p>
+            </div>
+          </router-link>
+        </div>
+      </div>
+    </section>
+
     <!-- ══════════ ⑤ CANDELARIA — pantalla completa, en claro ══════════ -->
     <section class="candelaria">
       <span class="cenefa cenefa-arriba" aria-hidden="true" />
@@ -299,7 +455,7 @@
             class="mosaico-item"
             :class="`m-${i}`"
           >
-            <img :src="act.imagen_url" :alt="act.descripcion || ''" loading="lazy" />
+            <img :src="act.imagen_url" :alt="act.titulo || act.descripcion || ''" loading="lazy" />
             <span class="mosaico-pie">{{ act.persona_nombre }}</span>
           </router-link>
         </div>
@@ -338,8 +494,8 @@ import { useRouter } from 'vue-router'
 import {
   ArrowRight,
   ChevronDown,
+  Check,
   Search,
-  TrendingUp,
   Sparkles,
   Music,
   PersonStanding,
@@ -360,9 +516,69 @@ const stats = ref({ consejeros: 0, comisiones: 0, grupos: 0, actividades: 0 })
 const grupos = ref([])
 const destacadas = ref([])
 const artistas = ref([])
+const agrupaciones = ref([])
 const termino = ref('')
 const grupoElegido = ref('')
-const sugerenciasVisibles = ref(false)
+const abierto = ref(false)
+const buscando = ref(false)
+const resultados = ref({ artistas: [], agrupaciones: [] })
+// índice de la opción resaltada con el teclado (-1 = ninguna)
+const activo = ref(-1)
+
+// ---------- desplegable de disciplina ----------
+const disciplinaAbierta = ref(false)
+const disciplinaActiva = ref(0)
+const opcionesDisciplina = computed(() => [
+  { valor: '', nombre: 'Todas las disciplinas', icono: Sparkles, color: 'var(--tinta)', cuenta: null },
+  ...grupos.value.map((g) => ({
+    valor: g.cod_grupo,
+    nombre: comisionDe(g.cod_grupo).corto,
+    icono: iconoDe(g.cod_grupo),
+    color: comisionDe(g.cod_grupo).color,
+    cuenta: g.consejeros,
+  })),
+])
+
+function alternarDisciplinas() {
+  disciplinaAbierta.value = !disciplinaAbierta.value
+  if (disciplinaAbierta.value) {
+    // no compiten dos paneles abiertos a la vez
+    abierto.value = false
+    disciplinaActiva.value = Math.max(
+      0,
+      opcionesDisciplina.value.findIndex((o) => o.valor === grupoElegido.value),
+    )
+  }
+}
+
+function elegirDisciplina(valor) {
+  grupoElegido.value = valor
+  disciplinaAbierta.value = false
+  // si ya hay texto, los resultados en vivo se recalculan con el filtro
+  if (termino.value.trim().length >= 2) alEscribir()
+}
+
+function teclasDisciplina(e) {
+  const total = opcionesDisciplina.value.length
+  if (['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key) && !disciplinaAbierta.value) {
+    e.preventDefault()
+    alternarDisciplinas()
+    return
+  }
+  if (!disciplinaAbierta.value) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    disciplinaActiva.value = (disciplinaActiva.value + 1) % total
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    disciplinaActiva.value = (disciplinaActiva.value - 1 + total) % total
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault()
+    elegirDisciplina(opcionesDisciplina.value.at(disciplinaActiva.value).valor)
+  } else if (e.key === 'Escape' || e.key === 'Tab') {
+    disciplinaAbierta.value = false
+  }
+}
 
 const danzas = [
   'Sikuris',
@@ -379,7 +595,6 @@ const danzas = [
   'Tobas',
 ]
 
-const atajos = ['Sikuris', 'Bordadores', 'Danza de luces', 'Mascareros', 'Estudiantina']
 
 const iconosPorGrupo = {
   '01': Music,
@@ -396,22 +611,86 @@ function iconoDe(codGrupo) {
   return iconosPorGrupo[codGrupo] || Sparkles
 }
 
-function buscarArtistas() {
+// lista plana de lo que se puede elegir con el teclado: artistas, agrupaciones y
+// al final "ver todos" (las opciones usan @mousedown.prevent, así el blur del
+// input no cierra la lista antes del clic)
+const opciones = computed(() => [
+  ...resultados.value.artistas.map((a) => ({ ...a, tipo: 'artista' })),
+  ...resultados.value.agrupaciones.map((a) => ({ ...a, tipo: 'agrupacion' })),
+  { tipo: 'todos' },
+])
+const opcionesDe = (tipo) =>
+  opciones.value.map((o, indice) => ({ ...o, indice })).filter((o) => o.tipo === tipo)
+const hayResultados = computed(() => opciones.value.length > 1)
+
+// se busca 250 ms después de la última tecla; si llega una respuesta vieja, se descarta
+let pausa = null
+let consulta = 0
+function alEscribir() {
+  abierto.value = true
+  activo.value = -1
+  clearTimeout(pausa)
+  const q = termino.value.trim()
+  if (q.length < 2) {
+    resultados.value = { artistas: [], agrupaciones: [] }
+    return
+  }
+  buscando.value = true
+  pausa = setTimeout(async () => {
+    const mia = ++consulta
+    try {
+      const r = await PersonaPublicaService.buscar({ q, grupo: grupoElegido.value || undefined })
+      if (mia === consulta) resultados.value = r
+    } catch {
+      if (mia === consulta) resultados.value = { artistas: [], agrupaciones: [] }
+    } finally {
+      if (mia === consulta) buscando.value = false
+    }
+  }, 250)
+}
+
+function abrir(opcion) {
+  abierto.value = false
+  if (opcion.tipo === 'artista') {
+    router.push({ name: 'ConsejeroDetallePublico', params: { slug: opcion.slug } })
+  } else if (opcion.tipo === 'agrupacion') {
+    router.push({ name: 'AgrupacionPublica', params: { slug: opcion.slug } })
+  } else {
+    enviar()
+  }
+}
+
+// Enter sin opción elegida, o "ver todos": el directorio con el filtro aplicado
+function enviar() {
+  abierto.value = false
   const query = {}
   if (termino.value.trim()) query.buscar = termino.value.trim()
   if (grupoElegido.value) query.grupo = grupoElegido.value
   router.push({ name: 'ConsejerosPublico', query })
 }
 
-function buscarRapido(texto) {
-  termino.value = texto
-  sugerenciasVisibles.value = false
-  buscarArtistas()
+function irDisciplina(codGrupo) {
+  abierto.value = false
+  router.push({ name: 'ConsejerosPublico', query: { grupo: codGrupo } })
 }
 
-// el blur llega antes que el click de la sugerencia: se espera un instante
-function ocultarSugerencias() {
-  setTimeout(() => (sugerenciasVisibles.value = false), 120)
+function teclas(e) {
+  if (e.target.id !== 'q-artista') return
+  const total = termino.value.trim().length < 2 ? 0 : opciones.value.length
+  if (e.key === 'ArrowDown' && total) {
+    e.preventDefault()
+    abierto.value = true
+    activo.value = (activo.value + 1) % total
+  } else if (e.key === 'ArrowUp' && total) {
+    e.preventDefault()
+    activo.value = activo.value <= 0 ? total - 1 : activo.value - 1
+  } else if (e.key === 'Enter' && abierto.value && activo.value >= 0) {
+    e.preventDefault()
+    abrir(opciones.value.at(activo.value))
+  } else if (e.key === 'Escape') {
+    abierto.value = false
+    activo.value = -1
+  }
 }
 
 const destacado = computed(() => artistas.value[0] || null)
@@ -466,6 +745,7 @@ onMounted(async () => {
   grupos.value = data.grupos
   destacadas.value = data.destacadas
   artistas.value = data.artistas || []
+  agrupaciones.value = data.agrupaciones || []
   rotarFotos()
   await nextTick()
   girarAcordeon()
@@ -573,12 +853,17 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   padding: clamp(64px, 8vw, 96px) var(--gutter) clamp(104px, 13vh, 150px);
-  overflow: hidden;
+  /* antes "overflow: hidden": recortaba los paneles del buscador al desplegarse.
+     clip solo en horizontal (nada de scroll lateral) y el fondo se recorta aparte */
+  overflow-x: clip;
+  /* por encima de las secciones siguientes: los paneles pueden pasar sobre ellas */
+  z-index: 5;
 }
 
 .portada-fondo {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 
   img {
     position: absolute;
@@ -664,6 +949,8 @@ onMounted(async () => {
 /* ── buscador segmentado ── */
 .buscador {
   position: relative;
+  /* sobre los puntos del carrusel y la flecha de scroll de la portada */
+  z-index: 30;
   display: flex;
   align-items: stretch;
   gap: 4px;
@@ -710,22 +997,136 @@ onMounted(async () => {
 
 .segmento-select {
   flex: 0 0 34%;
+  position: relative;
 }
 
-.select-caja {
+.segmento-label {
+  @include kicker(var(--tinta));
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 2px;
+}
+
+.disciplina-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: var(--t-base);
+  text-align: left;
+  cursor: pointer;
 
-  select {
-    appearance: none;
-    cursor: pointer;
+  &:focus-visible {
+    outline: 2px solid var(--rojo);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.disciplina-punto {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.disciplina-texto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disciplina-chevron {
+  flex: none;
+  color: var(--tinta-suave);
+  transition: transform var(--transicion);
+
+  &.girado {
+    transform: rotate(180deg);
+  }
+}
+
+/* dos columnas: las 9 opciones entran sin barra de scroll */
+.disciplinas {
+  position: absolute;
+  top: calc(100% + 18px);
+  right: -12px;
+  width: 460px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  box-shadow: var(--sombra-alta);
+  z-index: 25;
+}
+
+.disciplina-op {
+  /* "Todas las disciplinas" ocupa la fila completa */
+  &:first-child {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--borde);
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    margin-bottom: 4px;
   }
 
-  svg {
-    color: var(--tinta-suave);
-    flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--tinta);
+  font-size: var(--t-sm);
+
+  &.activo {
+    background: var(--crema);
   }
+
+  &.elegido .disciplina-nombre {
+    font-weight: 700;
+  }
+}
+
+.disciplina-icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 12%, var(--blanco));
+}
+
+.disciplina-nombre {
+  flex: 1;
+  min-width: 0;
+}
+
+.disciplina-cuenta {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--tinta-suave);
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: var(--crema);
+}
+
+.disciplina-check {
+  flex: none;
+  color: var(--rojo);
 }
 
 .divisor {
@@ -772,14 +1173,34 @@ onMounted(async () => {
   padding: 14px 10px 10px;
   z-index: 20;
 
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  max-height: min(70vh, 460px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--borde-fuerte) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
   }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--borde-fuerte);
+    border-radius: 999px;
+    border: 2px solid var(--blanco);
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* sin texto: las disciplinas como chips */
+.sug-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 
   button {
     display: inline-flex;
@@ -803,6 +1224,107 @@ onMounted(async () => {
     &:hover {
       background: var(--crema-hondo);
     }
+  }
+}
+
+.sug-cuenta {
+  font-size: var(--t-xs);
+  color: var(--tinta-suave);
+  font-weight: 700;
+}
+
+/* con texto: filas de resultados */
+.sug-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &.activo {
+    background: var(--crema);
+  }
+}
+
+.sug-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--acento) 15%, var(--blanco));
+  color: var(--acento);
+  font-weight: 800;
+
+  &.cuadrado {
+    border-radius: var(--r-sm);
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sug-texto {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: var(--t-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    font-size: var(--t-xs);
+    color: var(--tinta-suave);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.sug-estado {
+  margin: 6px 10px 10px;
+  font-size: var(--t-sm);
+  color: var(--tinta-suave);
+}
+
+.sug-todos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px;
+  border: 0;
+  border-top: 1px solid var(--borde);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  background: none;
+  color: var(--rojo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+
+  &.activo,
+  &:hover {
+    background: var(--crema);
   }
 }
 
@@ -914,6 +1436,14 @@ onMounted(async () => {
 
   .divisor {
     display: none;
+  }
+
+  .disciplinas {
+    left: -1px;
+    right: -1px;
+    width: auto;
+    top: calc(100% + 8px);
+    grid-template-columns: 1fr;
   }
 
   .buscador-btn {
@@ -1395,6 +1925,99 @@ onMounted(async () => {
 @media (min-width: 620px) {
   .artistas-lista {
     grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ═══════════ ④b AGRUPACIONES ═══════════ */
+.agrupaciones-home {
+  padding: var(--seccion-y) 0;
+}
+
+.agr-grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: clamp(16px, 2vw, 22px);
+}
+
+.agr-tarjeta {
+  display: flex;
+  flex-direction: column;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--tinta);
+  transition:
+    transform var(--transicion),
+    box-shadow var(--transicion);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sombra);
+  }
+
+  &:hover .agr-portada img {
+    transform: scale(1.04);
+  }
+
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.agr-portada {
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  /* sin portada: el color de la disciplina */
+  background: linear-gradient(135deg, var(--noche), color-mix(in srgb, var(--acento) 70%, var(--noche)));
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+}
+
+.agr-cuerpo {
+  padding: 0 16px 16px;
+
+  h3 {
+    @include display(700);
+    font-size: var(--t-md);
+    margin: 0 0 4px;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+    font-size: var(--t-sm);
+    color: var(--tinta-suave);
+  }
+}
+
+.agr-logo {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -28px;
+  margin-bottom: 10px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--blanco);
+  border: 3px solid var(--blanco);
+  box-shadow: var(--sombra);
+  color: var(--acento);
+  @include display(800);
+  font-size: 1.4rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 }
 

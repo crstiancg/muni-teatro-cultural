@@ -122,14 +122,12 @@ const props = defineProps({
 })
 const emit = defineEmits(['save'])
 
+// primaria, secundaria, maestría y doctorado ya no se ofrecen (los registros
+// viejos con esos valores se siguen mostrando: ver CurriculumVitaeList)
 const opcionesTipo = [
-  { label: 'Primaria', value: 'primaria' },
-  { label: 'Secundaria', value: 'secundaria' },
   { label: 'Técnica Básica (1 a 2 años)', value: 'tecnica_basica' },
   { label: 'Técnica Superior (3 a más años)', value: 'tecnica_superior' },
   { label: 'Universitaria', value: 'universitaria' },
-  { label: 'Maestría', value: 'maestria' },
-  { label: 'Doctorado', value: 'doctorado' },
 ]
 
 const opcionesNivelAlcanzado = [

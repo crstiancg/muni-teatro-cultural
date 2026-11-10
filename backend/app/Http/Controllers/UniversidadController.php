@@ -2,11 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
 use App\Models\Universidad;
 use Illuminate\Http\Request;
 
-class UniversidadController extends Controller
+class UniversidadController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return static::permisos('universidades');
+    }
+
     /**
      * Display a listing of the resource.
      */
