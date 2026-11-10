@@ -21,8 +21,9 @@
         </p>
 
         <h1 class="portada-titulo">
-          Conoce a quienes<br />
-          <em>hacen la fiesta</em>
+          Detrás de cada expresión
+           <br />
+          <em>hay una historia</em>
         </h1>
 
         <p class="portada-bajada">
@@ -238,8 +239,8 @@
 
           <div class="head-lado">
             <p class="subtitulo">
-              La cultura de Puno vive en su gente Reconocemos, conectamos y
-              fortalecemos a quienes hacen de nuestra cultura una expresión viva de identidad, memoria y futuro.
+              La cultura de Puno se construye desde la diversidad de sus expresiones,
+               que preservan nuestras tradiciones, impulsan la creatividad y mantienen viva nuestra identidad.
             </p>
             <p class="head-dato">
               <strong>{{ grupos.length || 8 }}</strong> disciplinas
@@ -398,21 +399,20 @@
           <p class="kicker">Febrero en {{ INSTITUCION.ciudad }}</p>
           <h2>LA CULTURA DE  <em>PUNO VIVE EN SU GENTE</em> </h2>
           <p class="parrafo">
-            El consejo provincial de cultura de puno es una organización sin fines de lucro, que de la mano con la Gerencia de Cultura y Turismo, tiene el objetivo de reconocer, conectar y fortalecer a quienes hacen de nuestra cultura una expresión viva de identidad, memoria y futuro
-          </p>
+           El Consejo Provincial de Cultura de Puno, instituido mediante la Ordenanza Municipal N.º 010-2019-C/MPP, del 25 de abril de 2019, constituye un espacio de representación y participación de los agentes culturales de la provincia de puno y de la mano con la gerencia de cultura y turismo tienen el objetiovo de reconocer, conectar y fortalecer a quienes hacen de nuestra cultura una exprecion viva de identidad , memoria y futuro. agregar un boton          </p>
 
           <dl class="datos">
             <div>
-              <dt>2010</dt>
-              <dd>Declaratoria UNESCO</dd>
+              <dt>2019</dt>
+              <dd>Se creo el consejo provincial de cultura</dd>
             </div>
             <div>
-              <dt>+200</dt>
-              <dd>Conjuntos en la parada</dd>
+              <dt>+400</dt>
+              <dd>Ajentes Culturales</dd>
             </div>
             <div>
-              <dt>18</dt>
-              <dd>Días de festividad</dd>
+              <dt>25 </dt>
+              <dd>De Abril se creo la ordenza municipal</dd>
             </div>
           </dl>
 
