@@ -20,6 +20,8 @@ export default defineRouter((/* { store, ssrContext } */) => {
     scrollBehavior: (to, from, savedPosition) => {
       if (to.hash) return { el: to.hash, top: 80, behavior: 'smooth' }
       if (savedPosition) return savedPosition
+      // misma página y solo cambió la query (filtros, mes, ?evento=): no saltar arriba
+      if (to.path === from.path) return false
       return { left: 0, top: 0 }
     },
     routes,
