@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Persona;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StorePersonaRequest extends FormRequest
@@ -27,6 +28,9 @@ class StorePersonaRequest extends FormRequest
             'persona.correo' => 'required|email|unique:personas,correo,' . $personaId . '|unique:users,email,' . $userId,
             'persona.genero' => 'nullable|in:masculino,femenino,sin especificar',
             'persona.estado_civil' => 'nullable|in:soltero,casado,divorciado,viudo',
+            // el admin lo puede cargar pero no es obligatorio: lo completa la persona
+            'persona.flag_discapacidad' => 'nullable|boolean',
+            'persona.tipo_discapacidad' => 'nullable|in:' . implode(',', Persona::TIPOS_DISCAPACIDAD),
             'persona.fecha_nacimiento' => 'nullable|date',
             'persona.direccion' => 'nullable|string',
             'persona.celular' => 'nullable|digits:9',

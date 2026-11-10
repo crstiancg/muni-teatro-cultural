@@ -24,6 +24,7 @@ class MiInformacionController extends Controller
         'celular_emergencia', 'correo', 'ubigeo_cod_nacimiento', 'ubigeo_cod_residencia',
         'codigo_comision', 'codigo_comision_alternativo',
         'flag_celular_publico', 'flag_correo_publico',
+        'flag_discapacidad', 'tipo_discapacidad',
     ];
 
     private const CAMPOS_FORMACION = [
@@ -45,6 +46,8 @@ class MiInformacionController extends Controller
             'persona' => $persona,
             // la clave inicial es el DNI: el dashboard recomienda cambiarla mientras lo siga siendo
             'password_es_dni' => $persona && Hash::check($persona->dni, $usuario->password),
+            // mientras sea false, el panel le muestra el pop up de "Mi información" sin poder cerrarlo
+            'datos_completos' => $persona?->datosPersonalesCompletos() ?? true,
             // checklist del dashboard del artista
             'requisitos' => $persona?->requisitosPerfil() ?? [],
             'visitas' => $persona?->resumenVisitas(),

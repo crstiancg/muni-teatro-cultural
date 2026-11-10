@@ -1,5 +1,5 @@
 <template>
-  <q-page class="privacidad-page">
+  <q-page class="privacidad-page publico">
     <header class="cabecera">
       <div class="contenedor">
         <p class="kicker">Protección de datos personales</p>
@@ -28,6 +28,12 @@
             <strong>Artistas y agentes culturales registrados:</strong> DNI, nombres y apellidos, fecha de
             nacimiento, género, estado civil, dirección, ubigeo, celular, correo, comisión, foto, biografía,
             redes sociales, formación académica, capacitaciones y actividades.
+          </li>
+          <li>
+            <strong>Dato sensible:</strong> si el artista tiene alguna discapacidad y de qué tipo. Lo declara la
+            propia persona, se usa solo para fines estadísticos y para garantizar la accesibilidad en las
+            actividades de la municipalidad, lo ven únicamente la persona y los administradores, y nunca se
+            publica en el portal.
           </li>
           <li>
             <strong>Integrantes de agrupaciones:</strong> DNI, nombres, apellidos y rol dentro de la

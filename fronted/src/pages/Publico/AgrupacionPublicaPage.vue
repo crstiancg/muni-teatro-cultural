@@ -1,5 +1,5 @@
 <template>
-  <q-page class="agrupacion-page">
+  <q-page class="agrupacion-page publico">
     <div v-if="cargando" class="estado-carga">Cargando…</div>
     <div v-else-if="!agrupacion" class="estado-carga">
       No se encontró esta agrupación.

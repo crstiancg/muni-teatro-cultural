@@ -10,6 +10,8 @@ const formPersona = {
     correo_original: '',
     genero: null,
     estado_civil: null,
+    flag_discapacidad: null,
+    tipo_discapacidad: null,
     fecha_nacimiento: '',
     celular: '',
     celular_emergencia: '',

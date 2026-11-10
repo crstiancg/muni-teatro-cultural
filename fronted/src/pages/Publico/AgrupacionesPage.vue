@@ -1,5 +1,5 @@
 <template>
-  <q-page class="agrupaciones-page">
+  <q-page class="agrupaciones-page publico">
     <header class="cabecera">
       <div class="contenedor">
         <p class="kicker">Registro cultural</p>

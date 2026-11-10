@@ -194,8 +194,11 @@
           <div class="text-subtitle1 text-weight-bold q-mb-xs">Información Personal</div>
           <div class="text-caption text-grey-6 q-mb-md">
             <q-icon name="info" size="14px" class="q-mr-xs" />
-            Revisa y completa tus datos. Puedes cerrar esta ventana sin guardar y te la volvemos a
-            mostrar la próxima vez que ingreses.
+            <template v-if="obligatorio">
+              Para continuar tienes que completar tus datos personales. Los campos con * son
+              obligatorios.
+            </template>
+            <template v-else>Revisa y mantén tus datos al día. Los campos con * son obligatorios.</template>
           </div>
 
           <div class="row q-col-gutter-sm">
@@ -303,8 +306,10 @@
                 map-options
                 v-model="form.persona.genero"
                 :options="opcionesGenero"
-                label="Género"
+                label="Género *"
                 clearable
+                :error="form.invalid('persona.genero')"
+                :error-message="form.errors['persona.genero']"
               />
             </div>
 
@@ -316,8 +321,20 @@
                 map-options
                 v-model="form.persona.estado_civil"
                 :options="opcionesEstadoCivil"
-                label="Estado civil"
+                label="Estado civil *"
                 clearable
+                :error="form.invalid('persona.estado_civil')"
+                :error-message="form.errors['persona.estado_civil']"
+              />
+            </div>
+
+            <div class="col-12 col-md-8">
+              <DiscapacidadInput
+                v-model:tiene="form.persona.flag_discapacidad"
+                v-model:tipo="form.persona.tipo_discapacidad"
+                obligatorio
+                :error-tiene="form.errors['persona.flag_discapacidad']"
+                :error-tipo="form.errors['persona.tipo_discapacidad']"
               />
             </div>
 
@@ -327,7 +344,10 @@
                 outlined
                 v-model="form.persona.fecha_nacimiento"
                 type="date"
-                label="Fecha de nacimiento"
+                label="Fecha de nacimiento *"
+                stack-label
+                :error="form.invalid('persona.fecha_nacimiento')"
+                :error-message="form.errors['persona.fecha_nacimiento']"
               />
             </div>
 
@@ -336,8 +356,10 @@
                 dense
                 outlined
                 v-model="form.persona.celular"
-                label="Celular"
+                label="Celular *"
                 maxlength="9"
+                :error="form.invalid('persona.celular')"
+                :error-message="form.errors['persona.celular']"
               />
               <q-checkbox
                 v-model="form.persona.flag_celular_publico"
@@ -353,33 +375,57 @@
                 dense
                 outlined
                 v-model="form.persona.celular_emergencia"
-                label="Celular de emergencia"
+                label="Celular de emergencia *"
                 maxlength="9"
+                :error="form.invalid('persona.celular_emergencia')"
+                :error-message="form.errors['persona.celular_emergencia']"
               />
             </div>
 
             <div class="col-12 col-md-4">
-              <q-input dense outlined v-model="form.persona.direccion" label="Dirección" />
+              <q-input
+                dense
+                outlined
+                v-model="form.persona.direccion"
+                label="Dirección *"
+                :error="form.invalid('persona.direccion')"
+                :error-message="form.errors['persona.direccion']"
+              />
             </div>
 
             <div class="col-12">
-              <div class="text-caption text-grey-7 q-mb-xs">Lugar de nacimiento</div>
+              <div class="text-caption text-grey-7 q-mb-xs">Lugar de nacimiento *</div>
               <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_nacimiento" />
+              <div v-if="form.invalid('persona.ubigeo_cod_nacimiento')" class="text-negative text-caption">
+                {{ form.errors['persona.ubigeo_cod_nacimiento'] }}
+              </div>
             </div>
 
             <div class="col-12">
-              <div class="text-caption text-grey-7 q-mb-xs">Lugar de residencia</div>
+              <div class="text-caption text-grey-7 q-mb-xs">Lugar de residencia *</div>
               <UbigeoCascadeSelect v-model="form.persona.ubigeo_cod_residencia" />
+              <div v-if="form.invalid('persona.ubigeo_cod_residencia')" class="text-negative text-caption">
+                {{ form.errors['persona.ubigeo_cod_residencia'] }}
+              </div>
             </div>
 
             <div class="col-12">
-              <div class="text-caption text-grey-7 q-mb-xs">Comisión</div>
+              <div class="text-caption text-grey-7 q-mb-xs">Comisión *</div>
               <ComisionCascadeSelect v-model="form.persona.codigo_comision" />
+              <div v-if="form.invalid('persona.codigo_comision')" class="text-negative text-caption">
+                {{ form.errors['persona.codigo_comision'] }}
+              </div>
             </div>
 
             <div class="col-12">
-              <div class="text-caption text-grey-7 q-mb-xs">Comisión alternativa</div>
+              <div class="text-caption text-grey-7 q-mb-xs">Comisión alternativa (opcional)</div>
               <ComisionCascadeSelect v-model="form.persona.codigo_comision_alternativo" />
+              <div
+                v-if="form.invalid('persona.codigo_comision_alternativo')"
+                class="text-negative text-caption"
+              >
+                {{ form.errors['persona.codigo_comision_alternativo'] }}
+              </div>
             </div>
 
             <div class="col-12" align="right">
@@ -405,6 +451,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
+import DiscapacidadInput from '@/components/DiscapacidadInput.vue'
 import FotoPerfilUploader from '@/components/FotoPerfilUploader.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 import formPerfil, { formUsuarioPerfil, formPasswordPerfil } from './FormPerfil'
@@ -416,6 +463,8 @@ const props = defineProps({
   dataInicial: { type: Object, default: null },
   // en el recordatorio de login no queremos mostrar el cambio de contraseña
   mostrarPassword: { type: Boolean, default: true },
+  // pop up de login con datos incompletos: no se puede cerrar hasta guardar
+  obligatorio: { type: Boolean, default: false },
 })
 const cargando = ref(!props.dataInicial)
 const tienePersona = ref(false)
@@ -572,6 +621,8 @@ function hidratar({ usuario, persona }) {
       correo_modificado: false,
       genero: persona.genero,
       estado_civil: persona.estado_civil,
+      flag_discapacidad: persona.flag_discapacidad,
+      tipo_discapacidad: persona.tipo_discapacidad,
       fecha_nacimiento: persona.fecha_nacimiento,
       celular: persona.celular,
       flag_celular_publico: persona.flag_celular_publico ? 1 : 0,

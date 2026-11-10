@@ -175,6 +175,8 @@ async function abrirEditar() {
       fecha_nacimiento: persona.value.fecha_nacimiento,
       direccion: persona.value.direccion,
       estado_civil: persona.value.estado_civil,
+      flag_discapacidad: persona.value.flag_discapacidad,
+      tipo_discapacidad: persona.value.tipo_discapacidad,
       celular: persona.value.celular,
       celular_emergencia: persona.value.celular_emergencia,
       correo: persona.value.correo,

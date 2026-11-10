@@ -11,6 +11,7 @@ import {
   School,
   BookOpen,
   UsersRound,
+  CalendarDays,
 } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 
@@ -59,6 +60,13 @@ export function useMenu() {
       routeName: 'AgrupacionesAdmin',
       icon: UsersRound,
       permission: 'admin-agrupaciones-index',
+    },
+    {
+      type: 'item',
+      label: 'Agenda cultural',
+      routeName: 'EventosAdmin',
+      icon: CalendarDays,
+      permission: 'admin-eventos-index',
     },
     {
       type: 'item',

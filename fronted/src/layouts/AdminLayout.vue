@@ -107,8 +107,13 @@
       </router-view>
     </q-page-container>
 
-    <q-dialog v-model="mostrarMiInformacion">
-      <MiInformacionDialog :data-inicial="miInformacion" />
+    <!-- persistent + sin Cerrar: con datos incompletos solo se sale guardando -->
+    <q-dialog v-model="mostrarMiInformacion" persistent>
+      <MiInformacionDialog
+        :data-inicial="miInformacion"
+        obligatorio
+        @save="mostrarMiInformacion = false"
+      />
     </q-dialog>
   </q-layout>
 </template>
@@ -161,12 +166,12 @@ onMounted(async () => {
   // para que un permiso dado o quitado se aplique sin cerrar sesión
   userStore.getUser().catch(() => {})
 
-  // se muestra siempre al loguearse (montar el layout admin) si el usuario
-  // tiene una ficha de persona vinculada; si es un admin sin persona, no sale
-  // el recordatorio es opcional: si falla la consulta, el panel igual se usa
+  // sale al montar el panel solo si la persona tiene datos personales sin
+  // completar (el admin la pudo registrar con lo mínimo, p. ej. sin comisión).
+  // Un admin sin ficha de persona nunca lo ve. Si falla la consulta, el panel igual se usa.
   try {
     const datos = await MiInformacionService.get()
-    if (datos?.persona) {
+    if (datos?.persona && datos.datos_completos === false) {
       miInformacion.value = datos
       mostrarMiInformacion.value = true
     }

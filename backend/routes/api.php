@@ -13,6 +13,8 @@ use App\Http\Controllers\MisAgrupacionesController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventoController;
+use App\Http\Controllers\EventoPublicoController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\PersonaController;
@@ -43,6 +45,10 @@ Route::get('publico/consejeros/destacadas', [PersonaPublicaController::class, 'a
 Route::get('publico/consejeros/{persona:slug}', [PersonaPublicaController::class, 'show']);
 Route::get('publico/agrupaciones', [AgrupacionPublicaController::class, 'index']);
 Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaController::class, 'show']);
+// agenda cultural: siempre por rango de fechas (de a un mes), nunca la tabla entera
+Route::get('publico/eventos', [EventoPublicoController::class, 'index'])->middleware('throttle:60,1');
+Route::get('publico/eventos/proximos', [EventoPublicoController::class, 'proximos']);
+Route::get('publico/eventos/{id}', [EventoPublicoController::class, 'show'])->whereNumber('id');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user = $request->user();
@@ -78,6 +84,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('familias', [ComisionController::class, 'storeFamilia'])->middleware([HandlePrecognitiveRequests::class]);
     Route::put('comisiones/{comision}', [ComisionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
     Route::delete('comisiones/{comision}', [ComisionController::class, 'destroy']);
+
+    // agenda cultural (panel). Alta y edición por POST: llevan imagen (multipart)
+    Route::get('eventos', [EventoController::class, 'index']);
+    Route::get('eventos/{evento}', [EventoController::class, 'show']);
+    Route::post('eventos', [EventoController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::post('eventos/{evento}', [EventoController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('eventos/{evento}/cancelar', [EventoController::class, 'cancelar']);
+    Route::delete('eventos/{evento}', [EventoController::class, 'destroy']);
 
     Route::get('mi-informacion', [MiInformacionController::class, 'show']);
     Route::put('mi-informacion', [MiInformacionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
