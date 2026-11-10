@@ -142,6 +142,16 @@
             />
           </div>
 
+          <!-- opcional para el admin: si lo deja vacío, se lo pide a la persona al ingresar -->
+          <div class="col-12 col-md-8">
+            <DiscapacidadInput
+              v-model:tiene="form.persona.flag_discapacidad"
+              v-model:tipo="form.persona.tipo_discapacidad"
+              :error-tiene="form.errors['persona.flag_discapacidad']"
+              :error-tipo="form.errors['persona.tipo_discapacidad']"
+            />
+          </div>
+
           <div class="col-12 col-md-4">
             <q-input
               dense
@@ -217,6 +227,7 @@
 import { useForm } from 'laravel-precognition-vue'
 import UbigeoCascadeSelect from '@/components/UbigeoCascadeSelect.vue'
 import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
+import DiscapacidadInput from '@/components/DiscapacidadInput.vue'
 import formPersona from './FormPersona'
 import { ref } from 'vue'
 import ConsultaDniService from '@/services/ConsultaDniService'

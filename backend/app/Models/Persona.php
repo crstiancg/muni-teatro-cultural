@@ -46,12 +46,44 @@ class Persona extends Model
         'revisado_en',
         'flag_celular_publico',
         'flag_correo_publico',
+        'flag_discapacidad',
+        'tipo_discapacidad',
     ];
 
     public const REDES = ['facebook', 'instagram', 'tiktok', 'youtube', 'web'];
 
     // numeros privados: al publico solo viaja si los tiene (tiene_ruc, etc.), nunca el numero
     public const REGISTROS = ['ruc', 'rnp', 'rna', 'rentoca'];
+
+    // El admin puede registrar a alguien con lo mínimo; estos datos los tiene
+    // que completar la persona misma (StoreMiInformacionRequest los exige y el
+    // panel le muestra el pop up obligatorio mientras falte alguno).
+    // La comisión alternativa queda afuera a propósito: es opcional.
+    public const DATOS_OBLIGATORIOS = [
+        'dni', 'nombre', 'apellido_paterno', 'apellido_materno', 'correo',
+        'genero', 'estado_civil', 'fecha_nacimiento', 'celular', 'celular_emergencia',
+        'direccion', 'ubigeo_cod_nacimiento', 'ubigeo_cod_residencia', 'codigo_comision',
+        'flag_discapacidad',
+    ];
+
+    // Dato sensible (Ley 29733): NUNCA agregarlo a datosPublicos() ni a ninguna
+    // respuesta del portal. Las etiquetas para mostrar viven en el front.
+    public const TIPOS_DISCAPACIDAD = ['fisica', 'visual', 'auditiva', 'intelectual', 'psicosocial', 'multiple'];
+
+    public function datosPersonalesCompletos(): bool
+    {
+        // filled(false) es true: "no tengo discapacidad" cuenta como respondido
+        return collect(self::DATOS_OBLIGATORIOS)->every(fn ($campo) => filled($this->{$campo}))
+            && (! $this->flag_discapacidad || filled($this->tipo_discapacidad));
+    }
+
+    // si dejó de tener (o nunca tuvo) discapacidad, no queda un tipo colgado
+    public function normalizarDiscapacidad(): void
+    {
+        if (! $this->flag_discapacidad) {
+            $this->tipo_discapacidad = null;
+        }
+    }
 
     protected function casts(): array
     {
@@ -61,6 +93,7 @@ class Persona extends Model
             'revisado_en' => 'datetime',
             'flag_celular_publico' => 'boolean',
             'flag_correo_publico' => 'boolean',
+            'flag_discapacidad' => 'boolean',
         ];
     }
 
@@ -164,6 +197,9 @@ class Persona extends Model
         static::creating(function (Persona $persona) {
             $persona->slug ??= static::generarSlug($persona->nombre_completo);
         });
+
+        // en el modelo y no en cada controller: vale para el admin y para la persona
+        static::saving(fn (Persona $persona) => $persona->normalizarDiscapacidad());
 
         // si ya figuraba como integrante de alguna agrupación (cargado por su DNI),
         // al registrarse queda vinculado y en su perfil aparece "Integra: ..."

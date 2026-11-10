@@ -237,6 +237,8 @@ async function editar(id) {
       fecha_nacimiento: persona.fecha_nacimiento,
       direccion: persona.direccion,
       estado_civil: persona.estado_civil,
+      flag_discapacidad: persona.flag_discapacidad,
+      tipo_discapacidad: persona.tipo_discapacidad,
       celular: persona.celular,
       celular_emergencia: persona.celular_emergencia,
       correo: persona.correo,
