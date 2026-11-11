@@ -1,104 +1,39 @@
 <template>
   <q-layout view="lHh LpR fFf">
-    <q-header :style="headerStyle">
-      <q-toolbar>
-        <q-btn flat dense round icon="menu" @click="drawer = !drawer" />
-        <q-toolbar-title />
-        <AppClock class="q-mr-md" />
+    <q-header class="panel-cabecera">
+      <div class="panel-cabecera-fila">
+        <q-btn
+          flat
+          round
+          dense
+          class="panel-cabecera-boton"
+          :aria-label="drawer ? 'Ocultar menú' : 'Mostrar menú'"
+          @click="drawer = !drawer"
+        >
+          <PanelLeft :size="20" />
+        </q-btn>
+        <q-space />
         <NotificacionesBell />
-        <SwitchDarkMode />
-      </q-toolbar>
+        <MenuCuenta
+          :nombre="userStore.getName || 'Usuario'"
+          :correo="userStore.getEmail || ''"
+          :rol="userStore.getRole || ''"
+          :oscuro="$q.dark.isActive"
+          @cambiar-tema="cambiarTema"
+          @salir="logout"
+        />
+      </div>
     </q-header>
 
     <q-drawer
       v-model="drawer"
       show-if-above
       side="left"
-      :width="250"
+      :width="248"
       :breakpoint="1023"
-      bordered
-      :style="drawerStyle"
+      class="panel-cajon"
     >
-      <div class="absolute-top q-pa-none" style="height: 160px">
-        <q-item
-          :to="{ name: 'Dashboard' }"
-          clickable
-          v-ripple
-          class="text-white q-mx-sm"
-          style="border-radius: 10px"
-        >
-          <q-item-section avatar> 
-            <q-avatar rounded size="40px" color="secondary" text-color="white">
-              <q-icon name="theater_comedy" size="30px" />
-            </q-avatar>
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-white text-weight-bold text-h6"> CPC </q-item-label>
-          </q-item-section>
-        </q-item>
-
-        <q-item
-        :to="{ name: 'Perfil' }"
-        clickable
-        v-ripple
-        class="text-white q-ma-sm"
-        style="border-radius: 10px; border: 1px solid #ffffff50"
-        >
-        <q-item-section>
-          <q-item-label lines="2" class="text-weight-bold">
-            {{ userStore.getName || 'Usuario' }}
-          </q-item-label>
-          <q-item-label caption class="text-white text-weight-bold">
-            {{ userStore.getEmail || 'Correo' }} {{ userStore.getRole || 'Administrador' }}
-          </q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-avatar color="secondary" text-color="white">
-            {{ initialMayus }}
-          </q-avatar>
-        </q-item-section>
-      </q-item>
-      <q-separator spaced dark />
-      </div>
-
-      <q-scroll-area style="height: calc(100% - 165px - 80px); margin-top: 165px" class="q-mx-sm">
-        <q-list padding>
-          <template v-for="(entry, idx) in menu" :key="idx">
-            <MenuItem
-              v-if="entry.type === 'item'"
-              :label="entry.label"
-              :route-name="entry.routeName"
-              :icon="entry.icon"
-              :active-name="currentRouteName"
-            />
-            <MenuGroup
-              v-else
-              :label="entry.label"
-              :caption="entry.caption"
-              :icon="entry.icon"
-              :children="entry.children"
-              :active-name="currentRouteName"
-              :default-open="entry.defaultOpen"
-            />
-          </template>
-        </q-list>
-      </q-scroll-area>
-
-      <div class="absolute-bottom q-pa-xs">
-        <q-separator spaced dark />
-        <q-item
-          clickable
-          v-ripple
-          class="bg-red-10 text-white q-ma-sm"
-          style="border-radius: 10px"
-          @click="logout"
-        >
-          <q-item-section avatar>
-            <LogOut :size="20" color="white" />
-          </q-item-section>
-          <q-item-section class="text-weight-bold">CERRAR SESION</q-item-section>
-        </q-item>
-      </div>
+      <PanelLateral :secciones="secciones" :contadores="contadores" />
     </q-drawer>
 
     <q-page-container>
@@ -119,52 +54,82 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { PanelLeft } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 import { useMenu } from '@/composables/useMenu'
-import { LogOut } from 'lucide-vue-next'
-import MenuItem from '@/components/sidebar/MenuItem.vue'
-import MenuGroup from '@/components/sidebar/MenuGroup.vue'
-import AppClock from '@/components/AppClock.vue'
+import { useClasePanel } from '@/composables/useClasePanel'
+import PanelLateral from '@/components/panel/PanelLateral.vue'
+import MenuCuenta from '@/components/panel/MenuCuenta.vue'
 import NotificacionesBell from '@/components/NotificacionesBell.vue'
-import SwitchDarkMode from '@/components/SwitchDarkMode.vue'
 import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
 import MiInformacionService from '@/services/MiInformacionService'
+import PanelService from '@/services/PanelService'
 
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const { menu } = useMenu()
+const { secciones } = useMenu()
 
+const drawer = ref(false)
 const mostrarMiInformacion = ref(false)
 const miInformacion = ref(null)
 
-const drawer = ref(false)
-const currentRouteName = computed(() => route.name)
-const initialMayus = computed(() => userStore.getName?.charAt(0).toUpperCase() || '?')
+// ---------- identidad del panel ----------
+// body.panel activa los tokens de css/panel.scss (ver useClasePanel)
+useClasePanel()
 
-const headerStyle = computed(() => ({
-  backgroundColor: $q.dark.isActive ? '#1d1d1d' : '#fafafa',
-  color: $q.dark.isActive ? 'white' : 'black',
-}))
+// el tema se recuerda en este navegador (si el almacenamiento falla, queda claro)
+const CLAVE_TEMA = 'panel-tema'
+try {
+  $q.dark.set(localStorage.getItem(CLAVE_TEMA) === 'oscuro')
+} catch {
+  // sin preferencia guardada
+}
 
-const drawerStyle = computed(() => ({
-  backgroundColor: $q.dark.isActive ? '#1d1d1d' : 'var(--q-primary)',
-  color: 'white',
-}))
+function cambiarTema() {
+  const oscuro = !$q.dark.isActive
+  $q.dark.set(oscuro)
+  try {
+    localStorage.setItem(CLAVE_TEMA, oscuro ? 'oscuro' : 'claro')
+  } catch {
+    // no se recuerda, pero el cambio se aplica igual
+  }
+}
+
+// al salir del panel (al login o al portal) el sitio vuelve a su aspecto propio
+onBeforeUnmount(() => {
+  $q.dark.set(false)
+})
+
+// ---------- contadores del menú ----------
+const contadores = ref({})
+
+async function cargarContadores() {
+  try {
+    contadores.value = await PanelService.contadores()
+  } catch {
+    // sin contadores el menú se usa igual
+  }
+}
+
+// al navegar (p. ej. después de aprobar algo) se actualizan
+watch(() => route.name, cargarContadores)
 
 async function logout() {
   await userStore.logout()
-  router.push({ name: 'Login' })
+  // al cerrar sesión se vuelve a la portada pública
+  router.push({ name: 'Inicio' })
 }
 
 onMounted(async () => {
   // los permisos se guardan al loguearse; se refrescan en cada carga del panel
   // para que un permiso dado o quitado se aplique sin cerrar sesión
   userStore.getUser().catch(() => {})
+  cargarContadores()
 
   // sale al montar el panel solo si la persona tiene datos personales sin
   // completar (el admin la pudo registrar con lo mínimo, p. ej. sin comisión).
@@ -181,28 +146,27 @@ onMounted(async () => {
 })
 </script>
 
-<style lang="scss">
-.my-menu-link {
-  color: white;
-  background: var(--q-secondary) !important;
-  border-radius: 10px !important;
+<style>
+/* sin scope: q-header y q-drawer renderizan sus propios contenedores */
+body.panel .panel-cabecera {
+  background: var(--panel-fondo);
+  color: var(--panel-texto);
+  border-bottom: 1px solid var(--panel-borde);
 }
 
-.q-scrollarea__thumb--v {
-  width: 6px;
+body.panel .panel-cabecera-fila {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 56px;
+  padding: 0 clamp(8px, 2vw, 20px);
 }
 
-.q-drawer {
-  .q-expansion-item {
-    border-radius: 10px;
+body.panel .panel-cabecera-boton {
+  color: var(--panel-texto-suave);
+}
 
-    .q-item {
-      border-radius: 10px;
-    }
-  }
-
-  .q-item--clickable:hover {
-    border-radius: 10px;
-  }
+body.panel .panel-cajon {
+  background: var(--panel-lateral);
 }
 </style>

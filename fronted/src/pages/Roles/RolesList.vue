@@ -103,8 +103,8 @@ import RolesForm from '@/pages/Roles/RolesForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'Id', aling: 'center', field: (row) => row.id, sortable: true },
-  { name: 'name', label: 'Nombre', aling: 'center', field: (row) => row.name, sortable: true },
+  { name: 'id', label: 'Id', align: 'left', field: (row) => row.id, sortable: true },
+  { name: 'name', label: 'Nombre', align: 'left', field: (row) => row.name, sortable: true },
 ]
 
 const tableRef = ref()

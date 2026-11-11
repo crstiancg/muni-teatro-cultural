@@ -12,136 +12,125 @@ import {
   BookOpen,
   UsersRound,
   CalendarDays,
+  UserRound,
 } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
+
+// Menú lateral del panel, agrupado por secciones. Cada ítem puede llevar:
+//   permission  → solo se muestra con ese permiso
+//   hideForRole → se oculta para ese rol (las secciones del artista no son del admin)
+//   contador    → clave de /api/panel/contadores: cuántos pendientes hay en la sección
+// Una sección sin ítems visibles no se muestra.
+const SECCIONES = [
+  {
+    titulo: null,
+    items: [{ label: 'Inicio', routeName: 'Dashboard', icon: LayoutDashboard }],
+  },
+  {
+    titulo: 'Mi espacio',
+    items: [
+      // el admin llega a su perfil desde el menú de la cuenta (avatar)
+      { label: 'Mi perfil', routeName: 'Perfil', icon: UserRound, hideForRole: 'Administrador' },
+      {
+        label: 'Curriculum Vitae',
+        routeName: 'CurriculumVitae',
+        icon: GraduationCap,
+        hideForRole: 'Administrador',
+      },
+      {
+        label: 'Mis agrupaciones',
+        routeName: 'MisAgrupaciones',
+        icon: UsersRound,
+        hideForRole: 'Administrador',
+      },
+      {
+        label: 'Mis eventos',
+        routeName: 'MisEventos',
+        icon: CalendarDays,
+        hideForRole: 'Administrador',
+      },
+    ],
+  },
+  {
+    titulo: 'Gestión',
+    items: [
+      {
+        label: 'Personas',
+        routeName: 'Personas',
+        icon: Contact,
+        permission: 'admin-personas-index',
+        contador: 'personas',
+      },
+      {
+        label: 'Agrupaciones',
+        routeName: 'AgrupacionesAdmin',
+        icon: UsersRound,
+        permission: 'admin-agrupaciones-index',
+        contador: 'agrupaciones',
+      },
+      {
+        label: 'Agenda cultural',
+        routeName: 'EventosAdmin',
+        icon: CalendarDays,
+        permission: 'admin-eventos-index',
+        contador: 'eventos',
+      },
+    ],
+  },
+  {
+    titulo: 'Catálogos',
+    items: [
+      {
+        label: 'Comisiones',
+        routeName: 'Comisiones',
+        icon: FolderTree,
+        permission: 'admin-comisiones-index',
+      },
+      {
+        label: 'Profesiones',
+        routeName: 'Profesiones',
+        icon: Briefcase,
+        permission: 'admin-profesiones-index',
+      },
+      {
+        label: 'Universidades',
+        routeName: 'Universidades',
+        icon: School,
+        permission: 'admin-universidades-index',
+      },
+      {
+        label: 'Carreras',
+        routeName: 'Carreras',
+        icon: BookOpen,
+        permission: 'admin-carreras-index',
+      },
+    ],
+  },
+  {
+    titulo: 'Accesos',
+    items: [
+      { label: 'Usuarios', routeName: 'Usuarios', icon: Users, permission: 'admin-usuarios-index' },
+      { label: 'Roles', routeName: 'Roles', icon: Shield, permission: 'admin-roles-index' },
+      {
+        label: 'Permisos',
+        routeName: 'Permisos',
+        icon: KeyRound,
+        permission: 'admin-permisos-index',
+      },
+    ],
+  },
+]
 
 export function useMenu() {
   const auth = useUserStore()
 
-  const menuItems = [
-    {
-      type: 'item',
-      label: 'Dashboard',
-      routeName: 'Dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      type: 'item',
-      label: 'Curriculum Vitae',
-      routeName: 'CurriculumVitae',
-      icon: GraduationCap,
-      // secciones del artista: el admin gestiona, no tiene CV ni agrupaciones propias
-      hideForRole: 'Administrador',
-    },
-    {
-      type: 'item',
-      label: 'Mis agrupaciones',
-      routeName: 'MisAgrupaciones',
-      icon: UsersRound,
-      hideForRole: 'Administrador',
-    },
-    {
-      type: 'item',
-      label: 'Mi perfil',
-      routeName: 'Perfil',
-      icon: UsersRound,
-      // secciones del artista: el admin gestiona, no tiene CV ni agrupaciones propias
-    },
-    {
-      type: 'item',
-      label: 'Personas',
-      routeName: 'Personas',
-      icon: Contact,
-      permission: 'admin-personas-index',
-    },
-    {
-      type: 'item',
-      label: 'Agrupaciones',
-      routeName: 'AgrupacionesAdmin',
-      icon: UsersRound,
-      permission: 'admin-agrupaciones-index',
-    },
-    {
-      type: 'item',
-      label: 'Agenda cultural',
-      routeName: 'EventosAdmin',
-      icon: CalendarDays,
-      permission: 'admin-eventos-index',
-    },
-    {
-      type: 'item',
-      label: 'Comisiones',
-      routeName: 'Comisiones',
-      icon: FolderTree,
-      permission: 'admin-comisiones-index',
-    },
-    {
-      type: 'item',
-      label: 'Profesiones',
-      routeName: 'Profesiones',
-      icon: Briefcase,
-      permission: 'admin-profesiones-index',
-    },
-    {
-      type: 'item',
-      label: 'Universidades',
-      routeName: 'Universidades',
-      icon: School,
-      permission: 'admin-universidades-index',
-    },
-    {
-      type: 'item',
-      label: 'Carreras',
-      routeName: 'Carreras',
-      icon: BookOpen,
-      permission: 'admin-carreras-index',
-    },
-    {
-      type: 'group',
-      label: 'Administración',
-      caption: 'Usuarios y accesos',
-      icon: Shield,
-      children: [
-        {
-          type: 'item',
-          label: 'Usuarios',
-          routeName: 'Usuarios',
-          icon: Users,
-          permission: 'admin-usuarios-index',
-        },
-        {
-          type: 'item',
-          label: 'Roles',
-          routeName: 'Roles',
-          icon: Shield,
-          permission: 'admin-roles-index',
-        },
-        {
-          type: 'item',
-          label: 'Permisos',
-          routeName: 'Permisos',
-          icon: KeyRound,
-          permission: 'admin-permisos-index',
-        },
-      ],
-    },
-  ]
+  const visible = (item) =>
+    (!item.permission || auth.hasPermission(item.permission)) &&
+    !(item.hideForRole && auth.roles?.includes(item.hideForRole))
 
-  function filterItem(item) {
-    if (item.permission && !auth.hasPermission(item.permission)) return null
-    if (item.role && !auth.roles?.includes(item.role)) return null
-    if (item.hideForRole && auth.roles?.includes(item.hideForRole)) return null
+  const secciones = computed(() =>
+    SECCIONES.map((s) => ({ ...s, items: s.items.filter(visible) })).filter((s) => s.items.length),
+  )
 
-    if (item.type === 'group') {
-      const visibleChildren = (item.children || []).map(filterItem).filter(Boolean)
-      if (visibleChildren.length === 0) return null
-      return { ...item, children: visibleChildren }
-    }
-
-    return item
-  }
-
-  const menu = computed(() => menuItems.map(filterItem).filter(Boolean))
-
-  return { menu }
+  return { secciones }
 }

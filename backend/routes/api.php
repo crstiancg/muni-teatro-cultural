@@ -11,6 +11,7 @@ use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\MisAgrupacionesController;
 use App\Http\Controllers\MisEventosController;
+use App\Http\Controllers\PanelController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
@@ -160,6 +161,9 @@ Route::middleware('auth:api')->group(function () {
     Route::get('consulta-dni/{dni}', [ConsultaDniController::class, 'show'])
         ->where('dni', '[0-9]{8}')
         ->middleware('throttle:30,1');
+
+    // cáscara del panel: contadores de pendientes del menú lateral
+    Route::get('panel/contadores', [PanelController::class, 'contadores']);
 
     Route::get('notificaciones', [NotificacionController::class, 'index']);
     Route::put('notificaciones/leer-todas', [NotificacionController::class, 'leerTodas']);

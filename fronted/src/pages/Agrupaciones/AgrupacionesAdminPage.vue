@@ -3,7 +3,9 @@
     <div class="q-pa-md q-gutter-sm">
       <q-breadcrumbs>
         <q-breadcrumbs-el><Home size="16" /></q-breadcrumbs-el>
-        <q-breadcrumbs-el label="Agrupaciones"><UsersRound size="16" class="q-ml-xs" /></q-breadcrumbs-el>
+        <q-breadcrumbs-el label="Agrupaciones"
+          ><UsersRound size="16" class="q-ml-xs"
+        /></q-breadcrumbs-el>
       </q-breadcrumbs>
     </div>
     <q-separator />
@@ -71,7 +73,9 @@
             </q-avatar>
             <div class="nombre-bloque">
               <div class="nombre">{{ a.nombre }}</div>
-              <div class="text-caption texto-secundario">{{ a.comision?.nombre || 'Sin comisión' }}</div>
+              <div class="text-caption texto-secundario">
+                {{ a.comision?.nombre || 'Sin comisión' }}
+              </div>
             </div>
           </div>
           <div class="celda">
@@ -87,7 +91,13 @@
             {{ hace(a.updated_at) }}
           </div>
           <div class="celda">
-            <q-chip dense square :color="estadoPerfil(a.estado).color" text-color="white" class="q-ma-none">
+            <q-chip
+              dense
+              square
+              :color="estadoPerfil(a.estado).color"
+              text-color="white"
+              class="q-ma-none"
+            >
               {{ estadoPerfil(a.estado).label }}
             </q-chip>
           </div>
@@ -110,7 +120,12 @@
       </q-card>
 
       <div v-if="ultimaPagina > 1" class="row justify-center q-mt-md">
-        <q-pagination v-model="pagina" :max="ultimaPagina" direction-links @update:model-value="cargar" />
+        <q-pagination
+          v-model="pagina"
+          :max="ultimaPagina"
+          direction-links
+          @update:model-value="cargar"
+        />
       </div>
     </div>
   </q-page>
@@ -237,8 +252,8 @@ onMounted(() => cargar(1))
 }
 
 .filtro.urgente:not(.activo) {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 1px #1976d2 inset;
+  border-color: var(--estado-revision);
+  box-shadow: 0 0 0 1px var(--estado-revision) inset;
 }
 
 .punto {
@@ -299,7 +314,7 @@ onMounted(() => cargar(1))
 
 /* lo que espera revisión se distingue de un vistazo */
 .item.pendiente {
-  box-shadow: inset 3px 0 0 #1976d2;
+  box-shadow: inset 3px 0 0 var(--estado-revision);
 }
 
 .agrupacion {
