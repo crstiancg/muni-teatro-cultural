@@ -57,7 +57,9 @@ class MiInformacionController extends Controller
     public function updateUsuario(StoreMiUsuarioRequest $request)
     {
         $usuario = $request->user();
-        $usuario->update(data_get($request, 'usuario'));
+        // solo lo validado (nombre y correo): con el request crudo se podía cambiar
+        // la contraseña salteando las validaciones de mi-password
+        $usuario->update(data_get($request->validated(), 'usuario'));
 
         return response()->json($usuario);
     }
