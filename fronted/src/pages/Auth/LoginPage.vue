@@ -1,33 +1,32 @@
 <template>
-  <q-layout>
-    <q-page-container>
-      <q-page class="page-full">
-        <LoginForm @logued="onLogued" />
-      </q-page>
-    </q-page-container>
-  </q-layout>
+  <q-page class="pagina-login">
+    <LoginForm @logued="onLogued" />
+  </q-page>
 </template>
 
 <script setup>
+import { useRoute, useRouter } from 'vue-router'
 import LoginForm from '@/pages/Auth/LoginForm.vue'
-import { useRouter } from 'vue-router'
 
+const route = useRoute()
 const router = useRouter()
 
+// si llegó redirigido desde una pantalla protegida, vuelve a ella
 const onLogued = () => {
-  router.push({ name: 'Dashboard' })
+  const destino = route.query.redirectTo
+  router.push(
+    // solo rutas internas: "//otro-sitio.com" también empieza con "/"
+    typeof destino === 'string' && destino.startsWith('/') && !destino.startsWith('//')
+      ? destino
+      : { name: 'Dashboard' },
+  )
 }
 </script>
 
 <style>
-.page-full {
+.pagina-login {
   min-height: 100vh !important;
   padding: 0 !important;
   display: flex;
-  background: #eef0f4;
-}
-
-body.body--dark .page-full {
-  background: #14161b;
 }
 </style>
