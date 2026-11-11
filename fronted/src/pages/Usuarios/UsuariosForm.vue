@@ -41,12 +41,15 @@
           </template>
         </q-input>
 
+        <!-- autocomplete off / new-password: sin esto Chrome rellena el email y la
+             contraseña de QUIEN está logueado al crear un usuario nuevo -->
         <q-input
           dense
           outlined
           v-model="form.email"
           label="Email *"
           type="email"
+          autocomplete="off"
           @change="form.validate('email')"
           :error="form.invalid('email')"
           :class="form.invalid('email') ? 'q-mb-sm' : ''"
@@ -64,6 +67,7 @@
           outlined
           v-model="form.password"
           :type="isPwd ? 'password' : 'text'"
+          autocomplete="new-password"
           :label="props.id ? 'Contraseña (dejar en blanco para no cambiar)' : 'Contraseña *'"
           @change="form.validate('password')"
           :error="form.invalid('password')"
