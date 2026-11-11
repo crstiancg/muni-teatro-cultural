@@ -6,206 +6,332 @@
   <q-page>
     <div class="q-pa-md q-gutter-sm">
       <q-breadcrumbs>
-        <q-breadcrumbs-el icon="home" />
-        <q-breadcrumbs-el label="Agenda cultural" icon="event" />
+        <q-breadcrumbs-el><Home size="16" /></q-breadcrumbs-el>
+        <q-breadcrumbs-el label="Agenda cultural" />
       </q-breadcrumbs>
     </div>
     <q-separator />
 
-    <div class="row items-center q-gutter-sm q-pa-sm">
-      <q-btn
-        outline
-        color="primary"
-        :disable="loading"
-        :label="$q.screen.lt.sm ? '' : 'Nuevo evento'"
-        icon-right="add"
-        @click="abrirCrear"
-      />
-      <q-btn
-        flat
-        no-caps
-        color="primary"
-        icon="open_in_new"
-        label="Ver agenda pública"
-        :to="{ name: 'AgendaPublica' }"
-        target="_blank"
-      />
-    </div>
+    <div class="pagina">
+      <header class="cabecera">
+        <div>
+          <h1 class="titulo">Agenda cultural</h1>
+          <p class="bajada">
+            Los eventos de la municipalidad y las propuestas de artistas y agrupaciones que pasan
+            por tu revisión.
+          </p>
+        </div>
+        <div class="cabecera-acciones">
+          <q-btn flat no-caps color="primary" :to="{ name: 'AgendaPublica' }" target="_blank">
+            <ExternalLink :size="16" class="q-mr-xs" /> Ver agenda pública
+          </q-btn>
+          <q-btn unelevated no-caps color="primary" class="btn-nuevo" @click="abrirCrear">
+            <Plus :size="18" class="q-mr-xs" /> Nuevo evento
+          </q-btn>
+        </div>
+      </header>
 
-    <q-card class="q-ma-sm" flat :bordered="!$q.dark.isActive">
-      <q-table
-        flat
-        :bordered="!$q.dark.isActive"
-        table-header-class="my-custom"
-        :rows-per-page-options="[10, 20, 50]"
-        class="my-sticky-header-table htable q-ma-sm"
-        title="EVENTOS"
-        ref="tableRef"
-        :rows="rows"
-        :columns="columns"
-        row-key="id"
-        v-model:pagination="pagination"
-        :loading="loading"
-        :filter="filter"
-        binary-state-sort
-        @request="onRequest"
-      >
-        <template v-slot:top-right>
-          <div class="row q-gutter-sm">
+      <!-- ---------- bandeja: lo que espera una decisión ---------- -->
+      <section v-if="puedeRevisar" class="bloque">
+        <q-skeleton v-if="cargandoPendientes" height="150px" class="rounded-borders" />
+
+        <template v-else-if="pendientes.length">
+          <h2 class="bloque-titulo">
+            Esperando tu revisión <span class="contador">{{ totalPendientes }}</span>
+          </h2>
+          <div class="bandeja">
+            <router-link
+              v-for="e in pendientes"
+              :key="e.id"
+              :to="{ name: 'EventoAdminDetalle', params: { id: e.id } }"
+              class="pendiente"
+            >
+              <div class="pendiente-afiche">
+                <img v-if="e.imagen_url" :src="e.imagen_url" alt="" loading="lazy" />
+                <ImageOff v-else :size="20" class="afiche-vacio" />
+              </div>
+              <div class="pendiente-cuerpo">
+                <div class="pendiente-quien">
+                  <component
+                    :is="e.organizador_tipo === 'agrupacion' ? UsersRound : User"
+                    :size="14"
+                  />
+                  <span class="ellipsis">{{ nombreOrganizador(e) }}</span>
+                </div>
+                <div class="pendiente-titulo">{{ e.titulo }}</div>
+                <div class="pendiente-cuando">
+                  {{ cuandoTexto(e).fecha }} · {{ cuandoTexto(e).horario }}
+                </div>
+                <div class="pendiente-pie">
+                  <span class="pendiente-enviado">Enviado {{ marcaTiempo(e.updated_at) }}</span>
+                  <span class="pendiente-revisar">Revisar <ArrowRight :size="15" /></span>
+                </div>
+              </div>
+            </router-link>
+          </div>
+          <div v-if="totalPendientes > pendientes.length" class="mas-pendientes">
+            Y {{ totalPendientes - pendientes.length }} más:
+            <q-btn
+              flat
+              dense
+              no-caps
+              color="primary"
+              label="ver todos los pendientes"
+              @click="verPendientes"
+            />
+          </div>
+        </template>
+
+        <div v-else class="al-dia">
+          <CircleCheck :size="18" /> Estás al día: no hay eventos esperando revisión.
+        </div>
+      </section>
+
+      <!-- ---------- todos los eventos ---------- -->
+      <section class="bloque">
+        <div class="barra">
+          <q-btn-toggle
+            v-model="cuando"
+            no-caps
+            unelevated
+            rounded
+            toggle-color="primary"
+            :options="[
+              { label: 'Próximos', value: 'proximos' },
+              { label: 'Anteriores', value: 'anteriores' },
+            ]"
+            class="toggle"
+            @update:model-value="recargarDesdeInicio"
+          />
+          <div class="filtros">
             <q-select
+              v-model="organizador"
+              dense
+              outlined
+              emit-value
+              map-options
+              :options="opcionesOrganizador"
+              class="filtro"
+              @update:model-value="recargarDesdeInicio"
+            />
+            <q-select
+              v-model="estado"
               dense
               outlined
               emit-value
               map-options
               clearable
-              v-model="estado"
-              :options="opcionesEstado"
+              :options="opcionesEstadoEvento"
               label="Estado"
-              style="min-width: 150px"
-              @update:model-value="recargar"
+              class="filtro"
+              @update:model-value="recargarDesdeInicio"
             />
-            <q-input dense outlined debounce="500" v-model="filter" placeholder="Buscar">
-              <template v-slot:append>
-                <q-icon name="search" />
-              </template>
+            <q-input
+              v-model="buscar"
+              dense
+              outlined
+              debounce="400"
+              placeholder="Buscar por título o lugar"
+              class="buscador"
+              @update:model-value="recargarDesdeInicio"
+            >
+              <template #prepend><Search :size="16" /></template>
             </q-input>
           </div>
-        </template>
+        </div>
 
-        <template v-slot:body-cell-estado="props">
-          <q-td :props="props">
-            <q-chip
-              dense
-              square
-              :color="colorEstado[props.row.estado]"
-              text-color="white"
-              :label="props.row.estado"
+        <q-card flat bordered class="lista">
+          <template v-if="cargando">
+            <div v-for="n in 4" :key="n" class="fila-esqueleto">
+              <q-skeleton type="rect" width="48px" height="56px" />
+              <q-skeleton type="rect" width="48px" height="64px" />
+              <div class="col">
+                <q-skeleton type="text" width="60%" /><q-skeleton type="text" width="35%" />
+              </div>
+            </div>
+          </template>
+
+          <div v-else-if="!eventos.length" class="vacio">
+            <CalendarSearch :size="28" class="vacio-icono" />
+            <div class="vacio-titulo">
+              {{ hayFiltros ? 'Ningún evento coincide con los filtros' : textoVacio }}
+            </div>
+            <q-btn
+              v-if="hayFiltros"
+              flat
+              no-caps
+              color="primary"
+              label="Quitar filtros"
+              @click="limpiarFiltros"
             />
-          </q-td>
-        </template>
+          </div>
 
-        <template v-slot:body-cell-acciones="props">
-          <q-td :props="props" auto-width>
-            <q-btn
-              size="sm"
-              text-color="cyan-8"
-              color="cyan-1"
-              outline
-              round
-              icon="edit"
-              class="q-mr-xs"
-              @click="editar(props.row.id)"
-            >
-              <q-tooltip>Editar</q-tooltip>
-            </q-btn>
-            <q-btn
-              v-if="props.row.estado !== 'cancelado'"
-              size="sm"
-              text-color="orange-9"
-              color="orange-1"
-              outline
-              round
-              icon="event_busy"
-              class="q-mr-xs"
-              @click="cancelar(props.row)"
-            >
-              <q-tooltip>Cancelar (deja de verse en el portal)</q-tooltip>
-            </q-btn>
-            <q-btn
-              size="sm"
-              text-color="red-13"
-              color="red-1"
-              outline
-              round
-              icon="delete"
-              @click="eliminar(props.row)"
-            >
-              <q-tooltip>Eliminar definitivamente</q-tooltip>
-            </q-btn>
-          </q-td>
-        </template>
-      </q-table>
-    </q-card>
+          <template v-else>
+            <FilaEventoAdmin
+              v-for="e in eventos"
+              :key="e.id"
+              :evento="e"
+              @editar="editar"
+              @cancelar="cancelar"
+              @eliminar="eliminar"
+            />
+          </template>
+        </q-card>
+
+        <div v-if="ultimaPagina > 1" class="paginacion">
+          <span class="paginacion-texto">{{ total }} eventos</span>
+          <q-pagination
+            v-model="pagina"
+            :max="ultimaPagina"
+            :max-pages="6"
+            direction-links
+            boundary-links
+            color="primary"
+            @update:model-value="cargar"
+          />
+        </div>
+      </section>
+    </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRoute } from 'vue-router'
+import {
+  Home,
+  Plus,
+  ExternalLink,
+  ImageOff,
+  User,
+  UsersRound,
+  ArrowRight,
+  CircleCheck,
+  Search,
+  CalendarSearch,
+} from 'lucide-vue-next'
 import EventoService from '@/services/EventoService'
 import EventoForm from '@/components/EventoForm.vue'
+import FilaEventoAdmin from '@/components/eventos/FilaEventoAdmin.vue'
 import { useNotify } from '@/composables/useNotify'
+import { useUserStore } from '@/stores/user-store'
+import { opcionesEstadoEvento } from '@/config/estadosEvento'
+import { cuandoTexto, marcaTiempo } from '@/utils/fechasAgenda'
 
 const $q = useQuasar()
+const route = useRoute()
+const auth = useUserStore()
 const { notifySuccess, notifyError } = useNotify()
 
-// "2026-11-14 20:00" → "sáb 14 nov 2026, 20:00"
-const formatoFecha = new Intl.DateTimeFormat('es-PE', {
-  weekday: 'short',
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-const mostrarFecha = (valor) => (valor ? formatoFecha.format(new Date(valor.replace(' ', 'T'))) : '')
+const puedeRevisar = computed(() => auth.hasPermission('admin-eventos-aprobar'))
 
-const columns = [
-  { name: 'fecha_inicio', label: 'Fecha', align: 'left', field: 'fecha_inicio', format: mostrarFecha, sortable: true },
-  { name: 'titulo', label: 'Título', align: 'left', field: 'titulo', sortable: true },
-  {
-    name: 'lugar',
-    label: 'Lugar',
-    align: 'left',
-    field: (row) => (row.modalidad === 'virtual' ? 'Virtual' : row.lugar),
-  },
-  { name: 'comision', label: 'Disciplina', align: 'left', field: (row) => row.comision?.nombre ?? '—' },
-  { name: 'estado', label: 'Estado', align: 'center', field: 'estado', sortable: true },
-  { name: 'acciones', label: 'Acciones', align: 'center', field: 'id' },
+const POR_PAGINA = 15
+const MAX_BANDEJA = 6
+
+const opcionesOrganizador = [
+  { label: 'Todos los organizadores', value: null },
+  { label: 'Municipalidad', value: 'municipalidad' },
+  { label: 'Artistas y agrupaciones', value: 'artistas' },
 ]
 
-const opcionesEstado = [
-  { label: 'Publicado', value: 'aprobado' },
-  { label: 'Pendiente', value: 'pendiente' },
-  { label: 'Observado', value: 'observado' },
-  { label: 'Cancelado', value: 'cancelado' },
-]
-const colorEstado = { aprobado: 'positive', pendiente: 'orange-8', observado: 'deep-orange', cancelado: 'grey-7' }
+// ---------- bandeja ----------
+const pendientes = ref([])
+const totalPendientes = ref(0)
+const cargandoPendientes = ref(true)
 
-const tableRef = ref()
-const rows = ref([])
-const filter = ref('')
-const estado = ref(null)
-const loading = ref(false)
-const pagination = ref({ sortBy: 'fecha_inicio', descending: true, page: 1, rowsPerPage: 10, rowsNumber: 10 })
-
-const mostrarForm = ref(false)
-const eventoEditando = ref(null)
-const formKey = ref(0)
-
-async function onRequest(props) {
-  const { page, rowsPerPage, sortBy, descending } = props.pagination
-  loading.value = true
+// los más urgentes primero: el evento que ocurre antes
+async function cargarPendientes() {
+  if (!puedeRevisar.value) return
   try {
-    const { data, total = 0 } = await EventoService.getData({
-      params: {
-        rowsPerPage,
-        page,
-        search: props.filter,
-        order_by: descending ? '-' + sortBy : sortBy,
-        estado: estado.value || undefined,
-      },
+    const r = await EventoService.getData({
+      params: { estado: 'pendiente', order_by: 'fecha_inicio', per_page: MAX_BANDEJA },
     })
-    rows.value.splice(0, rows.value.length, ...data)
-    pagination.value = { ...props.pagination, rowsNumber: total || data.length }
+    pendientes.value = r.data
+    totalPendientes.value = r.total
+  } catch {
+    pendientes.value = []
   } finally {
-    loading.value = false
+    cargandoPendientes.value = false
   }
 }
 
-const recargar = () => tableRef.value.requestServerInteraction()
+const nombreOrganizador = (e) =>
+  e.organizador_tipo === 'agrupacion' ? e.agrupacion?.nombre : e.persona?.nombre_completo
 
-onMounted(recargar)
+// ---------- listado ----------
+const eventos = ref([])
+const cargando = ref(true)
+const pagina = ref(1)
+const ultimaPagina = ref(1)
+const total = ref(0)
+
+const cuando = ref('proximos')
+const organizador = ref(null)
+// la campanita (versión anterior) mandaba ?estado=pendiente
+const estado = ref(route.query.estado || null)
+const buscar = ref('')
+
+const hayFiltros = computed(() => !!(organizador.value || estado.value || buscar.value))
+const textoVacio = computed(() =>
+  cuando.value === 'proximos' ? 'No hay eventos próximos' : 'No hay eventos anteriores',
+)
+
+async function cargar() {
+  cargando.value = true
+  try {
+    const r = await EventoService.getData({
+      params: {
+        cuando: cuando.value,
+        organizador: organizador.value || undefined,
+        estado: estado.value || undefined,
+        search: buscar.value || undefined,
+        per_page: POR_PAGINA,
+        page: pagina.value,
+      },
+    })
+    eventos.value = r.data
+    total.value = r.total
+    ultimaPagina.value = r.last_page
+  } catch (error) {
+    notifyError(error.response?.data?.message || 'No se pudieron cargar los eventos.')
+  } finally {
+    cargando.value = false
+  }
+}
+
+function recargarDesdeInicio() {
+  pagina.value = 1
+  cargar()
+}
+
+function limpiarFiltros() {
+  organizador.value = null
+  estado.value = null
+  buscar.value = ''
+  recargarDesdeInicio()
+}
+
+function verPendientes() {
+  estado.value = 'pendiente'
+  organizador.value = null
+  recargarDesdeInicio()
+}
+
+function recargarTodo() {
+  cargarPendientes()
+  cargar()
+}
+
+onMounted(cargar)
+// los permisos del usuario pueden llegar DESPUÉS de montar la página: si se
+// consultara solo en onMounted, la bandeja quedaría en "cargando" para siempre
+watch(puedeRevisar, (puede) => puede && cargarPendientes(), { immediate: true })
+
+// ---------- acciones ----------
+const mostrarForm = ref(false)
+const eventoEditando = ref(null)
+const formKey = ref(0)
 
 function abrirCrear() {
   eventoEditando.value = null
@@ -213,8 +339,8 @@ function abrirCrear() {
   mostrarForm.value = true
 }
 
-async function editar(id) {
-  eventoEditando.value = await EventoService.get(id)
+async function editar(evento) {
+  eventoEditando.value = await EventoService.get(evento.id)
   formKey.value++
   await nextTick()
   mostrarForm.value = true
@@ -222,7 +348,7 @@ async function editar(id) {
 
 function alGuardar() {
   mostrarForm.value = false
-  recargar()
+  recargarTodo()
   notifySuccess('Evento guardado.')
 }
 
@@ -236,7 +362,7 @@ function cancelar(evento) {
   }).onOk(async () => {
     try {
       await EventoService.cancelar(evento.id)
-      recargar()
+      recargarTodo()
       notifySuccess('Evento cancelado.')
     } catch (error) {
       notifyError(error.response?.data?.message || 'No se pudo cancelar el evento.')
@@ -254,7 +380,7 @@ function eliminar(evento) {
   }).onOk(async () => {
     try {
       await EventoService.delete(evento.id)
-      recargar()
+      recargarTodo()
       notifySuccess('Evento eliminado.')
     } catch (error) {
       notifyError(error.response?.data?.message || 'No se pudo eliminar el evento.')
@@ -262,3 +388,299 @@ function eliminar(evento) {
   })
 }
 </script>
+
+<style scoped>
+.pagina {
+  --azul: var(--panel-acento);
+  --superficie: var(--panel-superficie);
+  --borde: var(--panel-borde);
+  padding: 24px clamp(16px, 3vw, 40px) 48px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.titulo {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.bajada {
+  margin: 6px 0 0;
+  max-width: 64ch;
+  opacity: 0.7;
+}
+
+.cabecera-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-nuevo {
+  padding: 8px 18px;
+  border-radius: 10px;
+}
+
+.bloque {
+  margin-bottom: 32px;
+}
+
+.bloque-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+.contador {
+  /* el h2 hereda de Quasar line-height: 3.75rem: sin esto el número se cae */
+  line-height: 1;
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--panel-acento);
+  color: var(--panel-sobre-acento);
+  font-size: 0.8rem;
+}
+
+/* ---------- bandeja ---------- */
+.bandeja {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  gap: 12px;
+}
+
+.pendiente {
+  display: flex;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+.pendiente:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.pendiente:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 2px;
+}
+
+.pendiente-afiche {
+  flex: 0 0 78px;
+  aspect-ratio: 3 / 4;
+  border-radius: 8px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: rgba(128, 128, 128, 0.12);
+}
+
+.pendiente-afiche img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+}
+
+.afiche-vacio {
+  opacity: 0.4;
+}
+
+.pendiente-cuerpo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pendiente-quien {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.7;
+  min-width: 0;
+}
+
+.pendiente-titulo {
+  margin-top: 4px;
+  font-weight: 700;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.pendiente-cuando {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.pendiente-pie {
+  margin-top: auto;
+  padding-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pendiente-enviado {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.pendiente-revisar {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--azul);
+  white-space: nowrap;
+}
+
+.mas-pendientes {
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+.al-dia {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+  color: var(--estado-publicado-texto);
+  font-weight: 600;
+}
+
+/* ---------- listado ---------- */
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.toggle {
+  border: 1px solid var(--borde);
+  background: var(--superficie);
+}
+
+.filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filtro {
+  min-width: 200px;
+}
+
+.buscador {
+  min-width: 260px;
+}
+
+.lista {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.fila-esqueleto {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.fila-esqueleto + .fila-esqueleto {
+  border-top: 1px solid rgba(128, 128, 128, 0.18);
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.vacio-icono {
+  opacity: 0.45;
+}
+
+.vacio-titulo {
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.paginacion-texto {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+@media (max-width: 599px) {
+  .filtros,
+  .filtro,
+  .buscador {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .toggle {
+    width: 100%;
+  }
+
+  .toggle :deep(.q-btn) {
+    flex: 1;
+  }
+}
+</style>

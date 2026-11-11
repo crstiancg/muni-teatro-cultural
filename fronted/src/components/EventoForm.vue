@@ -1,7 +1,9 @@
 <template>
   <q-card :style="{ width: '100%', maxWidth: $q.screen.gt.sm ? '760px' : '100vw' }">
     <q-card-section class="row items-center">
-      <div class="text-h6">{{ props.item ? 'Editar' : 'Nuevo' }} evento</div>
+      <div class="text-h6">
+        {{ props.item ? 'Editar evento' : esArtista ? 'Proponer evento' : 'Nuevo evento' }}
+      </div>
       <q-space />
       <q-btn v-close-popup flat round dense size="sm" style="border-radius: 100% !important">
         <X size="16" />
@@ -11,7 +13,42 @@
 
     <q-form @submit.prevent="submit">
       <q-card-section>
+        <!-- el artista tiene que saber ANTES de guardar que esto pasa por revisión -->
+        <div
+          v-if="esArtista"
+          class="aviso"
+          :class="{ 'aviso--observado': props.item?.estado === 'observado' }"
+        >
+          <template v-if="props.item?.estado === 'observado'">
+            <strong>El administrador lo observó:</strong> {{ props.item.observacion }}
+            <div>Corrígelo y guarda: se vuelve a enviar a revisión.</div>
+          </template>
+          <template v-else-if="props.item?.estado === 'aprobado'">
+            Este evento ya está publicado. Si lo modificas, <strong>vuelve a revisión</strong> y
+            deja de verse en la agenda hasta que el administrador lo apruebe de nuevo.
+          </template>
+          <template v-else>
+            El administrador revisa cada evento antes de publicarlo en la agenda cultural. Te
+            avisaremos cuando lo apruebe u observe.
+          </template>
+        </div>
+
         <div class="row q-col-gutter-sm">
+          <!-- solo al crear: después el evento sigue siendo de quien lo propuso -->
+          <div v-if="esArtista && !props.item && props.agrupaciones.length" class="col-12">
+            <q-select
+              dense
+              outlined
+              emit-value
+              map-options
+              v-model="form.evento.agrupacion_id"
+              :options="opcionesOrganizador"
+              label="Organiza"
+              :error="form.invalid('evento.agrupacion_id')"
+              :error-message="form.errors['evento.agrupacion_id']"
+            />
+          </div>
+
           <div class="col-12">
             <q-input
               dense
@@ -105,7 +142,13 @@
           </div>
 
           <div class="col-12">
-            <div class="text-caption text-grey-7 q-mb-xs">Disciplina (opcional)</div>
+            <div class="text-caption text-grey-7 q-mb-xs">
+              {{
+                esArtista
+                  ? 'Disciplina (si no eliges, se usa tu comisión)'
+                  : 'Disciplina (opcional)'
+              }}
+            </div>
             <ComisionCascadeSelect v-model="form.evento.codigo_comision" />
             <div v-if="form.invalid('evento.codigo_comision')" class="text-negative text-caption">
               {{ form.errors['evento.codigo_comision'] }}
@@ -148,7 +191,10 @@
                 ['removeFormat', 'undo', 'redo'],
               ]"
             />
-            <div v-if="form.invalid('evento.descripcion')" class="text-negative text-caption q-mt-xs">
+            <div
+              v-if="form.invalid('evento.descripcion')"
+              class="text-negative text-caption q-mt-xs"
+            >
               {{ form.errors['evento.descripcion'] }}
             </div>
           </div>
@@ -177,7 +223,7 @@
             </div>
           </div>
 
-          <div class="col-12">
+          <div v-if="!esArtista" class="col-12">
             <q-checkbox
               v-model="form.evento.flag_destacado"
               :true-value="1"
@@ -191,7 +237,14 @@
       <q-separator />
       <q-card-actions align="right">
         <q-btn label="Cerrar" flat v-close-popup />
-        <q-btn label="Guardar" color="positive" outline type="submit" :loading="form.processing" />
+        <q-btn
+          :label="esArtista ? 'Enviar a revisión' : 'Guardar'"
+          color="positive"
+          outline
+          no-caps
+          type="submit"
+          :loading="form.processing"
+        />
       </q-card-actions>
     </q-form>
   </q-card>
@@ -205,8 +258,20 @@ import ComisionCascadeSelect from '@/components/ComisionCascadeSelect.vue'
 
 const props = defineProps({
   item: { type: Object, default: null },
+  // 'admin' (eventos de la municipalidad, se publican directo) o
+  // 'artista' (Mis eventos: entra pendiente y lo revisa el admin)
+  modo: { type: String, default: 'admin' },
+  // modo artista: las agrupaciones aprobadas que representa [{ id, nombre }]
+  agrupaciones: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['save'])
+
+const esArtista = props.modo === 'artista'
+
+const opcionesOrganizador = computed(() => [
+  { label: 'Yo (a mi nombre)', value: null },
+  ...props.agrupaciones.map((a) => ({ label: `Agrupación: ${a.nombre}`, value: a.id })),
+])
 
 const opcionesModalidad = [
   { label: 'Presencial', value: 'presencial' },
@@ -217,7 +282,8 @@ const opcionesModalidad = [
 const aInput = (valor) => (valor ? valor.replace(' ', 'T') : '')
 
 // alta y edición por POST: PHP no llena $_FILES en un PUT multipart
-const url = props.item ? `api/eventos/${props.item.id}` : 'api/eventos'
+const base = esArtista ? 'api/mis-eventos' : 'api/eventos'
+const url = props.item ? `${base}/${props.item.id}` : base
 
 const form = useForm('post', url, {
   evento: {
@@ -234,6 +300,7 @@ const form = useForm('post', url, {
     costo: props.item?.costo ?? '',
     flag_destacado: props.item?.flag_destacado ? 1 : 0,
     imagen: null,
+    agrupacion_id: null,
   },
 })
 
@@ -270,6 +337,18 @@ const previewUrl = computed(
 </script>
 
 <style scoped>
+.aviso {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: var(--panel-superficie-honda);
+}
+
+.aviso--observado {
+  background: var(--panel-acento-suave);
+}
+
 .preview-box {
   margin-top: 8px;
   border-radius: 10px;

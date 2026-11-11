@@ -13,7 +13,7 @@ class EventoPublicoController extends Controller
     // un mes en vista de grilla ocupa hasta 6 semanas; con margen, ~2 meses
     private const MAX_DIAS = 62;
 
-    private const RELACIONES = ['comision:codigo,cod_grupo,nombre', 'persona:id,nombre_completo,slug', 'agrupacion:id,nombre,slug'];
+    private const RELACIONES = ['comision:codigo,cod_grupo,nombre', 'persona:id,nombre_completo,slug,estado,codigo_comision', 'agrupacion:id,nombre,slug,estado,codigo_comision'];
 
     public function index(Request $request)
     {

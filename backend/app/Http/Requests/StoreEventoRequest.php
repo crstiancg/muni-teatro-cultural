@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Html;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreEventoRequest extends FormRequest
@@ -30,6 +31,32 @@ class StoreEventoRequest extends FormRequest
             'evento.costo' => 'nullable|required_if:evento.flag_gratuito,0,false|numeric|min:0|max:99999',
             'evento.flag_destacado' => 'nullable|in:0,1,true,false',
             'evento.imagen' => 'nullable|image|mimes:jpg,jpeg,png|max:5120',
+            // solo en "Mis eventos": vacío = organiza la persona; con id = su agrupación
+            'evento.agrupacion_id' => 'nullable|integer|exists:agrupaciones,id',
+        ];
+    }
+
+    // ÚNICA normalización de los datos de un evento (panel del admin y del artista).
+    // No incluye organizador, estado ni flag_destacado: eso lo decide cada controller.
+    public function datosEvento(): array
+    {
+        $datos = data_get($this->validated(), 'evento');
+        $gratuito = $this->boolean('evento.flag_gratuito', true);
+        $presencial = $datos['modalidad'] === 'presencial';
+
+        return [
+            'titulo' => $datos['titulo'],
+            'descripcion' => Html::limpio($datos['descripcion'] ?? null),
+            'fecha_inicio' => $datos['fecha_inicio'],
+            'fecha_fin' => $datos['fecha_fin'] ?? null,
+            'modalidad' => $datos['modalidad'],
+            // un evento virtual no tiene lugar físico, y uno gratuito no tiene costo
+            'lugar' => $presencial ? ($datos['lugar'] ?? null) : null,
+            'direccion' => $presencial ? ($datos['direccion'] ?? null) : null,
+            'enlace' => $datos['enlace'] ?? null,
+            'codigo_comision' => $datos['codigo_comision'] ?? null,
+            'flag_gratuito' => $gratuito,
+            'costo' => $gratuito ? null : $datos['costo'],
         ];
     }
 }

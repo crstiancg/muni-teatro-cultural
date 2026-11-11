@@ -10,6 +10,7 @@ use App\Http\Controllers\ComisionController;
 use App\Http\Controllers\FormacionAcademicaController;
 use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\MisAgrupacionesController;
+use App\Http\Controllers\MisEventosController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
@@ -91,6 +92,8 @@ Route::middleware('auth:api')->group(function () {
     Route::post('eventos', [EventoController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
     Route::post('eventos/{evento}', [EventoController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
     Route::put('eventos/{evento}/cancelar', [EventoController::class, 'cancelar']);
+    Route::put('eventos/{evento}/aprobar', [EventoController::class, 'aprobar']);
+    Route::put('eventos/{evento}/observar', [EventoController::class, 'observar']);
     Route::delete('eventos/{evento}', [EventoController::class, 'destroy']);
 
     Route::get('mi-informacion', [MiInformacionController::class, 'show']);
@@ -136,6 +139,15 @@ Route::middleware('auth:api')->group(function () {
     Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'updateIntegrante']);
     Route::delete('mis-agrupaciones/{agrupacion}/integrantes/{integrante}', [MisAgrupacionesController::class, 'destroyIntegrante']);
     Route::put('mis-agrupaciones/{agrupacion}/integrantes/{integrante}/representante', [MisAgrupacionesController::class, 'transferirRepresentante']);
+
+    // agenda: el artista propone sus eventos (cada acción verifica que sean suyos)
+    Route::get('mis-eventos', [MisEventosController::class, 'index']);
+    // precognition: el form valida campo por campo; sin este middleware cada validación crearía un evento
+    Route::post('mis-eventos', [MisEventosController::class, 'store'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::get('mis-eventos/{evento}', [MisEventosController::class, 'show'])->whereNumber('evento');
+    Route::post('mis-eventos/{evento}', [MisEventosController::class, 'update'])->whereNumber('evento')->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mis-eventos/{evento}/cancelar', [MisEventosController::class, 'cancelar'])->whereNumber('evento');
+    Route::delete('mis-eventos/{evento}', [MisEventosController::class, 'destroy'])->whereNumber('evento');
 
     // agrupaciones: revisión del admin
     Route::get('agrupaciones', [AgrupacionController::class, 'index']);
