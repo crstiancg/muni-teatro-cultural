@@ -32,7 +32,25 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'preferencias' => 'array',
         ];
+    }
+
+    // Tema del panel (config/panel.php). Siempre devuelve las tres claves; un valor
+    // guardado que ya no está entre las opciones curadas vuelve al de por defecto.
+    public function preferenciasPanel(): array
+    {
+        $defecto = config('panel.tema_por_defecto');
+        $opciones = [
+            'acento' => config('panel.temas.acentos'),
+            'neutro' => config('panel.temas.neutros'),
+            'modo' => config('panel.temas.modos'),
+        ];
+        $guardadas = $this->preferencias ?? [];
+
+        return collect($defecto)
+            ->map(fn ($valor, $clave) => in_array($guardadas[$clave] ?? null, $opciones[$clave], true) ? $guardadas[$clave] : $valor)
+            ->all();
     }
 
     public function persona()

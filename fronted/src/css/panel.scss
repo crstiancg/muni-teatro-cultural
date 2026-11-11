@@ -1,106 +1,163 @@
 // ============================================================================
-// Sistema de diseño del PANEL (dirección "Hueso")
+// Sistema de diseño del PANEL · temas curados
 // ----------------------------------------------------------------------------
-// Tres colores: carbón #1c1c1c, hueso #ede6d8 y rojo #b3261e. El resto son
-// derivados cálidos de esos tres. El rojo es la ALERTA (ítem activo, contadores,
-// avisos): los botones comunes van en carbón, si no el rojo deja de llamar la atención.
+// Cada usuario elige su tema (se guarda en su cuenta, config/panel.php):
+//   data-neutro  calido (stone de Tailwind, por defecto) | frio (zinc)
+//   data-acento  rojo (marca, por defecto) | rosa | violeta | indigo | azul
+//   modo         claro | oscuro (body--dark de Quasar)
+// AdminLayout pone los atributos en <body>; sin atributos rige el tema por defecto.
 //
-// Todo vive bajo body.panel (la clase la pone AdminLayout): el portal público
-// tiene su propio sistema (tokens.scss) y NO debe cambiar.
+// El ACENTO es la alerta: marca, contadores de pendientes, enlaces de acción.
+// Los botones comunes van en el "primario" (tinta del neutro).
+// Los ESTADOS son fijos y no dependen del tema: Publicado siempre verde, etc.
+// Por eso esmeralda y ámbar no se ofrecen como acentos.
 //
-// Contrastes (WCAG 2.1 AA, texto normal ≥ 4.5:1):
-//   carbón sobre hueso 14.6:1 · texto suave sobre hueso 5.7:1
-//   rojo sobre hueso 5.2:1 · hueso sobre botón rojo 5.2:1
-//   oscuro: hueso sobre carbón 14.6:1 · rojo aclarado #e8776c sobre carbón 5.9:1
-//   (el #b3261e sobre carbón NO llega para texto chico: por eso se aclara)
+// Todo vive bajo body.panel: el portal público tiene su propio sistema
+// (tokens.scss) y NO cambia.
+//
+// Contrastes (WCAG 2.1 AA, texto normal >= 4.5:1), verificados:
+//   acentos 700 sobre fondo claro: rojo 5.9 · rosa 5.8 · violeta 6.5 · índigo 7.4 · azul 6.1
+//   blanco sobre acento 700: >= 6.4 en todos
+//   acentos 400 sobre fondo oscuro: >= 5.7 en todos
+//   estados 700 con texto blanco: >= 5.0 · textos de estado claros/oscuros >= 4.6
 // ============================================================================
 
+// ---------- neutro cálido (stone) · claro — es el de por defecto ----------
 body.panel {
-  --panel-fondo: #ede6d8;
-  --panel-lateral: #e4dccb;
-  // card un paso más clara: con #f7f2e9 se fundía con el fondo en monitores mal calibrados
-  --panel-superficie: #fbf8f2;
-  --panel-superficie-honda: #e9e1d2;
-  --panel-borde: #d6ccb9;
-  --panel-texto: #1c1c1c;
-  --panel-texto-suave: #5e574c;
-  --panel-acento: #b3261e;
-  --panel-acento-suave: rgba(179, 38, 30, 0.1);
-  --panel-primario: #1c1c1c;
-  --panel-sobre-primario: #ede6d8;
-  --panel-sobre-acento: #f7f2e9;
-  --panel-hover: rgba(28, 28, 28, 0.06);
-  // Estados con la misma calidez que la paleta (antes: azul/verde/naranja de Quasar).
-  // relleno = chips, puntos, líneas (texto blanco encima >= 5:1)
-  // -texto  = texto sobre las superficies (>= 4.5:1 sobre hueso)
-  --estado-borrador: #635c52;
-  --estado-revision: #2c5d78; // azul petróleo
-  --estado-publicado: #4d6b2f; // verde oliva
-  --estado-observado: #96500d; // ámbar tostado
-  --estado-borrador-texto: #635c52;
-  --estado-revision-texto: #2c5d78;
-  --estado-publicado-texto: #4d6b2f;
-  --estado-observado-texto: #96500d;
-  --estado-revision-suave: rgba(44, 93, 120, 0.12);
-  --estado-publicado-suave: rgba(77, 107, 47, 0.12);
-  --estado-observado-suave: rgba(150, 80, 13, 0.12);
-  --estado-borrador-suave: rgba(99, 92, 82, 0.12);
-  --q-positive: #4d6b2f;
-  --q-info: #2c5d78;
+  --panel-fondo: #f5f5f4; // stone-100
+  --panel-lateral: #fafaf9; // stone-50
+  --panel-superficie: #ffffff;
+  --panel-superficie-honda: #f5f5f4; // stone-100
+  --panel-borde: #e7e5e4; // stone-200
+  --panel-texto: #1c1917; // stone-900
+  --panel-texto-suave: #57534e; // stone-600
+  --panel-primario: #1c1917;
+  --panel-sobre-primario: #fafaf9;
+  --panel-hover: rgba(28, 25, 23, 0.05);
+
+  // acento rojo · claro (por defecto)
+  --panel-acento: #b91c1c; // red-700
+  --panel-sobre-acento: #ffffff;
+
+  // estados fijos (Tailwind 700): relleno con texto blanco y texto sobre las superficies
+  --estado-borrador: #57534e; // stone-600
+  --estado-revision: #0369a1; // sky-700
+  --estado-publicado: #047857; // emerald-700
+  --estado-observado: #b45309; // amber-700
+  --estado-borrador-texto: #57534e;
+  --estado-revision-texto: #0369a1;
+  --estado-publicado-texto: #047857;
+  --estado-observado-texto: #b45309;
 
   // margen lateral único de TODAS las pantallas (el mismo que usan las de agenda)
   --panel-gutter: clamp(16px, 3vw, 40px);
 
-  // Quasar lee sus colores de estas variables: así los q-btn, q-toggle, enlaces,
-  // etc. que ya existen toman la paleta sin tocar cada pantalla
-  --q-primary: #1c1c1c;
-  --q-secondary: #b3261e;
-  --q-accent: #b3261e;
+  // ---- derivados: se recalculan solos con cualquier neutro, acento o modo ----
+  --panel-acento-suave: color-mix(in srgb, var(--panel-acento) 12%, transparent);
+  --estado-borrador-suave: color-mix(in srgb, var(--estado-borrador-texto) 14%, transparent);
+  --estado-revision-suave: color-mix(in srgb, var(--estado-revision-texto) 14%, transparent);
+  --estado-publicado-suave: color-mix(in srgb, var(--estado-publicado-texto) 14%, transparent);
+  --estado-observado-suave: color-mix(in srgb, var(--estado-observado-texto) 14%, transparent);
+
+  // Quasar lee sus colores de estas variables: los q-btn, q-toggle, enlaces,
+  // etc. que ya existen toman el tema sin tocar cada pantalla
+  --q-primary: var(--panel-primario);
+  --q-secondary: var(--panel-acento);
+  --q-accent: var(--panel-acento);
+  --q-positive: var(--estado-publicado);
+  --q-info: var(--estado-revision);
 
   background: var(--panel-fondo);
   color: var(--panel-texto);
 }
 
-body.panel.body--dark {
-  --panel-fondo: #1c1c1c;
-  --panel-lateral: #151514;
-  --panel-superficie: #282725;
-  --panel-superficie-honda: #2e2c2a;
-  --panel-borde: #383532;
-  --panel-texto: #ede6d8;
-  --panel-texto-suave: #aaa294;
-  --panel-acento: #e8776c;
-  --panel-acento-suave: rgba(232, 119, 108, 0.14);
-  --panel-primario: #ede6d8;
-  --panel-sobre-primario: #1c1c1c;
-  --panel-sobre-acento: #1c1c1c;
-  --panel-hover: rgba(237, 230, 216, 0.07);
-
-  --q-primary: #ede6d8;
-  --q-secondary: #e8776c;
-  --q-accent: #e8776c;
-  --q-dark: #282725;
-
-  // estados en oscuro: rellenos medios (texto blanco >= 4.9:1) y textos aclarados
-  --estado-borrador: #6e675c;
-  --estado-revision: #376f8f;
-  --estado-publicado: #557a33;
-  --estado-observado: #a45a12;
-  --estado-borrador-texto: #b8b0a3;
-  --estado-revision-texto: #8cc0dc;
-  --estado-publicado-texto: #a9c98a;
-  --estado-observado-texto: #e9a866;
-  --estado-revision-suave: rgba(140, 192, 220, 0.12);
-  --estado-publicado-suave: rgba(169, 201, 138, 0.12);
-  --estado-observado-suave: rgba(233, 168, 102, 0.12);
-  --estado-borrador-suave: rgba(184, 176, 163, 0.12);
-  --q-positive: #557a33;
-  --q-info: #376f8f;
-  --q-dark-page: #1c1c1c;
+// ---------- neutro frío (zinc) · claro ----------
+body.panel[data-neutro='frio'] {
+  --panel-fondo: #f4f4f5; // zinc-100
+  --panel-lateral: #fafafa; // zinc-50
+  --panel-superficie: #ffffff;
+  --panel-superficie-honda: #f4f4f5;
+  --panel-borde: #e4e4e7; // zinc-200
+  --panel-texto: #18181b; // zinc-900
+  --panel-texto-suave: #52525b; // zinc-600
+  --panel-primario: #18181b;
+  --panel-sobre-primario: #fafafa;
+  --panel-hover: rgba(24, 24, 27, 0.05);
+  --estado-borrador: #52525b;
+  --estado-borrador-texto: #52525b;
 }
 
-// En oscuro "primary" es hueso, y Quasar pinta los botones llenos con text-white:
-// blanco sobre hueso no se lee. Una sola corrección para todo el panel.
+// ---------- neutro cálido · oscuro ----------
+body.panel.body--dark {
+  --panel-fondo: #1c1917; // stone-900
+  --panel-lateral: #0c0a09; // stone-950
+  --panel-superficie: #292524; // stone-800
+  --panel-superficie-honda: #312c29;
+  --panel-borde: #44403c; // stone-700
+  --panel-texto: #f5f5f4; // stone-100
+  --panel-texto-suave: #a8a29e; // stone-400
+  --panel-primario: #f5f5f4;
+  --panel-sobre-primario: #1c1917;
+  --panel-hover: rgba(245, 245, 244, 0.06);
+  --panel-sobre-acento: #0c0a09;
+
+  // acento rojo · oscuro (por defecto): el 700 no llega a 4.5:1 sobre el fondo oscuro
+  --panel-acento: #f87171; // red-400
+
+  // estados: el relleno sigue en 700 (texto blanco); el texto se aclara a 300
+  --estado-borrador-texto: #a8a29e; // stone-400
+  --estado-revision-texto: #7dd3fc; // sky-300
+  --estado-publicado-texto: #6ee7b7; // emerald-300
+  --estado-observado-texto: #fcd34d; // amber-300
+
+  --q-dark: var(--panel-superficie);
+  --q-dark-page: var(--panel-fondo);
+}
+
+// ---------- neutro frío · oscuro ----------
+body.panel.body--dark[data-neutro='frio'] {
+  --panel-fondo: #18181b; // zinc-900
+  --panel-lateral: #09090b; // zinc-950
+  --panel-superficie: #27272a; // zinc-800
+  --panel-superficie-honda: #2e2e33;
+  --panel-borde: #3f3f46; // zinc-700
+  --panel-texto: #f4f4f5;
+  --panel-texto-suave: #a1a1aa; // zinc-400
+  --panel-primario: #f4f4f5;
+  --panel-sobre-primario: #18181b;
+  --panel-hover: rgba(244, 244, 245, 0.06);
+  --panel-sobre-acento: #09090b;
+  --estado-borrador-texto: #a1a1aa;
+}
+
+// ---------- acentos (700 en claro, 400 en oscuro) ----------
+body.panel[data-acento='rosa'] {
+  --panel-acento: #be123c; // rose-700
+}
+body.panel.body--dark[data-acento='rosa'] {
+  --panel-acento: #fb7185; // rose-400
+}
+body.panel[data-acento='violeta'] {
+  --panel-acento: #6d28d9; // violet-700
+}
+body.panel.body--dark[data-acento='violeta'] {
+  --panel-acento: #a78bfa; // violet-400
+}
+body.panel[data-acento='indigo'] {
+  --panel-acento: #4338ca; // indigo-700
+}
+body.panel.body--dark[data-acento='indigo'] {
+  --panel-acento: #818cf8; // indigo-400
+}
+body.panel[data-acento='azul'] {
+  --panel-acento: #1d4ed8; // blue-700
+}
+body.panel.body--dark[data-acento='azul'] {
+  --panel-acento: #60a5fa; // blue-400
+}
+
+// En oscuro "primary" es la tinta clara del neutro, y Quasar pinta los botones
+// llenos con text-white: blanco sobre claro no se lee. Una sola corrección para todo el panel.
 body.panel.body--dark .bg-primary.text-white {
   color: var(--panel-sobre-primario) !important;
 }
@@ -332,7 +389,7 @@ body.panel .q-dialog .text-h6 {
 }
 
 // cabeceras de formulario "bg-primary text-white": una barra pesada en claro y
-// texto blanco sobre hueso en oscuro. Pasan a una cabecera limpia con línea inferior.
+// texto blanco sobre fondo claro en oscuro. Pasan a una cabecera limpia con línea inferior.
 body.panel .q-card > .q-card__section.bg-primary {
   background: transparent !important;
   border-bottom: 1px solid var(--panel-borde);
@@ -359,7 +416,7 @@ body.panel input:-webkit-autofill:focus {
 }
 
 // la acción principal de los formularios ("Guardar") venía en verde contorneado:
-// pasa a botón lleno en carbón (hueso en oscuro), como el resto de las acciones principales
+// pasa a botón lleno en el primario del tema, como el resto de las acciones principales
 body.panel .q-dialog .q-card__actions .q-btn.text-positive {
   background: var(--panel-primario) !important;
   color: var(--panel-sobre-primario) !important;

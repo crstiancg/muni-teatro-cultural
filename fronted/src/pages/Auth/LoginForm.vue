@@ -342,8 +342,9 @@ const login = async () => {
   align-items: center;
   justify-content: center;
   padding: 48px;
-  background: #1c1c1c;
-  color: #ede6d8;
+  /* la tinta del tema: oscura en claro, así el afiche resalta */
+  background: var(--panel-primario);
+  color: var(--panel-sobre-primario);
 }
 
 /* el mismo afiche, desenfocado, como ambiente de fondo */
@@ -386,8 +387,8 @@ const login = async () => {
   margin-bottom: 14px;
   padding: 4px 12px;
   border-radius: 999px;
-  background: #b3261e;
-  color: #f7f2e9;
+  background: var(--panel-acento);
+  color: var(--panel-sobre-acento);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -406,7 +407,7 @@ const login = async () => {
 
 .evento-dato {
   margin: 0;
-  color: rgba(237, 230, 216, 0.78);
+  color: color-mix(in srgb, var(--panel-sobre-primario) 78%, transparent);
   line-height: 1.6;
 }
 
@@ -425,18 +426,18 @@ const login = async () => {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(237, 230, 216, 0.4);
+  background: color-mix(in srgb, var(--panel-sobre-primario) 40%, transparent);
   cursor: pointer;
   transition: width 0.2s;
 }
 
 .punto.activo {
   width: 24px;
-  background: #ede6d8;
+  background: var(--panel-sobre-primario);
 }
 
 .punto:focus-visible {
-  outline: 2px solid #e8776c;
+  outline: 2px solid var(--panel-sobre-primario);
   outline-offset: 3px;
 }
 
@@ -445,7 +446,7 @@ const login = async () => {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(28, 28, 28, 0.15), rgba(28, 28, 28, 0.85)),
+    linear-gradient(180deg, rgba(12, 10, 9, 0.15), rgba(12, 10, 9, 0.85)),
     url('/images/wallpaper_puno.png') center / cover;
 }
 

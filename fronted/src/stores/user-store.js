@@ -9,6 +9,8 @@ export const useUserStore = defineStore('user', {
     email: null,
     roles: null,
     permisos: null,
+    // tema del panel { acento, neutro, modo } (ver composables/useTemaPanel)
+    preferencias: null,
   }),
 
   getters: {
@@ -38,6 +40,13 @@ export const useUserStore = defineStore('user', {
     async logout() {
       Cookies.remove('token', { path: '/' })
       this.clearUser()
+      // la caché del tema es de ESTA persona: en una PC compartida, quien entre
+      // después no debe ver ni por un instante el tema del anterior
+      try {
+        localStorage.removeItem('panel-tema')
+      } catch {
+        // sin acceso al almacenamiento: no hay caché que borrar
+      }
     },
 
     setUser(payload) {
@@ -47,6 +56,20 @@ export const useUserStore = defineStore('user', {
       if (user.email) this.email = user.email
       if (payload.permisos) this.permisos = payload.permisos
       if (payload.roles) this.roles = payload.roles
+      if (payload.preferencias) this.preferencias = payload.preferencias
+    },
+
+    // se aplica al instante y se guarda en la cuenta; si falla, vuelve atrás
+    async guardarPreferencias(cambios) {
+      const anterior = this.preferencias
+      this.preferencias = { ...(anterior ?? {}), ...cambios }
+      try {
+        const res = await api.put('api/mi-usuario/preferencias', cambios)
+        this.preferencias = res.data
+      } catch (error) {
+        this.preferencias = anterior
+        throw error
+      }
     },
 
     clearUser() {
@@ -55,6 +78,7 @@ export const useUserStore = defineStore('user', {
       this.email = null
       this.roles = null
       this.permisos = null
+      this.preferencias = null
     },
 
     hasPermission(permission) {

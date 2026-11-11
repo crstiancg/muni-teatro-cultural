@@ -18,7 +18,7 @@
           :nombre="userStore.getName || 'Usuario'"
           :correo="userStore.getEmail || ''"
           :rol="userStore.getRole || ''"
-          :oscuro="$q.dark.isActive"
+          :tema="tema"
           @cambiar-tema="cambiarTema"
           @salir="logout"
         />
@@ -55,12 +55,12 @@
 
 <script setup>
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
-import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import { PanelLeft } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
 import { useMenu } from '@/composables/useMenu'
 import { useClasePanel } from '@/composables/useClasePanel'
+import { useTemaPanel } from '@/composables/useTemaPanel'
 import PanelLateral from '@/components/panel/PanelLateral.vue'
 import MenuCuenta from '@/components/panel/MenuCuenta.vue'
 import NotificacionesBell from '@/components/NotificacionesBell.vue'
@@ -68,7 +68,6 @@ import MiInformacionDialog from '@/components/MiInformacionDialog.vue'
 import MiInformacionService from '@/services/MiInformacionService'
 import PanelService from '@/services/PanelService'
 
-const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
@@ -82,28 +81,11 @@ const miInformacion = ref(null)
 // body.panel activa los tokens de css/panel.scss (ver useClasePanel)
 useClasePanel()
 
-// el tema se recuerda en este navegador (si el almacenamiento falla, queda claro)
-const CLAVE_TEMA = 'panel-tema'
-try {
-  $q.dark.set(localStorage.getItem(CLAVE_TEMA) === 'oscuro')
-} catch {
-  // sin preferencia guardada
-}
-
-function cambiarTema() {
-  const oscuro = !$q.dark.isActive
-  $q.dark.set(oscuro)
-  try {
-    localStorage.setItem(CLAVE_TEMA, oscuro ? 'oscuro' : 'claro')
-  } catch {
-    // no se recuerda, pero el cambio se aplica igual
-  }
-}
+// tema elegido por el usuario (acento, neutro, modo): se guarda en su cuenta
+const { tema, cambiar: cambiarTema, limpiar: limpiarTema } = useTemaPanel()
 
 // al salir del panel (al login o al portal) el sitio vuelve a su aspecto propio
-onBeforeUnmount(() => {
-  $q.dark.set(false)
-})
+onBeforeUnmount(limpiarTema)
 
 // ---------- contadores del menú ----------
 const contadores = ref({})

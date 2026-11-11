@@ -12,6 +12,7 @@ use App\Http\Controllers\MiInformacionController;
 use App\Http\Controllers\MisAgrupacionesController;
 use App\Http\Controllers\MisEventosController;
 use App\Http\Controllers\PanelController;
+use App\Http\Controllers\PreferenciasController;
 use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
@@ -66,6 +67,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
         'user' => $user,
         'roles' => $roles->pluck('name'),
         'permisos' => $permisos,
+        // tema del panel elegido por el usuario (config/panel.php)
+        'preferencias' => $user->preferenciasPanel(),
     ]);
 });
 
@@ -100,6 +103,7 @@ Route::middleware('auth:api')->group(function () {
     Route::get('mi-informacion', [MiInformacionController::class, 'show']);
     Route::put('mi-informacion', [MiInformacionController::class, 'update'])->middleware([HandlePrecognitiveRequests::class]);
     Route::put('mi-usuario', [MiInformacionController::class, 'updateUsuario'])->middleware([HandlePrecognitiveRequests::class]);
+    Route::put('mi-usuario/preferencias', [PreferenciasController::class, 'update']);
     Route::put('mi-password', [MiInformacionController::class, 'updatePassword'])->middleware([HandlePrecognitiveRequests::class]);
 
     // POST (no PUT) porque PHP no llena $_FILES en requests PUT con multipart/form-data

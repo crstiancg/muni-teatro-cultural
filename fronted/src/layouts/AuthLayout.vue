@@ -9,6 +9,6 @@
 <script setup>
 import { useClasePanel } from '@/composables/useClasePanel'
 
-// el login es la puerta del panel: usa su misma identidad (carbón, hueso y rojo)
+// el login es la puerta del panel: usa su identidad (con el tema por defecto)
 useClasePanel()
 </script>

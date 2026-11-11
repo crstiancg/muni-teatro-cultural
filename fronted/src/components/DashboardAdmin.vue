@@ -296,7 +296,7 @@ onMounted(cargar)
 </script>
 
 <style scoped lang="scss">
-/* barras de un solo tono en la tinta del panel (carbón en claro, hueso en
+/* barras de un solo tono en la tinta del panel (oscura en claro, clara en
    oscuro): los tokens ya cambian con el tema */
 .dashboard-admin {
   --barra: var(--panel-texto);
