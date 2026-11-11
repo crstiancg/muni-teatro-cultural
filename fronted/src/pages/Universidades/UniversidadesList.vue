@@ -104,8 +104,8 @@ import UniversidadesForm from '@/pages/Universidades/UniversidadesForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'Id', aling: 'center', field: (row) => row.id, sortable: true },
-  { name: 'nombre', label: 'Nombre', aling: 'center', field: (row) => row.nombre, sortable: true },
+  { name: 'id', label: 'Id', align: 'left', field: (row) => row.id, sortable: true },
+  { name: 'nombre', label: 'Nombre', align: 'left', field: (row) => row.nombre, sortable: true },
 ]
 
 const tableRef = ref()

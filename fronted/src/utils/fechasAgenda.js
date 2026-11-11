@@ -98,6 +98,18 @@ export function cuandoTexto(e) {
   }
 }
 
+// marcas de auditoría (created_at, revisado_en...): vienen en ISO/UTC, NO son hora
+// de pared como las fechas del evento, así que se convierten a la zona de la ciudad.
+// "10 nov, 08:30 p. m."
+const fmtMarca = new Intl.DateTimeFormat('es-PE', {
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: ZONA_CIUDAD,
+})
+export const marcaTiempo = (iso) => (iso ? fmtMarca.format(new Date(iso)).replace('.', '') : null)
+
 // Google Calendar: sin fecha de fin se asume una duración de 2 horas
 export function urlGoogleCalendar(e, { lugar, detalle }) {
   const fmt = (d) =>

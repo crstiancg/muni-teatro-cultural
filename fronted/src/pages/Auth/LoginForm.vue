@@ -1,151 +1,174 @@
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="lc-form">
-        <div class="lc-form-inner">
-          <span  style="font-size: small; color: #9ca3af;">Registro de Agentes Culturales del Consejo</span>
-          <div style="font-size: small; color: #9ca3af;">Provincial de Cultura</div>
-          <div class="lc-brand">
-            <q-icon size="24px" color="primary" name="theater_comedy" />
-            <span>CPC</span>
+  <div class="login">
+    <!-- ---------- formulario ---------- -->
+    <section class="lado-form">
+      <div class="form-envoltura">
+        <router-link :to="{ name: 'Inicio' }" class="volver">
+          <ArrowLeft :size="16" /> Volver al portal
+        </router-link>
+
+        <div class="marca">
+          <span class="marca-logo"><Drama :size="22" /></span>
+          <span class="marca-texto">
+            <span class="marca-nombre">CPC</span>
+            <span class="marca-bajada">Registro de agentes culturales · Puno</span>
+          </span>
+        </div>
+
+        <h1 class="titulo">Bienvenido de nuevo</h1>
+        <p class="bajada">Ingresa con tu correo y tu contraseña para entrar al panel.</p>
+
+        <q-form class="campos" @submit="login">
+          <div class="campo">
+            <label for="login-correo">Correo electrónico</label>
+            <q-input
+              v-model="formLogin.email"
+              for="login-correo"
+              outlined
+              type="email"
+              autocomplete="username"
+              placeholder="nombre@correo.com"
+            >
+              <template #prepend><Mail :size="18" /></template>
+            </q-input>
           </div>
 
-          <h1>Bienvenido de nuevo</h1>
-          <p class="lc-sub">Ingresa tus credenciales para acceder al panel administrativo.</p>
+          <div class="campo">
+            <label for="login-clave">Contraseña</label>
+            <q-input
+              v-model="formLogin.password"
+              for="login-clave"
+              outlined
+              :type="isPwd ? 'password' : 'text'"
+              autocomplete="current-password"
+            >
+              <template #prepend><LockKeyhole :size="18" /></template>
+              <template #append>
+                <button
+                  type="button"
+                  class="ver-clave"
+                  :aria-label="isPwd ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+                  @click="isPwd = !isPwd"
+                >
+                  <component :is="isPwd ? Eye : EyeOff" :size="18" />
+                </button>
+              </template>
+            </q-input>
+          </div>
 
-          <q-form @submit="login" class="lc-fields">
-            <div class="lc-field">
-              <label>Correo electrónico</label>
-              <q-input
-                v-model="formLogin.email"
-                outlined
-                dense
-                placeholder="correo@municipalidad.gob.pe"
-              >
-                <template #prepend>
-                  <q-icon name="mail_outline" color="grey-5" size="20px" />
-                </template>
-              </q-input>
-            </div>
-
-            <div class="lc-field">
-              <label>Contraseña</label>
-              <q-input
-                v-model="formLogin.password"
-                outlined
-                dense
-                :type="isPwd ? 'password' : 'text'"
-                placeholder="********"
-              >
-                <template #prepend>
-                  <q-icon name="lock_outline" color="grey-5" size="20px" />
-                </template>
-                <template #append>
-                  <q-icon
-                    :name="isPwd ? 'visibility_off' : 'visibility'"
-                    color="grey-4"
-                    size="20px"
-                    class="cursor-pointer"
-                    @click="isPwd = !isPwd"
-                  />
-                </template>
-              </q-input>
-            </div>
-
-            <q-btn type="submit" unelevated no-caps :loading="loading" class="lc-btn">
-              Iniciar sesión
-            </q-btn>
-          </q-form>
-
-          <p class="lc-footer">Sistema exclusivo - [OTI] Municipalidad de Puno</p>
-        </div>
-      </div>
-
-      <div class="lc-visual">
-        <q-carousel
-          v-model="slide"
-          animated
-          autoplay
-          infinite
-          transition-prev="fade"
-          transition-next="fade"
-          swipeable
-          class="lc-carousel"
-        >
-          <q-carousel-slide
-            v-for="(evento, idx) in eventos"
-            :key="idx"
-            :name="idx"
-            class="lc-slide"
-            :style="{ backgroundImage: `url(${evento.imagen})` }"
+          <q-btn
+            type="submit"
+            unelevated
+            no-caps
+            color="primary"
+            :loading="loading"
+            class="ingresar"
           >
-            <div class="lc-slide-overlay"></div>
-          </q-carousel-slide>
-        </q-carousel>
+            Ingresar al panel
+          </q-btn>
+        </q-form>
 
-        <div class="lc-headline">
-          <span class="lc-tag">Próximo evento</span>
-          <h2>{{ eventos[slide].titulo }}</h2>
-          <p>{{ eventos[slide].fecha }} · {{ eventos[slide].lugar }}</p>
-        </div>
-
-        <div class="lc-dots">
-          <span
-            v-for="(evento, idx) in eventos"
-            :key="idx"
-            class="dot"
-            :class="{ active: slide === idx }"
-            @click="slide = idx"
-          ></span>
-        </div>
+        <p class="pie">
+          Municipalidad Provincial de Puno · Oficina de Tecnologías de la Información
+        </p>
       </div>
-    </div>
+    </section>
+
+    <!-- ---------- agenda real (o una foto de Puno si no hay eventos) ---------- -->
+    <aside class="lado-visual" aria-label="Próximos eventos de la agenda cultural">
+      <template v-if="actual">
+        <div class="fondo-afiche" :style="{ backgroundImage: `url(${actual.imagen_url})` }" />
+        <div class="evento">
+          <img
+            :key="actual.id"
+            :src="actual.imagen_url"
+            :alt="`Afiche de ${actual.titulo}`"
+            class="afiche"
+          />
+          <div class="evento-texto">
+            <span class="etiqueta">Próximo en la agenda</span>
+            <h2 class="evento-titulo">{{ actual.titulo }}</h2>
+            <p class="evento-dato">
+              {{ cuandoTexto(actual).fecha }} · {{ cuandoTexto(actual).horario }}
+            </p>
+            <p v-if="actual.lugar" class="evento-dato">{{ actual.lugar }}</p>
+          </div>
+        </div>
+        <div v-if="eventos.length > 1" class="puntos">
+          <button
+            v-for="(e, i) in eventos"
+            :key="e.id"
+            type="button"
+            class="punto"
+            :class="{ activo: i === indice }"
+            :aria-label="`Ver ${e.titulo}`"
+            :aria-pressed="i === indice"
+            @click="irA(i)"
+          />
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="foto" />
+        <div class="lema">
+          <span class="etiqueta">Consejo Provincial de Cultura</span>
+          <h2 class="evento-titulo">
+            Los artistas y la agenda cultural de Puno, en un solo lugar.
+          </h2>
+        </div>
+      </template>
+    </aside>
   </div>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { ref } from 'vue'
+import { ArrowLeft, Drama, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
+import EventoService from '@/services/EventoService'
+import { cuandoTexto } from '@/utils/fechasAgenda'
 
-const loading = ref(false)
 const $q = useQuasar()
 const emits = defineEmits(['logued'])
 const userStore = useUserStore()
+
+const loading = ref(false)
 const formLogin = ref({ email: '', password: '' })
 const isPwd = ref(true)
-const slide = ref(0)
 
-// TODO: reemplazar por los próximos eventos reales (endpoint del backend)
-const eventos = [
-  {
-    imagen: '/images/wallpaper_puno.png',
-    titulo: 'Festival de Teatro Regional',
-    fecha: '12 de octubre',
-    lugar: 'Teatro Municipal',
-  },
-  {
-    // TODO placeholder: reemplazar por foto real de la municipalidad
-    imagen: '/images/wall1.jpg',
-    titulo: 'Noche de Danzas Folklóricas',
-    fecha: '20 de octubre',
-    lugar: 'Plaza de Armas',
-  },
-  {
-    // TODO placeholder: reemplazar por foto real de la municipalidad
-    imagen: '/images/wall2.jpg',
-    titulo: 'Concierto Sinfónico Municipal',
-    fecha: '5 de noviembre',
-    lugar: 'Teatro Municipal',
-  },
-  {
-    // TODO placeholder: reemplazar por foto real de la municipalidad
-    imagen: '/images/wall3.jpg',
-    titulo: 'Concierto Sinfónico Municipal',
-    fecha: '5 de noviembre',
-    lugar: 'Teatro Municipal',
-  },
-]
+// ---------- próximos eventos reales (solo los que tienen afiche) ----------
+const eventos = ref([])
+const indice = ref(0)
+const actual = computed(() => eventos.value[indice.value] ?? null)
+let temporizador = null
+
+const sinMovimiento = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+function irA(i) {
+  indice.value = i
+  reiniciarTemporizador()
+}
+
+function reiniciarTemporizador() {
+  clearInterval(temporizador)
+  if (sinMovimiento || eventos.value.length < 2) return
+  temporizador = setInterval(() => {
+    indice.value = (indice.value + 1) % eventos.value.length
+  }, 7000)
+}
+
+onMounted(async () => {
+  try {
+    const r = await EventoService.proximos(6)
+    eventos.value = (r.data ?? r).filter((e) => e.imagen_url).slice(0, 4)
+    reiniciarTemporizador()
+  } catch {
+    // sin agenda: queda la foto de Puno
+  }
+})
+
+onBeforeUnmount(() => clearInterval(temporizador))
 
 const login = async () => {
   loading.value = true
@@ -167,7 +190,7 @@ const login = async () => {
         ? 'Sin conexión con el servidor'
         : e.response.status === 429
           ? e.response.data.message
-          : 'Credenciales incorrectas',
+          : 'Correo o contraseña incorrectos',
     })
   } finally {
     loading.value = false
@@ -176,216 +199,294 @@ const login = async () => {
 </script>
 
 <style scoped>
-.login-page {
+.login {
   width: 100%;
   min-height: 100vh;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(380px, 480px) minmax(0, 1fr);
+  background: var(--panel-fondo);
+  color: var(--panel-texto);
 }
 
-.login-card {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-}
-
-/* --- form panel --- */
-.lc-form {
-  flex: 0 0 420px;
+/* ---------- formulario ---------- */
+.lado-form {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
+  padding: 40px clamp(20px, 4vw, 48px);
 }
 
-body.body--dark .lc-form {
-  background: #000000;
-}
-
-.lc-form-inner {
+.form-envoltura {
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
 }
 
-.lc-brand {
+.volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 40px;
+  color: var(--panel-texto-suave);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.volver:hover {
+  color: var(--panel-texto);
+}
+
+.marca {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--q-primary);
+  gap: 12px;
   margin-bottom: 32px;
-  font-family: cursive, sans-serif;
 }
 
-.lc-form-inner h1 {
-  font-size: 1.6rem;
+.marca-logo {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--panel-acento);
+  color: var(--panel-sobre-acento);
+  flex-shrink: 0;
+}
+
+.marca-texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.marca-nombre {
+  font-family: 'Fraunces', Georgia, serif;
   font-weight: 800;
-  margin: 0 0 8px;
-  letter-spacing: -0.3px;
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
 }
 
-.lc-sub {
-  font-size: 0.85rem;
-  color: #6b7280;
+.marca-bajada {
+  font-size: 0.78rem;
+  color: var(--panel-texto-suave);
+}
+
+.titulo {
+  margin: 0 0 8px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+
+.bajada {
   margin: 0 0 28px;
+  color: var(--panel-texto-suave);
+  line-height: 1.55;
+}
+
+.campos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.campo :deep(.q-field__control) {
+  height: 48px;
+  background: var(--panel-superficie);
+}
+
+.ver-clave {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--panel-texto-suave);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.ver-clave:hover {
+  color: var(--panel-texto);
+}
+
+.ingresar {
+  height: 50px;
+  margin-top: 8px;
+  font-size: 0.98rem;
+  border-radius: 12px !important;
+}
+
+.pie {
+  margin: 32px 0 0;
+  font-size: 0.75rem;
+  color: var(--panel-texto-suave);
+  line-height: 1.5;
+}
+
+/* ---------- visual ---------- */
+.lado-visual {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  background: #1c1c1c;
+  color: #ede6d8;
+}
+
+/* el mismo afiche, desenfocado, como ambiente de fondo */
+.fondo-afiche {
+  position: absolute;
+  inset: -40px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(40px) saturate(1.1);
+  opacity: 0.35;
+  transition: background-image 0.6s;
+}
+
+.evento {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  max-width: 760px;
+}
+
+/* el afiche se ve entero: los afiches son verticales y recortarlos los arruina */
+.afiche {
+  width: min(320px, 34vw);
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+  animation: aparecer 0.5s ease-out;
+}
+
+.evento-texto {
+  min-width: 0;
+  padding-bottom: 8px;
+}
+
+.etiqueta {
+  display: inline-block;
+  margin-bottom: 14px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: #b3261e;
+  color: #f7f2e9;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.evento-titulo {
+  margin: 0 0 10px;
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.evento-dato {
+  margin: 0;
+  color: rgba(237, 230, 216, 0.78);
   line-height: 1.6;
 }
 
-.lc-fields {
+.puntos {
+  position: absolute;
+  left: 48px;
+  bottom: 32px;
+  z-index: 1;
   display: flex;
-  flex-direction: column;
+  gap: 8px;
 }
 
-.lc-field {
-  margin-bottom: 16px;
+.punto {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(237, 230, 216, 0.4);
+  cursor: pointer;
+  transition: width 0.2s;
 }
 
-.lc-field label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 6px;
-  letter-spacing: 0.02em;
+.punto.activo {
+  width: 24px;
+  background: #ede6d8;
 }
 
-.lc-input :deep(.q-field__control) {
-  border-radius: 10px;
-  height: 48px;
-  background: #fff;
+.punto:focus-visible {
+  outline: 2px solid #e8776c;
+  outline-offset: 3px;
 }
 
-.lc-btn {
-  width: 100%;
-  height: 52px;
-  border-radius: 12px !important;
-  background: linear-gradient(200deg, var(--q-primary) 0%, var(--q-secondary) 100%) !important;
-  color: #fff !important;
-  font-size: 0.95rem !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.02em;
-  margin-top: 4px;
-}
-
-.lc-footer {
-  font-size: 0.73rem;
-  color: #9ca3af;
-  text-align: center;
-  margin-top: 10px;
-}
-
-/* --- visual panel --- */
-.lc-visual {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-.lc-carousel {
-  width: 100%;
-  height: 100%;
-}
-
-.lc-slide {
-  background-size: cover;
-  background-position: center;
-}
-
-.lc-slide-overlay {
+/* sin eventos: foto de Puno con un velo carbón */
+.foto {
   position: absolute;
   inset: 0;
-  background: linear-gradient(200deg, rgba(10, 12, 20, 0.05) 0%, rgba(10, 12, 20, 0.55) 100%);
+  background:
+    linear-gradient(180deg, rgba(28, 28, 28, 0.15), rgba(28, 28, 28, 0.85)),
+    url('/images/wallpaper_puno.png') center / cover;
 }
 
-.lc-headline {
-  position: absolute;
-  left: 32px;
-  right: 32px;
-  bottom: 50px;
-  z-index: 3;
-  color: #fff;
+.lema {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  max-width: 560px;
+  margin-right: auto;
 }
 
-.lc-tag {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 99px;
-  padding: 5px 14px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  margin-bottom: 12px;
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
 }
 
-.lc-headline h2 {
-  font-size: 1.7rem;
-  font-weight: 800;
-  line-height: 1.25;
-  margin: 0 0 6px;
+@media (prefers-reduced-motion: reduce) {
+  .afiche {
+    animation: none;
+  }
 }
 
-.lc-headline p {
-  font-size: 0.85rem;
-  opacity: 0.85;
-  margin: 0;
-}
-
-.lc-dots {
-  position: absolute;
-  left: 24px;
-  bottom: 24px;
-  z-index: 3;
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-}
-
-.dot.active {
-  width: 20px;
-  border-radius: 4px;
-  background: #fff;
-}
-
-/* --- responsive --- */
+/* tablet y celular: el formulario primero; la agenda no se muestra */
 @media (max-width: 900px) {
-  .login-page {
-    padding: 0;
+  .login {
+    grid-template-columns: 1fr;
   }
 
-  .login-card {
-    flex-direction: column;
-    border-radius: 0;
-    height: auto;
-    min-height: 100vh;
-    box-shadow: none;
+  .lado-visual {
+    display: none;
   }
 
-  .lc-form {
-    flex: 0 0 auto;
-    order: 2;
-    padding: 32px 24px 40px;
+  .lado-form {
+    align-items: flex-start;
+    padding-top: 32px;
   }
 
-  .lc-form-inner {
-    max-width: none;
-  }
-
-  .lc-visual {
-    flex: 0 0 260px;
-    order: 1;
-  }
-
-  .lc-headline h2 {
-    font-size: 1.3rem;
+  .volver {
+    margin-bottom: 28px;
   }
 }
 </style>

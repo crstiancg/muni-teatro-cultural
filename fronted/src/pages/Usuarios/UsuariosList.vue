@@ -106,9 +106,9 @@ import UsuariosForm from '@/pages/Usuarios/UsuariosForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'ID', aling: 'center', field: (row) => row.id, sortable: true },
-  { name: 'name', label: 'USUARIO', aling: 'center', field: (row) => row.name, sortable: true },
-  { name: 'email', label: 'EMAIL', aling: 'center', field: (row) => row.email, sortable: true },
+  { name: 'id', label: 'ID', align: 'left', field: (row) => row.id, sortable: true },
+  { name: 'name', label: 'USUARIO', align: 'left', field: (row) => row.name, sortable: true },
+  { name: 'email', label: 'EMAIL', align: 'left', field: (row) => row.email, sortable: true },
 ]
 
 const tableRef = ref()

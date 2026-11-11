@@ -1,0 +1,441 @@
+// ============================================================================
+// Sistema de diseño del PANEL (dirección "Hueso")
+// ----------------------------------------------------------------------------
+// Tres colores: carbón #1c1c1c, hueso #ede6d8 y rojo #b3261e. El resto son
+// derivados cálidos de esos tres. El rojo es la ALERTA (ítem activo, contadores,
+// avisos): los botones comunes van en carbón, si no el rojo deja de llamar la atención.
+//
+// Todo vive bajo body.panel (la clase la pone AdminLayout): el portal público
+// tiene su propio sistema (tokens.scss) y NO debe cambiar.
+//
+// Contrastes (WCAG 2.1 AA, texto normal ≥ 4.5:1):
+//   carbón sobre hueso 14.6:1 · texto suave sobre hueso 5.7:1
+//   rojo sobre hueso 5.2:1 · hueso sobre botón rojo 5.2:1
+//   oscuro: hueso sobre carbón 14.6:1 · rojo aclarado #e8776c sobre carbón 5.9:1
+//   (el #b3261e sobre carbón NO llega para texto chico: por eso se aclara)
+// ============================================================================
+
+body.panel {
+  --panel-fondo: #ede6d8;
+  --panel-lateral: #e4dccb;
+  // card un paso más clara: con #f7f2e9 se fundía con el fondo en monitores mal calibrados
+  --panel-superficie: #fbf8f2;
+  --panel-superficie-honda: #e9e1d2;
+  --panel-borde: #d6ccb9;
+  --panel-texto: #1c1c1c;
+  --panel-texto-suave: #5e574c;
+  --panel-acento: #b3261e;
+  --panel-acento-suave: rgba(179, 38, 30, 0.1);
+  --panel-primario: #1c1c1c;
+  --panel-sobre-primario: #ede6d8;
+  --panel-sobre-acento: #f7f2e9;
+  --panel-hover: rgba(28, 28, 28, 0.06);
+  // Estados con la misma calidez que la paleta (antes: azul/verde/naranja de Quasar).
+  // relleno = chips, puntos, líneas (texto blanco encima >= 5:1)
+  // -texto  = texto sobre las superficies (>= 4.5:1 sobre hueso)
+  --estado-borrador: #635c52;
+  --estado-revision: #2c5d78; // azul petróleo
+  --estado-publicado: #4d6b2f; // verde oliva
+  --estado-observado: #96500d; // ámbar tostado
+  --estado-borrador-texto: #635c52;
+  --estado-revision-texto: #2c5d78;
+  --estado-publicado-texto: #4d6b2f;
+  --estado-observado-texto: #96500d;
+  --estado-revision-suave: rgba(44, 93, 120, 0.12);
+  --estado-publicado-suave: rgba(77, 107, 47, 0.12);
+  --estado-observado-suave: rgba(150, 80, 13, 0.12);
+  --estado-borrador-suave: rgba(99, 92, 82, 0.12);
+  --q-positive: #4d6b2f;
+  --q-info: #2c5d78;
+
+  // margen lateral único de TODAS las pantallas (el mismo que usan las de agenda)
+  --panel-gutter: clamp(16px, 3vw, 40px);
+
+  // Quasar lee sus colores de estas variables: así los q-btn, q-toggle, enlaces,
+  // etc. que ya existen toman la paleta sin tocar cada pantalla
+  --q-primary: #1c1c1c;
+  --q-secondary: #b3261e;
+  --q-accent: #b3261e;
+
+  background: var(--panel-fondo);
+  color: var(--panel-texto);
+}
+
+body.panel.body--dark {
+  --panel-fondo: #1c1c1c;
+  --panel-lateral: #151514;
+  --panel-superficie: #282725;
+  --panel-superficie-honda: #2e2c2a;
+  --panel-borde: #383532;
+  --panel-texto: #ede6d8;
+  --panel-texto-suave: #aaa294;
+  --panel-acento: #e8776c;
+  --panel-acento-suave: rgba(232, 119, 108, 0.14);
+  --panel-primario: #ede6d8;
+  --panel-sobre-primario: #1c1c1c;
+  --panel-sobre-acento: #1c1c1c;
+  --panel-hover: rgba(237, 230, 216, 0.07);
+
+  --q-primary: #ede6d8;
+  --q-secondary: #e8776c;
+  --q-accent: #e8776c;
+  --q-dark: #282725;
+
+  // estados en oscuro: rellenos medios (texto blanco >= 4.9:1) y textos aclarados
+  --estado-borrador: #6e675c;
+  --estado-revision: #376f8f;
+  --estado-publicado: #557a33;
+  --estado-observado: #a45a12;
+  --estado-borrador-texto: #b8b0a3;
+  --estado-revision-texto: #8cc0dc;
+  --estado-publicado-texto: #a9c98a;
+  --estado-observado-texto: #e9a866;
+  --estado-revision-suave: rgba(140, 192, 220, 0.12);
+  --estado-publicado-suave: rgba(169, 201, 138, 0.12);
+  --estado-observado-suave: rgba(233, 168, 102, 0.12);
+  --estado-borrador-suave: rgba(184, 176, 163, 0.12);
+  --q-positive: #557a33;
+  --q-info: #376f8f;
+  --q-dark-page: #1c1c1c;
+}
+
+// En oscuro "primary" es hueso, y Quasar pinta los botones llenos con text-white:
+// blanco sobre hueso no se lee. Una sola corrección para todo el panel.
+body.panel.body--dark .bg-primary.text-white {
+  color: var(--panel-sobre-primario) !important;
+}
+
+// ---------- superficies de Quasar ----------
+body.panel .q-page:not(.publico) {
+  background: var(--panel-fondo) !important;
+}
+
+body.panel.body--light .q-card,
+body.panel.body--light .q-menu,
+body.panel.body--light .q-table__card,
+body.panel.body--light .q-date,
+body.panel.body--light .q-time {
+  background: var(--panel-superficie);
+}
+
+body.panel.body--dark .q-card--dark,
+body.panel.body--dark .q-menu--dark,
+body.panel.body--dark .q-table__card--dark {
+  background: var(--panel-superficie);
+}
+
+body.panel .q-card--bordered,
+body.panel .q-table--bordered,
+body.panel .q-separator {
+  border-color: var(--panel-borde);
+}
+
+body.panel .q-separator {
+  background: var(--panel-borde);
+}
+
+// los breadcrumbs actuales (hasta que cada página use el encabezado común)
+body.panel .q-breadcrumbs {
+  color: var(--panel-texto-suave);
+  font-size: 0.875rem;
+}
+
+body.panel .q-breadcrumbs .q-breadcrumbs__el:last-child {
+  color: var(--panel-texto);
+  font-weight: 600;
+}
+
+// foco visible y consistente
+body.panel :focus-visible {
+  outline: 2px solid var(--panel-acento);
+  outline-offset: 2px;
+}
+
+// ============================================================================
+// Componentes de Quasar con la identidad del panel. Una sola capa para TODAS
+// las pantallas (listados, formularios, dialogs): ninguna página necesita
+// estilos propios para verse bien en claro y en oscuro.
+// ============================================================================
+
+// ---------- botones: sin mayúsculas forzadas ----------
+body.panel .q-btn {
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+// ---------- cards dentro de las páginas: planas, con borde de la paleta ----------
+body.panel .q-page .q-card {
+  box-shadow: none;
+  border: 1px solid var(--panel-borde);
+  border-radius: 14px !important;
+}
+
+// ---------- tablas ----------
+// los listados meten una q-table con borde y margen dentro de una q-card con
+// borde: doble borde con un hueco en el medio. La card ya hace de marco.
+// Dos casos:
+//  1. Tabla sin cabecera propia (CV, capacitaciones...): la card ES la tabla.
+//     Un solo marco; la cabecera gris y el "sin datos" llegan a los bordes.
+//  2. Listados (my-sticky-header-table: título + buscador arriba): la card es el
+//     marco y la tabla va ADENTRO como bloque propio, con aire alrededor.
+//     Sin título arriba, ese bloque interior sería un marco dentro de otro marco.
+body.panel .q-card > .q-table__container {
+  margin: 0 !important;
+  border: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  background: transparent;
+}
+
+body.panel .q-card > .q-table__container.my-sticky-header-table {
+  padding: 0 16px 4px;
+}
+
+body.panel .q-card > .q-table__container.my-sticky-header-table > .q-table__middle {
+  border: 1px solid var(--panel-borde);
+  border-radius: 10px;
+}
+
+body.panel .q-card > .q-table__container.my-sticky-header-table > .q-table__bottom {
+  border-top: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+// mensaje de "todavía no hay…" de las tablas vacías
+body.panel .q-table__bottom--nodata {
+  justify-content: center;
+  padding: 20px 16px;
+  color: var(--panel-texto-suave);
+  font-size: 0.875rem;
+}
+
+body.panel .q-table__top {
+  padding: 16px 4px 12px;
+}
+
+// los títulos vienen en mayúsculas ("LISTA DE USUARIOS"): se leen en caja normal
+body.panel .q-table__title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+}
+
+body.panel .q-table__title::first-letter {
+  text-transform: uppercase;
+}
+
+body.panel .q-table thead th {
+  height: 42px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--panel-texto-suave);
+  background: var(--panel-superficie-honda);
+}
+
+body.panel .q-table tbody td {
+  height: 52px;
+  font-size: 0.875rem;
+}
+
+body.panel .q-table thead tr,
+body.panel .q-table tbody td,
+body.panel .q-table__bottom {
+  border-color: var(--panel-borde);
+}
+
+body.panel .q-table tbody tr:hover > td {
+  background: var(--panel-hover);
+}
+
+body.panel .q-table__bottom {
+  color: var(--panel-texto-suave);
+  font-size: 0.82rem;
+}
+
+// botones de acción de las filas: neutros; eliminar en el rojo de alerta.
+// (las pantallas los declaran con colores de Quasar: cyan, verde, rojo...)
+body.panel .q-table tbody td .q-btn--outline {
+  color: var(--panel-texto-suave) !important;
+  background: transparent !important;
+}
+
+body.panel .q-table tbody td .q-btn--outline:hover {
+  color: var(--panel-texto) !important;
+}
+
+// eliminar: neutro como los demás; recién al pasar el mouse se vuelve rojo
+// (si cada fila tiene un tacho rojo, el rojo deja de llamar la atención)
+body.panel
+  .q-table
+  tbody
+  td
+  .q-btn--outline:is(.text-red-13, .text-red, .text-negative, .text-red-8):hover {
+  color: var(--panel-acento) !important;
+}
+
+// buscador "standout": al hacer foco se pintaba de primary con texto blanco
+body.panel .q-field--standout.q-field--highlighted .q-field__control {
+  background: var(--panel-superficie) !important;
+  box-shadow: inset 0 0 0 1px var(--panel-texto);
+}
+
+body.panel
+  .q-field--standout.q-field--highlighted
+  :is(.q-field__native, .q-field__prepend, .q-field__append, .q-field__input) {
+  color: var(--panel-texto) !important;
+}
+
+// ---------- formularios ----------
+body.panel .q-field--outlined .q-field__control:before {
+  border-color: var(--panel-borde);
+}
+
+body.panel .q-field--outlined:hover .q-field__control:before {
+  border-color: var(--panel-texto-suave);
+}
+
+body.panel .q-field__label {
+  color: var(--panel-texto-suave);
+}
+
+body.panel .q-field--highlighted .q-field__label {
+  color: var(--panel-texto);
+}
+
+body.panel .q-field__prepend,
+body.panel .q-field__append {
+  color: var(--panel-texto-suave);
+}
+
+// ---------- dialogs ----------
+body.panel .q-dialog__backdrop {
+  background-color: rgba(28, 28, 28, 0.55);
+}
+
+body.panel .q-dialog__inner > .q-card {
+  border: 1px solid var(--panel-borde);
+  border-radius: 16px !important;
+  box-shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.5);
+}
+
+body.panel .q-dialog .text-h6 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+// cabeceras de formulario "bg-primary text-white": una barra pesada en claro y
+// texto blanco sobre hueso en oscuro. Pasan a una cabecera limpia con línea inferior.
+body.panel .q-card > .q-card__section.bg-primary {
+  background: transparent !important;
+  border-bottom: 1px solid var(--panel-borde);
+  padding: 16px 20px;
+}
+
+body.panel .q-card > .q-card__section.bg-primary .text-white,
+body.panel .q-card > .q-card__section.bg-primary.text-white {
+  color: var(--panel-texto) !important;
+}
+
+body.panel .q-dialog .q-card__actions {
+  padding: 12px 20px 16px;
+  gap: 8px;
+}
+
+// autocompletado del navegador: Chrome pinta los campos de celeste
+body.panel input:-webkit-autofill,
+body.panel input:-webkit-autofill:hover,
+body.panel input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--panel-texto);
+  -webkit-box-shadow: 0 0 0 1000px var(--panel-superficie) inset;
+  transition: background-color 9999s;
+}
+
+// la acción principal de los formularios ("Guardar") venía en verde contorneado:
+// pasa a botón lleno en carbón (hueso en oscuro), como el resto de las acciones principales
+body.panel .q-dialog .q-card__actions .q-btn.text-positive {
+  background: var(--panel-primario) !important;
+  color: var(--panel-sobre-primario) !important;
+  padding: 4px 18px;
+}
+
+body.panel .q-dialog .q-card__actions .q-btn.text-positive::before {
+  border-color: transparent;
+}
+
+// ---------- márgenes de las pantallas ----------
+// Las pantallas de listado heredadas mezclaban q-pa-md (16px), q-pa-sm (8px) y una
+// card con q-ma-sm (8px): todo pegado al borde y sin arrancar en la misma vertical.
+// Un solo margen lateral para migas, barra de botones, contenido y card.
+body.panel .q-page > .q-pa-md,
+body.panel .q-page > .q-toolbar {
+  padding-left: var(--panel-gutter) !important;
+  padding-right: var(--panel-gutter) !important;
+}
+
+body.panel .q-page > .q-pa-sm {
+  padding: 20px var(--panel-gutter) 16px !important;
+}
+
+body.panel .q-page > .q-card.q-ma-sm {
+  margin: 0 var(--panel-gutter) 32px !important;
+}
+
+// barra de scroll de las tablas (celular): fina y en la paleta, no la gris del sistema
+body.panel .q-table__middle {
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-borde) transparent;
+}
+
+// ============================================================================
+// Colores de estado de Quasar -> familia cálida del panel
+// ----------------------------------------------------------------------------
+// En TODO el panel estas clases significan siempre lo mismo:
+//   blue-7 = En revisión · positive = Publicado · orange-9 / deep-orange = Observado
+//   grey-7 = Borrador / Cancelado · bg-blue-1 + text-blue-10 = aviso informativo
+// Se remapean acá una vez en vez de tocar las ~20 pantallas que las usan.
+// Si alguna vez blue-7 se usa para otra cosa, conviene un nombre propio.
+// ============================================================================
+body.panel .bg-blue-7 {
+  background: var(--estado-revision) !important;
+}
+
+body.panel .text-blue-7 {
+  color: var(--estado-revision-texto) !important;
+}
+
+body.panel :is(.bg-orange-9, .bg-deep-orange-9, .bg-deep-orange) {
+  background: var(--estado-observado) !important;
+}
+
+body.panel :is(.text-orange-9, .text-deep-orange-9, .text-deep-orange) {
+  color: var(--estado-observado-texto) !important;
+}
+
+body.panel .bg-grey-7 {
+  background: var(--estado-borrador) !important;
+}
+
+body.panel .text-grey-7 {
+  color: var(--estado-borrador-texto) !important;
+}
+
+body.panel .bg-blue-1 {
+  background: var(--estado-revision-suave) !important;
+}
+
+body.panel .text-blue-10 {
+  color: var(--estado-revision-texto) !important;
+}
+
+// positive ya toma --q-positive; en oscuro el TEXTO necesita la variante clara
+body.panel.body--dark .text-positive {
+  color: var(--estado-publicado-texto) !important;
+}

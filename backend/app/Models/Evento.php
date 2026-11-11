@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Models\Concerns\TieneAdjunto;
+use App\Notifications\AvisoEvento;
 use App\Support\Html;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 
 // Un evento de la agenda cultural. Distinto de Actividad: una actividad es
@@ -92,6 +95,16 @@ class Evento extends Model
             ->orWhere(fn ($q) => $q->whereNull('fecha_fin')->where('fecha_inicio', '>=', $hoy)));
     }
 
+    // lo contrario de proximos: terminó antes de hoy
+    public function scopeAnteriores(Builder $query): void
+    {
+        $hoy = now(self::ZONA)->toDateString() . ' 00:00:00';
+
+        $query->where(fn ($q) => $q
+            ->where('fecha_fin', '<', $hoy)
+            ->orWhere(fn ($q) => $q->whereNull('fecha_fin')->where('fecha_inicio', '<', $hoy)));
+    }
+
     // el link público es /agenda/{id}-{slug}: se busca por id y el slug es solo
     // para que se lea (si cambia el título, los links ya compartidos siguen andando)
     public function getSlugAttribute(): string
@@ -124,14 +137,76 @@ class Evento extends Model
         return $this->belongsTo(User::class, 'creado_por');
     }
 
-    // quién figura como organizador en el portal
+    public function revisiones()
+    {
+        return $this->hasMany(RevisionEvento::class)->latest()->latest('id');
+    }
+
+    // quién figura como organizador en el portal. El slug solo va si su página
+    // pública existe (mismo criterio que los scopes publicado): si no, link roto
     public function organizador(): array
     {
+        $publicado = fn ($m) => $m && $m->estado === 'aprobado' && $m->codigo_comision;
+
         return match ($this->organizador_tipo) {
-            'persona' => ['tipo' => 'persona', 'nombre' => $this->persona?->nombre_completo, 'slug' => $this->persona?->slug],
-            'agrupacion' => ['tipo' => 'agrupacion', 'nombre' => $this->agrupacion?->nombre, 'slug' => $this->agrupacion?->slug],
+            'persona' => ['tipo' => 'persona', 'nombre' => $this->persona?->nombre_completo,
+                'slug' => $publicado($this->persona) ? $this->persona->slug : null],
+            'agrupacion' => ['tipo' => 'agrupacion', 'nombre' => $this->agrupacion?->nombre,
+                'slug' => $publicado($this->agrupacion) ? $this->agrupacion->slug : null],
             default => ['tipo' => 'municipalidad', 'nombre' => null, 'slug' => null],
         };
+    }
+
+    // ---------- eventos propuestos por artistas ----------
+
+    // los que gestiona esta persona: los suyos y los de las agrupaciones que representa
+    public function scopeGestionadosPor(Builder $query, Persona $persona): void
+    {
+        $query->where(fn ($q) => $q
+            ->where(fn ($q) => $q->where('organizador_tipo', 'persona')->where('persona_id', $persona->id))
+            ->orWhere(fn ($q) => $q->where('organizador_tipo', 'agrupacion')->whereIn(
+                'agrupacion_id',
+                AgrupacionIntegrante::select('agrupacion_id')
+                    ->where('persona_id', $persona->id)
+                    ->where('es_representante', true)
+            )));
+    }
+
+    public function esGestionadoPor(Persona $persona): bool
+    {
+        return match ($this->organizador_tipo) {
+            'persona' => $this->persona_id === $persona->id,
+            'agrupacion' => (bool) $this->agrupacion?->esRepresentante($persona),
+            default => false,
+        };
+    }
+
+    // usuarios que reciben los avisos de la revisión
+    public function usuariosOrganizador(): Collection
+    {
+        return match ($this->organizador_tipo) {
+            'persona' => collect([$this->persona?->user])->filter(),
+            'agrupacion' => $this->agrupacion
+                ? $this->agrupacion->integrantes()
+                    ->where('es_representante', true)
+                    ->whereNotNull('persona_id')
+                    ->with('persona.user')
+                    ->get()
+                    ->map(fn ($i) => $i->persona?->user)
+                    ->filter()
+                : collect(),
+            default => collect(),
+        };
+    }
+
+    public function notificarAdmins(string $tipo, string $mensaje): void
+    {
+        Notification::send(User::permission('admin-eventos-aprobar')->get(), new AvisoEvento($tipo, $mensaje, $this));
+    }
+
+    public function notificarOrganizador(string $tipo, string $mensaje): void
+    {
+        Notification::send($this->usuariosOrganizador(), new AvisoEvento($tipo, $mensaje, $this));
     }
 
     public function getImagenUrlAttribute(): ?string

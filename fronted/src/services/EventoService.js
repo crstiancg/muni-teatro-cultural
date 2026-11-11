@@ -18,6 +18,32 @@ class EventoService {
     return await api.delete(`/api/eventos/${id}`)
   }
 
+  // revisión de lo que proponen los artistas
+  static async aprobar(id) {
+    return (await api.put(`/api/eventos/${id}/aprobar`)).data
+  }
+
+  static async observar(id, observacion) {
+    return (await api.put(`/api/eventos/${id}/observar`, { observacion })).data
+  }
+
+  // panel del artista: { eventos, agrupaciones } (agrupaciones = por las que puede proponer)
+  static async misEventos() {
+    return (await api.get('/api/mis-eventos')).data
+  }
+
+  static async miEvento(id) {
+    return (await api.get(`/api/mis-eventos/${id}`)).data
+  }
+
+  static async cancelarMio(id) {
+    return (await api.put(`/api/mis-eventos/${id}/cancelar`)).data
+  }
+
+  static async eliminarMio(id) {
+    return await api.delete(`/api/mis-eventos/${id}`)
+  }
+
   // portal: siempre por rango { desde, hasta } (YYYY-MM-DD), opcional { grupo }
   static async publicos(params) {
     return (await api.get('/api/publico/eventos', { params })).data

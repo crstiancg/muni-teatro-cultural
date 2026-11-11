@@ -1,6 +1,7 @@
 // app global css
 @import './inter';
 @import './tokens';
+@import './panel';
 
 .q-btn,
 .q-card {
@@ -15,12 +16,8 @@
   background-color: rgba(0, 0, 0, 0.8);
 }
 
-// gris de fondo solo para las pantallas internas (admin).
-// las páginas públicas llevan la clase "publico" y definen su propio fondo,
-// si no este !important les pisaría el negro de la portada.
-body.body--light .q-page:not(.publico) {
-  background-color: #f0f0f0 !important;
-}
+// el fondo de las pantallas internas lo pone panel.scss (body.panel .q-page).
+// las páginas públicas llevan la clase "publico" y definen su propio fondo.
 
 // en el sitio público se oculta la barra de scroll pero se sigue pudiendo
 // scrollear (rueda, touch, teclado). La clase la pone/saca PublicoLayout,
@@ -40,15 +37,18 @@ html.sin-barra-scroll body::-webkit-scrollbar {
 // q-table con header sticky, usado en todas las pantallas de listado
 // (Usuarios, Roles, Permisos, y las que se agreguen después).
 .my-sticky-header-table {
-  height: 74vh;
+  // max-height y no height: con pocas filas la tabla no deja un bloque vacío
+  max-height: 74vh;
   border-radius: 10px;
   overflow: hidden;
 
   thead tr th {
     position: sticky;
     z-index: 1;
-    background-color: $primary;
-    color: white;
+    // cabecera sutil del panel (antes azul sólido)
+    background-color: var(--panel-superficie-honda, #e9e1d2);
+    color: var(--panel-texto, #1c1c1c);
+    font-weight: 700;
   }
 
   thead tr:first-child th {

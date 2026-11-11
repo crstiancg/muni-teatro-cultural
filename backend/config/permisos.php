@@ -42,6 +42,8 @@ return [
         'admin-agrupaciones-aprobar' => 'Aprobar agrupaciones',
         // aprobar u observar el perfil público de un artista
         'admin-personas-aprobar' => 'Aprobar perfiles públicos',
+        // aprobar u observar los eventos que proponen artistas y agrupaciones
+        'admin-eventos-aprobar' => 'Aprobar eventos de la agenda',
     ],
 
 ];

@@ -1,7 +1,13 @@
 <template>
-  <q-btn flat round dense class="q-mr-sm">
+  <q-btn
+    flat
+    round
+    dense
+    class="q-mr-xs campana"
+    :aria-label="`Notificaciones${noLeidas ? `: ${noLeidas} sin leer` : ''}`"
+  >
     <Bell :size="20" />
-    <q-badge v-if="noLeidas" color="negative" floating rounded>{{ noLeidas }}</q-badge>
+    <q-badge v-if="noLeidas" color="secondary" floating rounded>{{ noLeidas }}</q-badge>
 
     <q-menu anchor="bottom right" self="top right" style="width: 340px; max-width: 90vw">
       <div class="row items-center justify-between q-px-md q-py-sm">
@@ -25,7 +31,7 @@
           :key="aviso.id"
           clickable
           v-close-popup
-          :class="{ 'bg-blue-1': !aviso.read_at && !$q.dark.isActive }"
+          :class="{ 'aviso--nuevo': !aviso.read_at }"
           @click="abrir(aviso)"
         >
           <q-item-section>
@@ -72,6 +78,15 @@ async function abrir(aviso) {
     cargar()
   }
   const tipo = aviso.data.tipo
+  // eventos: el admin va directo a revisar ESE evento; el artista, a Mis eventos
+  if (['evento_solicitud', 'evento_actualizacion'].includes(tipo)) {
+    router.push({ name: 'EventoAdminDetalle', params: { id: aviso.data.evento_id } })
+    return
+  }
+  if (tipo?.startsWith('evento_')) {
+    router.push({ name: 'MisEventos' })
+    return
+  }
   // agrupaciones: el admin va a revisarla; el representante, a gestionarla
   if (['agrupacion_solicitud', 'agrupacion_actualizacion'].includes(tipo)) {
     router.push({ name: 'AgrupacionAdminDetalle', params: { id: aviso.data.agrupacion_id } })
@@ -108,3 +123,14 @@ onMounted(() => {
 })
 onBeforeUnmount(() => clearInterval(intervalo))
 </script>
+
+<style>
+/* el q-menu se monta fuera del componente: sin scope */
+.aviso--nuevo {
+  background: var(--panel-acento-suave, rgba(179, 38, 30, 0.1));
+}
+
+body.panel .campana {
+  color: var(--panel-texto-suave);
+}
+</style>

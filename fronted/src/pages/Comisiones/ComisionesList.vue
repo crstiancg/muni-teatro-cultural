@@ -173,8 +173,8 @@ import ComisionesForm from '@/pages/Comisiones/ComisionesForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'codigo', label: 'Código', aling: 'center', field: (row) => row.codigo, sortable: true },
-  { name: 'nombre', label: 'Grupo', aling: 'center', field: (row) => row.nombre, sortable: true },
+  { name: 'codigo', label: 'Código', align: 'left', field: (row) => row.codigo, sortable: true },
+  { name: 'nombre', label: 'Grupo', align: 'left', field: (row) => row.nombre, sortable: true },
 ]
 
 const tableRef = ref()

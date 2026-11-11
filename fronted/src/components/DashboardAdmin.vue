@@ -51,7 +51,9 @@
               <div class="pista">
                 <div
                   class="barra"
-                  :style="{ width: d.total ? `${Math.max((d.total / maxDisciplina) * 100, 2)}%` : '0' }"
+                  :style="{
+                    width: d.total ? `${Math.max((d.total / maxDisciplina) * 100, 2)}%` : '0',
+                  }"
                 />
                 <q-tooltip anchor="top middle" self="bottom middle">
                   {{ comisionDe(d.cod_grupo).corto }}: {{ d.total }}
@@ -149,7 +151,11 @@
         >
           <q-item-section avatar>
             <q-avatar color="primary" text-color="white" size="38px" rounded>
-              <img v-if="a.logo?.miniatura_url" :src="a.logo.miniatura_url" style="object-fit: cover" />
+              <img
+                v-if="a.logo?.miniatura_url"
+                :src="a.logo.miniatura_url"
+                style="object-fit: cover"
+              />
               <template v-else>{{ a.nombre.charAt(0) }}</template>
             </q-avatar>
           </q-item-section>
@@ -182,7 +188,12 @@
             class="actividad"
           >
             <div class="miniatura">
-              <img v-if="a.imagen_url" :src="a.imagen_url" :alt="a.titulo || a.descripcion_texto || ''" loading="lazy" />
+              <img
+                v-if="a.imagen_url"
+                :src="a.imagen_url"
+                :alt="a.titulo || a.descripcion_texto || ''"
+                loading="lazy"
+              />
               <div v-else class="sin-imagen"><ImageOff :size="22" /></div>
             </div>
             <div class="text-body2 text-weight-medium ellipsis q-mt-xs">
@@ -229,7 +240,12 @@ const router = useRouter()
 const datos = ref(null)
 const cargando = ref(true)
 
-const ICONOS = { pendiente: Clock, aprobado: CircleCheck, observado: MessageSquareWarning, borrador: FilePen }
+const ICONOS = {
+  pendiente: Clock,
+  aprobado: CircleCheck,
+  observado: MessageSquareWarning,
+  borrador: FilePen,
+}
 const AYUDAS = {
   aprobado: 'Visibles en el portal',
   observado: 'Esperando correcciones',
@@ -248,7 +264,9 @@ const tarjetas = computed(() =>
   })),
 )
 
-const maxDisciplina = computed(() => Math.max(0, ...(datos.value?.disciplinas || []).map((d) => d.total)))
+const maxDisciplina = computed(() =>
+  Math.max(0, ...(datos.value?.disciplinas || []).map((d) => d.total)),
+)
 
 // "hace 3 días" se entiende más rápido que una fecha para saber cuánto espera
 function hace(valor) {
@@ -278,17 +296,11 @@ onMounted(cargar)
 </script>
 
 <style scoped lang="scss">
-/* Tono de las barras validado con el validador de dataviz: el $primary (#004173)
-   es demasiado oscuro para una marca de datos, se usa un paso más claro de la
-   misma familia; en dark un paso propio contra la superficie #1d1d1d */
+/* barras de un solo tono en la tinta del panel (carbón en claro, hueso en
+   oscuro): los tokens ya cambian con el tema */
 .dashboard-admin {
-  --barra: #2a6fb0;
-  --pista: rgba(0, 0, 0, 0.06);
-}
-
-:global(.body--dark) .dashboard-admin {
-  --barra: #3b8fd6;
-  --pista: rgba(255, 255, 255, 0.08);
+  --barra: var(--panel-texto);
+  --pista: var(--panel-superficie-honda);
 }
 
 .texto-secundario {
@@ -329,20 +341,20 @@ onMounted(cargar)
 
 /* mismo color de estado que los chips (config/estadosPerfil.js), en suave */
 .icono--pendiente {
-  color: #1976d2;
-  background: rgba(25, 118, 210, 0.12);
+  color: var(--estado-revision-texto);
+  background: var(--estado-revision-suave);
 }
 .icono--aprobado {
-  color: #21ba45;
-  background: rgba(33, 186, 69, 0.12);
+  color: var(--estado-publicado-texto);
+  background: var(--estado-publicado-suave);
 }
 .icono--observado {
-  color: #ef6c00;
-  background: rgba(239, 108, 0, 0.12);
+  color: var(--estado-observado-texto);
+  background: var(--estado-observado-suave);
 }
 .icono--borrador {
-  color: #757575;
-  background: rgba(117, 117, 117, 0.14);
+  color: var(--estado-borrador-texto);
+  background: var(--estado-borrador-suave);
 }
 
 .fila-barra {

@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="formPersona" persistent>
-    <PersonasForm :key="editId" :title="title" :id="editId" ref="personasFormRef" @save="save"></PersonasForm>
+    <PersonasForm
+      :key="editId"
+      :title="title"
+      :id="editId"
+      ref="personasFormRef"
+      @save="save"
+    ></PersonasForm>
   </q-dialog>
   <q-page>
     <div class="q-pa-md q-gutter-sm">
@@ -10,7 +16,7 @@
       </q-breadcrumbs>
     </div>
     <q-separator />
-    <div class="q-gutter-xs q-pa-sm">
+    <div class="q-pa-sm barra-personas">
       <q-btn
         v-if="userStore.hasPermission('admin-personas-crear')"
         outline
@@ -20,13 +26,11 @@
         icon-right="add"
         @click="abrirCrear"
       />
-      <q-btn-toggle
+      <FiltroPastillas
         v-model="estado"
-        unelevated
-        no-caps
-        toggle-color="primary"
-        :options="opcionesEstado"
-        class="q-ml-sm"
+        :opciones="opcionesEstado"
+        etiqueta="Filtrar por estado del perfil"
+        class="filtro-estado"
         @update:model-value="tableRef.requestServerInteraction()"
       />
     </div>
@@ -76,7 +80,11 @@
           <q-tr :props="props" class="cursor-pointer" @click="verDetalle(props.row.id)">
             <q-td auto-width>
               <q-avatar color="primary" text-color="white" size="32px">
-                <img v-if="props.row.foto?.url" :src="props.row.foto.url" style="object-fit: cover" />
+                <img
+                  v-if="props.row.foto?.url"
+                  :src="props.row.foto.url"
+                  style="object-fit: cover"
+                />
                 <template v-else>{{ inicial(props.row.nombre_completo) }}</template>
               </q-avatar>
             </q-td>
@@ -127,6 +135,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 import PersonaService from '@/services/PersonaService'
+import FiltroPastillas from '@/components/panel/FiltroPastillas.vue'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import { ESTADOS_PERFIL, estadoPerfil } from '@/config/estadosPerfil'
 import { useUserStore } from '@/stores/user-store'
@@ -136,11 +145,29 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const columns = [
-  { name: 'dni', label: 'DNI', aling: 'center', field: (row) => row.dni, sortable: true },
-  { name: 'nombre_completo', label: 'Nombre completo', aling: 'center', field: (row) => row.nombre_completo, sortable: true },
-  { name: 'correo', label: 'Correo', aling: 'center', field: (row) => row.correo, sortable: true },
-  { name: 'celular', label: 'Celular', aling: 'center', field: (row) => row.celular, sortable: false },
-  { name: 'estado', label: 'Perfil público', align: 'center', field: (row) => row.estado, sortable: false },
+  { name: 'dni', label: 'DNI', align: 'left', field: (row) => row.dni, sortable: true },
+  {
+    name: 'nombre_completo',
+    label: 'Nombre completo',
+    align: 'left',
+    field: (row) => row.nombre_completo,
+    sortable: true,
+  },
+  { name: 'correo', label: 'Correo', align: 'left', field: (row) => row.correo, sortable: true },
+  {
+    name: 'celular',
+    label: 'Celular',
+    align: 'left',
+    field: (row) => row.celular,
+    sortable: false,
+  },
+  {
+    name: 'estado',
+    label: 'Perfil público',
+    align: 'center',
+    field: (row) => row.estado,
+    sortable: false,
+  },
 ]
 
 // "Pendientes" es la bandeja de solicitudes: lo que el admin tiene que revisar
@@ -151,6 +178,7 @@ const opcionesEstado = [
   ...Object.entries(ESTADOS_PERFIL).map(([value, e]) => ({
     label: value === 'pendiente' ? 'Pendientes' : e.label,
     value,
+    color: e.color,
   })),
 ]
 
@@ -192,7 +220,13 @@ async function onRequest(props) {
   const fetchCount = rowsPerPage === 0 ? 0 : rowsPerPage
   const order_by = descending ? '-' + sortBy : sortBy
   const { data, total = 0 } = await PersonaService.getData({
-    params: { rowsPerPage: fetchCount, page, search: filter, order_by, estado: estado.value || undefined },
+    params: {
+      rowsPerPage: fetchCount,
+      page,
+      search: filter,
+      order_by,
+      estado: estado.value || undefined,
+    },
   })
 
   rows.value.splice(0, rows.value.length, ...data)
@@ -273,3 +307,24 @@ async function eliminar(id) {
   })
 }
 </script>
+
+<style scoped>
+.barra-personas {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtro-estado {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* celular: las pastillas en su propio renglón, debajo del botón de agregar */
+@media (max-width: 700px) {
+  .filtro-estado {
+    flex-basis: 100%;
+  }
+}
+</style>

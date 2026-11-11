@@ -104,10 +104,22 @@ const routes = [
         component: () => import('@/pages/Agrupaciones/AgrupacionAdminDetallePage.vue'),
       },
       {
+        // el artista propone sus eventos; el admin los revisa en gestion/eventos
+        path: 'mis-eventos',
+        name: 'MisEventos',
+        component: () => import('@/pages/Eventos/MisEventosPage.vue'),
+      },
+      {
         // /gestion/...: /agenda es la del portal público
         path: 'gestion/eventos',
         name: 'EventosAdmin',
         component: () => import('@/pages/Eventos/EventosList.vue'),
+      },
+      {
+        // revisión de un evento: afiche, datos, organizador, historial y aprobar/observar
+        path: 'gestion/eventos/:id',
+        name: 'EventoAdminDetalle',
+        component: () => import('@/pages/Eventos/EventoRevisionPage.vue'),
       },
     ],
   },
