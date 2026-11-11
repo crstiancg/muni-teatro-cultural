@@ -7,7 +7,8 @@
       </q-chip>
       <q-chip v-if="registrados" dense square outline color="positive">
         <BadgeCheck :size="14" class="q-mr-xs" />
-        {{ registrados }} {{ registrados === 1 ? 'agente cultural registrado' : 'agentes culturales registrados' }}
+        {{ registrados }}
+        {{ registrados === 1 ? 'agente cultural registrado' : 'agentes culturales registrados' }}
       </q-chip>
     </div>
 
@@ -19,7 +20,11 @@
         :class="{ 'integrante--representante': i.es_representante }"
       >
         <q-avatar size="52px" :style="{ background: colorDe(i), color: 'white' }" class="avatar">
-          <img v-if="i.persona?.foto?.miniatura_url" :src="i.persona.foto.miniatura_url" :alt="i.nombre_completo" />
+          <img
+            v-if="i.persona?.foto?.miniatura_url"
+            :src="i.persona.foto.miniatura_url"
+            :alt="i.nombre_completo"
+          />
           <template v-else>{{ iniciales(i) }}</template>
         </q-avatar>
 
@@ -60,21 +65,12 @@
             <Crown :size="15" />
             <q-tooltip>Hacer representante</q-tooltip>
           </q-btn>
-          <q-btn v-if="editable" flat dense round size="sm" icon="edit" color="primary" @click="emit('editar', i)">
-            <q-tooltip>Editar</q-tooltip>
-          </q-btn>
-          <q-btn
+          <BotonAccion tipo="editar" v-if="editable" @click="emit('editar', i)" />
+          <BotonAccion
+            tipo="quitar"
             v-if="editable && !i.es_representante"
-            flat
-            dense
-            round
-            size="sm"
-            icon="delete"
-            color="negative"
             @click="emit('quitar', i)"
-          >
-            <q-tooltip>Quitar</q-tooltip>
-          </q-btn>
+          />
         </div>
       </div>
     </div>
@@ -90,6 +86,7 @@
 import { computed } from 'vue'
 import { Users, BadgeCheck, Crown } from 'lucide-vue-next'
 import { useUserStore } from '@/stores/user-store'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const props = defineProps({
   integrantes: { type: Array, default: () => [] },
@@ -118,7 +115,8 @@ const ordenados = computed(() =>
 
 const registrados = computed(() => props.integrantes.filter((i) => i.persona_id).length)
 
-const iniciales = (i) => `${i.nombre?.charAt(0) || ''}${i.apellido_paterno?.charAt(0) || ''}`.toUpperCase()
+const iniciales = (i) =>
+  `${i.nombre?.charAt(0) || ''}${i.apellido_paterno?.charAt(0) || ''}`.toUpperCase()
 
 // un tono estable por persona (mismo DNI = mismo color), dentro de la familia de la marca
 const TONOS = ['#004173', '#2a6fb0', '#0b6a73', '#1f7a5a', '#6a4c93', '#9a4a16']

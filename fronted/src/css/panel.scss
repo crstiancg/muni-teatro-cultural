@@ -49,6 +49,10 @@ body.panel {
   --estado-publicado-texto: #047857;
   --estado-observado-texto: #b45309;
 
+  // peligro (eliminar, quitar): rojo SIEMPRE, aunque el acento sea azul o violeta
+  --panel-peligro: #b91c1c; // red-700
+  --panel-peligro-suave: color-mix(in srgb, var(--panel-peligro) 9%, transparent);
+
   // margen lateral único de TODAS las pantallas (el mismo que usan las de agenda)
   --panel-gutter: clamp(16px, 3vw, 40px);
 
@@ -100,6 +104,8 @@ body.panel.body--dark {
   --panel-sobre-primario: #1c1917;
   --panel-hover: rgba(245, 245, 244, 0.06);
   --panel-sobre-acento: #0c0a09;
+
+  --panel-peligro: #fca5a5; // red-300
 
   // acento rojo · oscuro (por defecto): el 700 no llega a 4.5:1 sobre el fondo oscuro
   --panel-acento: #f87171; // red-400
@@ -315,27 +321,6 @@ body.panel .q-table__bottom {
   font-size: 0.82rem;
 }
 
-// botones de acción de las filas: neutros; eliminar en el rojo de alerta.
-// (las pantallas los declaran con colores de Quasar: cyan, verde, rojo...)
-body.panel .q-table tbody td .q-btn--outline {
-  color: var(--panel-texto-suave) !important;
-  background: transparent !important;
-}
-
-body.panel .q-table tbody td .q-btn--outline:hover {
-  color: var(--panel-texto) !important;
-}
-
-// eliminar: neutro como los demás; recién al pasar el mouse se vuelve rojo
-// (si cada fila tiene un tacho rojo, el rojo deja de llamar la atención)
-body.panel
-  .q-table
-  tbody
-  td
-  .q-btn--outline:is(.text-red-13, .text-red, .text-negative, .text-red-8):hover {
-  color: var(--panel-acento) !important;
-}
-
 // buscador "standout": al hacer foco se pintaba de primary con texto blanco
 body.panel .q-field--standout.q-field--highlighted .q-field__control {
   background: var(--panel-superficie) !important;
@@ -495,4 +480,95 @@ body.panel .text-blue-10 {
 // positive ya toma --q-positive; en oscuro el TEXTO necesita la variante clara
 body.panel.body--dark .text-positive {
   color: var(--estado-publicado-texto) !important;
+}
+
+// ============================================================================
+// Chips y badges de estado: estilo "suave" (fondo tenue, texto del color del
+// estado, borde sutil y un punto). Se lee mejor que el bloque sólido con texto
+// blanco y se distingue de los botones.
+// ============================================================================
+body.panel .q-chip,
+body.panel .q-badge:not(.q-badge--floating) {
+  border-radius: 999px !important;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+body.panel .q-chip {
+  height: 24px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+body.panel .q-badge:not(.q-badge--floating) {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+
+body.panel
+  :is(.q-chip, .q-badge):is(
+    .bg-blue-7,
+    .bg-positive,
+    .bg-orange-9,
+    .bg-deep-orange-9,
+    .bg-deep-orange,
+    .bg-grey-7
+  )::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+body.panel :is(.q-chip, .q-badge).bg-blue-7 {
+  background: var(--estado-revision-suave) !important;
+  color: var(--estado-revision-texto) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--estado-revision-texto) 28%, transparent);
+}
+
+body.panel :is(.q-chip, .q-badge).bg-positive {
+  background: var(--estado-publicado-suave) !important;
+  color: var(--estado-publicado-texto) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--estado-publicado-texto) 28%, transparent);
+}
+
+body.panel :is(.q-chip, .q-badge):is(.bg-orange-9, .bg-deep-orange-9, .bg-deep-orange) {
+  background: var(--estado-observado-suave) !important;
+  color: var(--estado-observado-texto) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--estado-observado-texto) 28%, transparent);
+}
+
+body.panel :is(.q-chip, .q-badge).bg-grey-7 {
+  background: var(--estado-borrador-suave) !important;
+  color: var(--estado-borrador-texto) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--estado-borrador-texto) 28%, transparent);
+}
+
+// chips/badges con contorno (Representante, Registrado...): borde suave del tema
+body.panel :is(.q-chip--outline, .q-badge--outline) {
+  border-color: var(--panel-borde) !important;
+}
+
+// ============================================================================
+// Botones secundarios (outline): borde suave y fondo de card, en vez del borde
+// negro grueso. El principal (lleno) sigue siendo la acción destacada.
+// ============================================================================
+body.panel .q-page .q-btn--outline:not(.text-negative):not(.text-red) {
+  background: var(--panel-superficie) !important;
+}
+
+body.panel .q-page .q-btn--outline:not(.text-negative):not(.text-red)::before {
+  border-color: var(--panel-borde);
+}
+
+body.panel .q-page .q-btn--outline:not(.text-negative):not(.text-red):hover::before {
+  border-color: var(--panel-texto-suave);
+}
+
+body.panel .q-page .q-btn:not(.q-btn--round):not(.q-btn--dense) {
+  min-height: 36px;
+  border-radius: 8px !important;
 }

@@ -19,7 +19,14 @@
     </div>
     <q-separator />
     <div class="q-gutter-xs q-pa-sm">
-      <q-btn outline color="primary" :disable="loading" label="Agregar Grupo" icon-right="add" @click="abrirCrearGrupo" />
+      <q-btn
+        outline
+        color="primary"
+        :disable="loading"
+        label="Agregar Grupo"
+        icon-right="add"
+        @click="abrirCrearGrupo"
+      />
     </div>
     <q-card class="q-ma-sm" flat :bordered="!$q.dark.isActive">
       <q-table
@@ -79,25 +86,8 @@
               {{ col.value }}
             </q-td>
             <q-td auto-width>
-              <q-btn
-                size="sm"
-                text-color="cyan-8"
-                color="cyan-1"
-                outline
-                round
-                @click="editarGrupo(props.row)"
-                icon="edit"
-                class="q-mr-xs"
-              />
-              <q-btn
-                size="sm"
-                text-color="red-13"
-                color="red-1"
-                outline
-                round
-                @click="eliminar(props.row)"
-                icon="delete"
-              />
+              <BotonAccion tipo="editar" @click="editarGrupo(props.row)" />
+              <BotonAccion tipo="eliminar" @click="eliminar(props.row)" />
             </q-td>
           </q-tr>
 
@@ -105,7 +95,7 @@
             <q-td colspan="100%">
               <div class="q-pa-sm">
                 <div class="row items-center q-mb-sm">
-                  <div class="text-subtitle2  text-weight-bold">{{ props.row.nombre }}</div>
+                  <div class="text-subtitle2 text-weight-bold">{{ props.row.nombre }}</div>
                   <q-space />
                   <q-btn
                     outline
@@ -117,7 +107,10 @@
                   />
                 </div>
 
-                <div v-if="cargandoFamilias[props.row.cod_grupo]" class="text-caption text-grey-6 q-pa-sm">
+                <div
+                  v-if="cargandoFamilias[props.row.cod_grupo]"
+                  class="text-caption text-grey-6 q-pa-sm"
+                >
                   Cargando...
                 </div>
                 <div
@@ -128,29 +121,20 @@
                 </div>
                 <q-card :flat="$q.dark.isActive" v-else class="shadow-1 q-pa-sm">
                   <q-list separator>
-                    <q-item v-for="familia in familiasPorGrupo[props.row.cod_grupo]" :key="familia.id">
+                    <q-item
+                      v-for="familia in familiasPorGrupo[props.row.cod_grupo]"
+                      :key="familia.id"
+                    >
                       <q-item-section avatar>
-                        <q-avatar color="secondary" text-color="white" size="28px">{{ familia.cod_familia }}</q-avatar>
+                        <q-avatar color="secondary" text-color="white" size="28px">{{
+                          familia.cod_familia
+                        }}</q-avatar>
                       </q-item-section>
                       <q-item-section>{{ familia.nombre }}</q-item-section>
                       <q-item-section side>
                         <div class="row items-center q-gutter-xs">
-                          <q-btn
-                            size="sm"
-                            text-color="cyan-8"
-                            round
-                            unelevated
-                            icon="edit"
-                            @click="editarFamilia(familia)"
-                          />
-                          <q-btn
-                            size="sm"
-                            text-color="red-13"
-                            round
-                            unelevated
-                            icon="delete"
-                            @click="eliminar(familia)"
-                          />
+                          <BotonAccion tipo="editar" @click="editarFamilia(familia)" />
+                          <BotonAccion tipo="eliminar" @click="eliminar(familia)" />
                         </div>
                       </q-item-section>
                     </q-item>
@@ -170,6 +154,7 @@ import { ref, reactive, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import ComisionService from '@/services/ComisionService'
 import ComisionesForm from '@/pages/Comisiones/ComisionesForm.vue'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const $q = useQuasar()
 const columns = [

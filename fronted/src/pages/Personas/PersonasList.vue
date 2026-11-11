@@ -101,26 +101,15 @@
               <template v-else>{{ col.value }}</template>
             </q-td>
             <q-td auto-width>
-              <q-btn
+              <BotonAccion
+                tipo="editar"
                 v-if="userStore.hasPermission('admin-personas-editar')"
-                size="sm"
-                text-color="cyan-8"
-                color="cyan-1"
-                outline
-                round
                 @click.stop="editar(props.row.id)"
-                icon="edit"
-                class="q-mr-xs"
               />
-              <q-btn
+              <BotonAccion
+                tipo="eliminar"
                 v-if="userStore.hasPermission('admin-personas-eliminar')"
-                size="sm"
-                text-color="red-13"
-                color="red-1"
-                outline
-                round
                 @click.stop="eliminar(props.row.id)"
-                icon="delete"
               />
             </q-td>
           </q-tr>
@@ -139,6 +128,7 @@ import FiltroPastillas from '@/components/panel/FiltroPastillas.vue'
 import PersonasForm from '@/pages/Personas/PersonasForm.vue'
 import { ESTADOS_PERFIL, estadoPerfil } from '@/config/estadosPerfil'
 import { useUserStore } from '@/stores/user-store'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const $q = useQuasar()
 const router = useRouter()

@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="formPermisos" persistent>
-    <PermisosForm :key="editId" :title="title" :id="editId" ref="permisosFormRef" @save="save"></PermisosForm>
+    <PermisosForm
+      :key="editId"
+      :title="title"
+      :id="editId"
+      ref="permisosFormRef"
+      @save="save"
+    ></PermisosForm>
   </q-dialog>
   <q-page>
     <div class="q-pa-md q-gutter-sm">
@@ -69,25 +75,8 @@
               {{ col.value }}
             </q-td>
             <q-td auto-width>
-              <q-btn
-                size="sm"
-                text-color="cyan-8"
-                color="cyan-1"
-                outline
-                round
-                @click="editar(props.row.id)"
-                icon="edit"
-                class="q-mr-xs"
-              />
-              <q-btn
-                size="sm"
-                text-color="red-13"
-                color="red-1"
-                outline
-                round
-                @click="eliminar(props.row.id)"
-                icon="delete"
-              />
+              <BotonAccion tipo="editar" @click="editar(props.row.id)" />
+              <BotonAccion tipo="eliminar" @click="eliminar(props.row.id)" />
             </q-td>
           </q-tr>
         </template>
@@ -101,12 +90,19 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import PermisoService from '@/services/PermisoService'
 import PermisosForm from '@/pages/Permisos/PermisosForm.vue'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const $q = useQuasar()
 const columns = [
   { name: 'id', label: 'Id', align: 'left', field: (row) => row.id, sortable: true },
   { name: 'name', label: 'Nombre', align: 'left', field: (row) => row.name, sortable: true },
-  { name: 'description', label: 'Descripcion', align: 'left', field: (row) => row.description, sortable: true },
+  {
+    name: 'description',
+    label: 'Descripcion',
+    align: 'left',
+    field: (row) => row.description,
+    sortable: true,
+  },
 ]
 
 const tableRef = ref()

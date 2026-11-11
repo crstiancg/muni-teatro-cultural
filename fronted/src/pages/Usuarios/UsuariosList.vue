@@ -73,23 +73,8 @@
               {{ col.value }}
             </q-td>
             <q-td auto-width>
-              <q-btn
-                size="sm"
-                outline
-                color="green"
-                round
-                @click="editar(props.row.id)"
-                icon="edit"
-                class="q-mr-xs"
-              />
-              <q-btn
-                size="sm"
-                outline
-                color="red"
-                round
-                @click="eliminar(props.row.id)"
-                icon="delete"
-              />
+              <BotonAccion tipo="editar" @click="editar(props.row.id)" />
+              <BotonAccion tipo="eliminar" @click="eliminar(props.row.id)" />
             </q-td>
           </q-tr>
         </template>
@@ -103,6 +88,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import UserService from '@/services/UserService'
 import UsuariosForm from '@/pages/Usuarios/UsuariosForm.vue'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const $q = useQuasar()
 const columns = [

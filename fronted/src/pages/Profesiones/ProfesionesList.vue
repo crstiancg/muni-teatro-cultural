@@ -1,6 +1,12 @@
 <template>
   <q-dialog v-model="formProfesiones" persistent>
-    <ProfesionesForm :key="editId" :title="title" :id="editId" ref="profesionesFormRef" @save="save"></ProfesionesForm>
+    <ProfesionesForm
+      :key="editId"
+      :title="title"
+      :id="editId"
+      ref="profesionesFormRef"
+      @save="save"
+    ></ProfesionesForm>
   </q-dialog>
   <q-page>
     <div class="q-pa-md q-gutter-sm">
@@ -69,25 +75,8 @@
               {{ col.value }}
             </q-td>
             <q-td auto-width>
-              <q-btn
-                size="sm"
-                text-color="cyan-8"
-                color="cyan-1"
-                outline
-                round
-                @click="editar(props.row.id)"
-                icon="edit"
-                class="q-mr-xs"
-              />
-              <q-btn
-                size="sm"
-                text-color="red-13"
-                color="red-1"
-                outline
-                round
-                @click="eliminar(props.row.id)"
-                icon="delete"
-              />
+              <BotonAccion tipo="editar" @click="editar(props.row.id)" />
+              <BotonAccion tipo="eliminar" @click="eliminar(props.row.id)" />
             </q-td>
           </q-tr>
         </template>
@@ -101,6 +90,7 @@ import { ref, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import ProfesionService from '@/services/ProfesionService'
 import ProfesionesForm from '@/pages/Profesiones/ProfesionesForm.vue'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const $q = useQuasar()
 const columns = [

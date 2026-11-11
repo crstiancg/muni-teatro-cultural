@@ -155,18 +155,12 @@
                     <q-item-label caption class="text-grey-6">{{ p.name }}</q-item-label>
                   </q-item-section>
                   <q-item-section side>
-                    <q-btn
-                      flat
-                      round
-                      dense
-                      size="sm"
-                      icon="edit"
-                      color="grey-7"
-                      class="q-mr-xs"
+                    <BotonAccion
+                      tipo="editar"
+                      etiqueta="Editar permiso"
+                      compacto
                       @click="editarPermiso(p.id)"
-                    >
-                      <q-tooltip>Editar permiso</q-tooltip>
-                    </q-btn>
+                    />
                     <q-toggle
                       keep-color
                       v-model="form.permisosSelected"
@@ -240,6 +234,7 @@ import RolService from '@/services/RolService'
 import PermisoService from '@/services/PermisoService'
 import PermisosForm from '@/pages/Permisos/PermisosForm.vue'
 import SelectGeneralAsync from '@/components/selectGeneralAsyncrono.vue'
+import BotonAccion from '@/components/panel/BotonAccion.vue'
 
 const isPwd = ref(true)
 const roles = ref([])
