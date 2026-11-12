@@ -1,31 +1,26 @@
 <template>
   <q-page class="landing publico">
     <!-- ══════════ ① PORTADA ══════════ -->
-    <!-- Las fotos van en tres "cañas" de distinto largo, como el siku del logo:
-         el título queda sobre fondo liso y ninguna foto le compite. -->
+    <!-- "El pasacalle": título y buscador al centro, y abajo las fotos de cada
+         disciplina pasan de lado a lado como una comparsa en la Candelaria. -->
     <section class="portada">
-      <!-- de fondo, la foto de la caña que está sonando -->
-      <div class="portada-fondo" aria-hidden="true">
-        <Transition name="fundido">
-          <img :key="fotoSiku.src" :src="fotoSiku.src" alt="" />
-        </Transition>
+      <!-- fotos sueltas a los costados del título (solo en pantallas anchas) -->
+      <div class="sueltas" aria-hidden="true">
+        <img
+          v-for="f in FOTOS_SUELTAS"
+          :key="f.clase"
+          :src="f.src"
+          :class="['suelta', f.clase]"
+          :style="{ objectPosition: f.pos }"
+          alt=""
+          loading="lazy"
+        />
       </div>
 
-      <div class="portada-marco">
-      <div class="portada-cuerpo">
-        <p class="portada-sello">
-          <span class="sello-linea" />
-          {{ INSTITUCION.lema }}
-        </p>
-
-        <h1 class="portada-titulo">
-          Detrás de cada expresión
-          <em>hay una historia</em>
-        </h1>
-
+      <div class="portada-cabeza">
+        <h1 class="portada-titulo">Detrás de cada expresión hay una historia</h1>
         <p class="portada-bajada">
-          El registro vivo de artistas, comisiones y familias culturales de
-          {{ INSTITUCION.ciudad }}.
+          Artistas, agrupaciones y familias culturales de {{ INSTITUCION.ciudad }}, capital folclórica del Perú.
         </p>
 
         <!-- buscador: resultados reales en vivo (artistas y agrupaciones), con teclado.
@@ -193,40 +188,25 @@
             </div>
           </Transition>
         </form>
-
-        <p v-if="stats.consejeros" class="portada-cifras">
-          <span><strong>{{ stats.consejeros }}</strong> artistas registrados</span>
-          <span class="cifra-sep" aria-hidden="true" />
-          <span><strong>{{ Object.keys(COMISIONES).length }}</strong> disciplinas</span>
-        </p>
       </div>
 
-      <!-- el siku: una caña por disciplina, de la más corta a la más larga.
-           Las 8 cañas son ventanas a UNA misma foto, que va cambiando con un
-           barrido de caña en caña. Cada caña lleva a los artistas de su disciplina. -->
-      <nav class="siku" aria-label="Explorar por disciplina" @mouseenter="sikuPausado = true" @mouseleave="sikuPausado = false">
-        <router-link
-          v-for="(c, cod, i) in COMISIONES"
-          :key="cod"
-          :to="{ name: 'ConsejerosPublico', query: { grupo: cod } }"
-          class="cana"
-          :style="{ '--acento': c.color, '--largo': `${46 + i * 7}%`, '--i': i }"
-          @focus="sikuPausado = true"
-          @blur="sikuPausado = false"
-        >
-          <Transition name="fundido">
-            <img
-              :key="fotoSiku.src"
-              :src="fotoSiku.src"
-              :alt="i === 0 ? fotoSiku.descripcion : ''"
-              :style="{ objectPosition: fotoSiku.pos, transitionDelay: `${i * 90}ms` }"
-            />
-          </Transition>
-          <span class="cana-nombre">{{ c.corto }}</span>
-        </router-link>
-        <span class="amarre" aria-hidden="true" />
+      <!-- el pasacalle: la fila se repite dos veces para que el desfile no se corte;
+           la copia no se lee ni se enfoca. Se detiene con el mouse o el teclado. -->
+      <nav class="pasacalle" aria-label="Explorar por disciplina">
+        <ul class="pista">
+          <li v-for="(d, n) in desfile" :key="n" :aria-hidden="n >= disciplinasDesfile.length">
+            <router-link
+              :to="{ name: 'ConsejerosPublico', query: { grupo: d.cod } }"
+              class="comparsa"
+              :style="{ '--acento': d.color }"
+              :tabindex="n >= disciplinasDesfile.length ? -1 : 0"
+            >
+              <img :src="d.foto" alt="" :loading="n < 6 ? 'eager' : 'lazy'" />
+              <span class="comparsa-nombre"><i aria-hidden="true" />{{ d.corto }}</span>
+            </router-link>
+          </li>
+        </ul>
       </nav>
-      </div>
     </section>
 
     <!-- ══════════ ② FRANJA DE DANZAS ══════════ -->
@@ -725,32 +705,22 @@ const destacado = computed(() => artistas.value[0] || null)
 const acompanan = computed(() => artistas.value.slice(1, 7))
 
 // ---------- portada ----------
-// una sola foto vista a través de las cañas; rota sola y se pausa con el mouse
-// encima. Sin fotos del edificio de la Gerencia: su letrero se lee entre cañas.
-const FOTOS_SIKU = [
-  { src: '/images/com-02.jpg', descripcion: 'Danzantes de diablada en escena', pos: '50% 40%' },
-  { src: '/images/wall2.jpg', descripcion: 'Banda en un escenario al aire libre', pos: '50% 50%' },
-  { src: '/images/com-07.jpg', descripcion: 'Máscaras de diablada frente a la catedral en la Candelaria', pos: '50% 50%' },
-  { src: '/images/com-03.jpg', descripcion: 'Actores con sombrero y máscara', pos: '40% 50%' },
-  { src: '/images/wall1.jpg', descripcion: 'Plaza de Armas de Puno de noche', pos: '50% 50%' },
-  { src: '/images/com-01.jpg', descripcion: 'Orquesta en el templo', pos: '50% 50%' },
-  { src: '/images/com-06.jpg', descripcion: 'Equipo del festival Hanan Cine', pos: '50% 50%' },
+// ---------- fotos sueltas a los costados del título ----------
+// las del cartel que no salen en el desfile, así no se repite ninguna
+const FOTOS_SUELTAS = [
+  { clase: 'izq-1', src: '/images/wall1.jpg', pos: '50% 50%' },
+  { clase: 'izq-2', src: '/images/wall2.jpg', pos: '45% 50%' },
+  { clase: 'der-1', src: '/images/wallpaper_puno.png', pos: '72% 70%' },
+  { clase: 'der-2', src: '/images/wall3.jpg', pos: '50% 35%' },
 ]
-const fotoIndex = ref(0)
-const fotoSiku = computed(() => FOTOS_SIKU[fotoIndex.value % FOTOS_SIKU.length])
-const sikuPausado = ref(false)
+
+// ---------- pasacalle de la portada ----------
+// una foto por disciplina; la fila va dos veces para que el desfile no se corte
+const disciplinasDesfile = Object.entries(COMISIONES).map(([cod, c]) => ({ cod, ...c }))
+const desfile = [...disciplinasDesfile, ...disciplinasDesfile]
+
 // distinta a las de la portada: no repetir la misma foto dos veces en la página
 const fotoCandelaria = '/images/com-02.jpg'
-
-let temporizador
-
-function rotarFotos() {
-  clearInterval(temporizador)
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  temporizador = setInterval(() => {
-    if (!sikuPausado.value) fotoIndex.value++
-  }, 5000)
-}
 
 // ---------- acordeón de comisiones ----------
 // La hoja abierta va rotando sola; se detiene con el mouse encima o cuando
@@ -770,7 +740,6 @@ function girarAcordeon() {
 }
 
 onBeforeUnmount(() => {
-  clearInterval(temporizador)
   clearInterval(acordeonTimer)
 })
 
@@ -787,7 +756,6 @@ onMounted(async () => {
   destacadas.value = data.destacadas
   artistas.value = data.artistas || []
   agrupaciones.value = data.agrupaciones || []
-  rotarFotos()
   await nextTick()
   girarAcordeon()
 })
@@ -887,276 +855,260 @@ onMounted(async () => {
 }
 
 /* ═══════════ ① PORTADA ═══════════ */
-/* Fondo de tinta con el aguayo en oro tenue; a la derecha un siku de 8 cañas
-   (una por disciplina) que cuelga desde arriba, de la más corta a la más larga.
-   El título nunca queda encima de una foto. */
+/* "El pasacalle": título y buscador centrados sobre papel, y abajo las fotos
+   de las ocho disciplinas desfilando de lado a lado, alternando altura como el
+   paso de una comparsa. */
 .portada {
   position: relative;
-  padding: 0 var(--gutter);
-  background: var(--tinta);
-  color: var(--sobre-foto);
+  padding: clamp(44px, 7vh, 80px) 0 clamp(48px, 7vh, 80px);
+  background: var(--papel);
+  color: var(--tinta);
   /* clip solo en horizontal: los paneles del buscador pueden salir hacia abajo */
   overflow-x: clip;
   /* por encima de las secciones siguientes: los paneles pueden pasar sobre ellas */
   z-index: 5;
-  --alto-portada: clamp(600px, calc(100svh - 66px), 820px);
-
 }
 
-/* foto de fondo oscurecida: se lee el texto encima y el siku resalta */
-.portada-fondo {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-
-  img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    filter: blur(2px) saturate(0.8);
-    transform: scale(1.04);
-  }
-  /* velo parejo, un poco más denso del lado del texto */
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, rgba(22, 32, 46, 0.9) 0%, rgba(22, 32, 46, 0.78) 50%, rgba(22, 32, 46, 0.7) 100%);
-  }
-}
-
-.portada-marco {
+.portada-cabeza {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: clamp(32px, 4vw, 64px);
-  max-width: var(--ancho);
-  min-height: var(--alto-portada);
-  margin: 0 auto;
-}
-
-.portada-cuerpo {
-  position: relative;
-  z-index: 2;
-  min-width: 0;
-  align-self: center;
-  padding: clamp(48px, 7vh, 88px) 0;
-}
-
-.portada-sello {
-  @include kicker(var(--oro-vivo));
-  display: inline-flex;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 20px;
-}
-
-.sello-linea {
-  width: 34px;
-  height: 2px;
-  background: var(--oro-vivo);
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  text-align: center;
 }
 
 .portada-titulo {
   @include display(800);
-  font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.4rem);
-  line-height: 1;
-  letter-spacing: -0.015em;
-  color: var(--sobre-foto);
-  margin: 0 0 20px;
-
-  em {
-    display: block;
-    font-style: italic;
-    font-weight: 600;
-    color: var(--oro-vivo);
-    font-variation-settings:
-      'SOFT' 40,
-      'WONK' 1;
-  }
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 1.3rem + 4.2vw, 5.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  color: var(--tinta);
+  text-wrap: balance;
 }
 
 .portada-bajada {
-  color: rgba(253, 251, 247, 0.8);
-  font-size: clamp(1rem, 0.92rem + 0.35vw, 1.15rem);
-  line-height: 1.6;
-  max-width: 40ch;
-  margin: 0 0 28px;
+  margin: clamp(14px, 2vh, 20px) 0 clamp(24px, 3.4vh, 34px);
+  max-width: 46ch;
+  font-size: clamp(1rem, 0.94rem + 0.3vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--tinta-suave);
 }
 
-/* cifras del registro en una línea, bajo el buscador */
-.portada-cifras {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 16px;
-  margin: 22px 0 0;
-  font-size: var(--t-sm);
-  color: rgba(253, 251, 247, 0.72);
+/* el buscador conserva su forma de píldora; sobre papel lleva borde */
+.portada .buscador {
+  width: min(640px, 100%);
+  border: 1px solid var(--borde);
+  text-align: left;
+}
 
-  strong {
-    font-weight: 800;
-    color: var(--oro-vivo);
+/* ── fotos sueltas a los costados ── */
+.sueltas {
+  display: none;
+}
+
+@media (min-width: 1240px) {
+  .sueltas {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto;
+    height: clamp(440px, 52vh, 520px);
+    pointer-events: none;
+  }
+
+  .suelta {
+    position: absolute;
+    object-fit: cover;
+    border: 6px solid #fff;
+    border-radius: 6px;
+    box-shadow:
+      0 2px 6px rgba(22, 32, 46, 0.08),
+      0 18px 40px rgba(22, 32, 46, 0.16);
+    animation: flotar-suelta 9s ease-in-out infinite;
+  }
+
+  /* izquierda: una grande arriba y una chica que se le monta */
+  .izq-1 {
+    left: clamp(16px, 3vw, 72px);
+    top: 36px;
+    width: clamp(170px, 13vw, 250px);
+    aspect-ratio: 4 / 5;
+    --giro: -7deg;
+  }
+  .izq-2 {
+    left: clamp(110px, 10vw, 230px);
+    top: clamp(240px, 27vh, 300px);
+    width: clamp(140px, 10.5vw, 200px);
+    aspect-ratio: 1;
+    --giro: 5deg;
+    animation-delay: -3s;
+  }
+  /* derecha: en espejo */
+  .der-1 {
+    right: clamp(16px, 3vw, 72px);
+    top: 56px;
+    width: clamp(170px, 13vw, 250px);
+    aspect-ratio: 4 / 5;
+    --giro: 6deg;
+    animation-delay: -5s;
+  }
+  .der-2 {
+    right: clamp(110px, 10vw, 230px);
+    top: clamp(250px, 28vh, 310px);
+    width: clamp(140px, 10.5vw, 200px);
+    aspect-ratio: 1;
+    --giro: -4deg;
+    animation-delay: -1.5s;
   }
 }
 
-.cifra-sep {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(253, 251, 247, 0.4);
+/* flotan apenas, cada una a su ritmo */
+@keyframes flotar-suelta {
+  0%,
+  100% {
+    transform: rotate(var(--giro)) translateY(0);
+  }
+  50% {
+    transform: rotate(var(--giro)) translateY(-10px);
+  }
 }
 
-/* ── el siku ── */
-.siku {
+@media (prefers-reduced-motion: reduce) {
+  .suelta {
+    animation: none;
+    transform: rotate(var(--giro));
+  }
+}
+
+/* ── el pasacalle ── */
+.pasacalle {
   position: relative;
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  align-items: start;
-  --hueco: clamp(6px, 0.8vw, 12px);
-  gap: var(--hueco);
-  /* alto fijo para que el largo en % de cada caña tenga contra qué medirse */
-  align-self: center;
-  height: calc(var(--alto-portada) - 150px);
-  /* las cañas miden la foto contra el siku entero (unidades cqw/cqh) */
-  container-type: size;
+  margin-top: clamp(40px, 6vh, 64px);
+  /* los bordes se desvanecen: las fotos entran y salen, no aparecen cortadas */
+  mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
 }
 
-.cana {
+.pista {
+  display: flex;
+  gap: clamp(12px, 1.4vw, 20px);
+  width: max-content;
+  margin: 0;
+  /* espacio para que las fotos que bajan no se corten */
+  padding: 0 0 36px;
+  list-style: none;
+  animation: desfile 70s linear infinite;
+
+  li {
+    flex: none;
+  }
+  /* el paso de la comparsa: una arriba, otra abajo */
+  li:nth-child(even) {
+    transform: translateY(36px);
+  }
+}
+
+/* con el mouse encima o navegando con el teclado, el desfile se detiene */
+.pasacalle:hover .pista,
+.pasacalle:focus-within .pista {
+  animation-play-state: paused;
+}
+
+@keyframes desfile {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* la pista es la fila dos veces: al llegar a la mitad vuelve a empezar igual */
+    transform: translateX(-50%);
+  }
+}
+
+.comparsa {
   position: relative;
   display: block;
-  height: var(--largo);
+  width: clamp(170px, 16vw, 240px);
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  border-radius: var(--r-full);
-  background: #223047;
-  box-shadow: inset 0 0 0 1px rgba(253, 251, 247, 0.08);
+  border-radius: var(--r-md);
+  background: var(--crema);
+  color: #fff;
   text-decoration: none;
-  transition:
-    height 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
-    box-shadow 0.4s ease;
 
-  /* la foto mide lo que el siku entero y se corre según la posición de la
-     caña: así las 8 cañas muestran pedazos contiguos de la MISMA foto */
   img {
-    position: absolute;
-    top: 0;
-    left: calc(var(--i) * -1 * ((100cqw - 7 * var(--hueco)) / 8 + var(--hueco)));
-    width: 100cqw;
-    height: 100cqh;
-    max-width: none;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     display: block;
-    filter: brightness(0.85);
-    transition: filter 0.5s ease;
+    transition: transform 0.7s ease;
   }
-
-  /* velo abajo + filete del color de la disciplina en la punta */
   &::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to top, rgba(22, 32, 46, 0.85), transparent 55%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.62), transparent 45%);
     pointer-events: none;
   }
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 5px;
-    z-index: 2;
-    background: var(--acento);
-  }
 
-  /* la caña que se toca se enciende y baja un poco */
-  &:hover,
-  &:focus-visible {
-    height: calc(var(--largo) + 28px);
-    box-shadow: inset 0 0 0 1px rgba(253, 251, 247, 0.2);
-
-    img {
-      filter: brightness(1.1);
-    }
-    .cana-nombre {
-      color: var(--oro-vivo);
-    }
+  &:hover img {
+    transform: scale(1.06);
   }
   &:focus-visible {
     @include foco;
   }
 }
 
-.cana-nombre {
+.comparsa-nombre {
   position: absolute;
-  left: 50%;
-  bottom: clamp(26px, 3vw, 40px);
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
   z-index: 1;
-  transform: translateX(-50%) rotate(180deg);
-  writing-mode: vertical-rl;
-  max-height: calc(100% - 120px);
-  overflow: hidden;
-  font: 700 0.72rem var(--fuente-texto);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--sobre-foto);
-  transition: color 0.4s ease;
-}
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 var(--t-sm) var(--fuente-texto);
+  line-height: 1.2;
 
-/* el amarre: la faja de aguayo que sujeta las cañas */
-.amarre {
-  position: absolute;
-  left: -8px;
-  right: -8px;
-  top: 48px;
-  height: 10px;
-  border-radius: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--oro-vivo) 0 14px,
-    var(--rojo) 14px 22px,
-    var(--lago) 22px 30px,
-    var(--sobre-foto) 30px 33px
-  );
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-}
-
-/* tablet y celular: el siku arriba, a lo ancho, y el texto debajo */
-@media (max-width: 900px) {
-  .portada-marco {
-    grid-template-columns: 1fr;
-    min-height: 0;
-    gap: 0;
-  }
-  .siku {
-    order: -1;
-    margin-top: 28px;
-    height: clamp(200px, 46vw, 320px);
-  }
-  .amarre {
-    top: 30px;
-    height: 8px;
-  }
-  .portada-cuerpo {
-    padding: 28px 0 48px;
+  i {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--acento);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
   }
 }
 
-@media (max-width: 600px) {
-  .cana-nombre {
-    display: none;
-  }
-}
-
+/* menos movimiento: la fila queda quieta y se recorre deslizando */
 @media (prefers-reduced-motion: reduce) {
-  .cana,
-  .cana img {
-    transition: none;
+  .pasacalle {
+    overflow-x: auto;
+    mask-image: none;
+  }
+  .pista {
+    animation: none;
+    padding-inline: var(--gutter);
+  }
+}
+
+@media (max-width: 760px) {
+  .comparsa {
+    width: 150px;
+  }
+  .pista {
+    padding-bottom: 24px;
+
+    li:nth-child(even) {
+      transform: translateY(24px);
+    }
+  }
+  .pasacalle {
+    mask-image: none;
   }
 }
 
