@@ -4,6 +4,26 @@
     <!-- "El pasacalle": título y buscador al centro, y abajo las fotos de cada
          disciplina pasan de lado a lado como una comparsa en la Candelaria. -->
     <section class="portada">
+      <!-- PRUEBA: figuritas de fondo con cosas de Puno (siku, charango, máscara…).
+           Para quitarlas: este bloque, FIGURITAS en el script y sus estilos. -->
+      <div class="figuritas" aria-hidden="true">
+        <span
+          v-for="(f, i) in FIGURITAS"
+          :key="i"
+          :class="['fig', { 'en-movil': f.m }]"
+          :style="{
+            left: `${f.x}%`,
+            top: `${f.y}%`,
+            '--tam': `${Math.round(f.s * 1.35)}px`,
+            '--color': f.c,
+            '--giro': `${f.r}deg`,
+            animationDelay: `${-i * 1.7}s`,
+          }"
+        >
+          <svg viewBox="0 0 48 48"><path :d="DIBUJOS[f.t]" /></svg>
+        </span>
+      </div>
+
       <!-- fotos sueltas a los costados del título (solo en pantallas anchas) -->
       <div class="sueltas" aria-hidden="true">
         <img
@@ -705,6 +725,49 @@ const destacado = computed(() => artistas.value[0] || null)
 const acompanan = computed(() => artistas.value.slice(1, 7))
 
 // ---------- portada ----------
+// ---------- PRUEBA: figuritas de fondo de la portada ----------
+// dibujos a línea (viewBox 48×48) de instrumentos y cosas de la cultura de Puno
+const DIBUJOS = {
+  // zampoña: cañas que bajan de largo, amarradas
+  siku: 'M8 8v32M13 8v28M18 8v24M23 8v20M28 8v17M33 8v14M38 8v11M5 14h36',
+  charango:
+    'M24 18c-4 0-6 3-6 6 0 2 1 3 1 4-3 2-5 4-5 8 0 5 4 8 10 8s10-3 10-8c0-4-2-6-5-8 0-1 1-2 1-4 0-3-2-6-6-6zM24 18V8M21.5 3h5v5h-5zM21.5 33a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M20 39h8',
+  bombo: 'M10 15a14 5 0 1 0 28 0 14 5 0 1 0-28 0M10 15v17c0 3 6 5 14 5s14-2 14-5V15M10 21l7 10 7-10 7 10 7-10M36 4l-8 8',
+  quena: 'M9.3 39.7 35.3 5.7l3.4 2.6-26 34zM19.6 29.5h.1M22.3 26h.1M25 22.5h.1M27.7 19h.1',
+  // máscara de diablada: cachos y ojos saltones
+  mascara:
+    'M14 18c0 11 4 20 10 20s10-9 10-20c-2-4-6-6-10-6s-8 2-10 6zM14 18c-5-3-7-9-5-14 2 4 6 6 9 9M34 18c5-3 7-9 5-14-2 4-6 6-9 9M17 23a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M26 23a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M19 31c3 2.5 7 2.5 10 0',
+  chullo: 'M12 31c0-11 5-19 12-19s12 8 12 19zM12 31v7M36 31v7M21 9a3 3 0 1 0 6 0 3 3 0 1 0-6 0M13 25l4 3 4-3 4 3 4-3 4 3 3-2',
+  llama: 'M33 9v19H16c-3 0-5 2-5 5v9M16 42v-9M28 42V28M33 42V28M33 9c0-3 1-5 3-5l1-2 1 2c1 1 1 2 1 3l2 1-1 2h-4',
+  // balsa de totora del lago
+  totora: 'M3 14c2 13 10 20 21 20s19-7 21-20M3 14l7 9M45 14l-7 9M10 23c4 4 9 5 14 5s10-1 14-5M16 26v7M24 28v6M32 26v7M2 42c4-2 8-2 12 0s8 2 12 0 8-2 12 0 6 1 9 0',
+  // cruz andina escalonada
+  chakana: 'M19 5h10v7h7v7h7v10h-7v7h-7v7H19v-7h-7v-7H5V19h7v-7h7zM20 24a4 4 0 1 0 8 0 4 4 0 1 0-8 0',
+  inti: 'M17 24a7 7 0 1 0 14 0 7 7 0 1 0-14 0M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.2 4.2M33.2 33.2l4.2 4.2M37.4 10.6l-4.2 4.2M14.8 33.2l-4.2 4.2',
+}
+
+// x / y en % de la portada, s = tamaño en px, r = giro, m = también en celular
+const FIGURITAS = [
+  { t: 'siku', x: 22, y: 0, s: 46, c: 'var(--oro)', r: -10 },
+  { t: 'inti', x: 27, y: 30, s: 30, c: 'var(--rojo)', r: 0 },
+  { t: 'chakana', x: 19, y: 43, s: 32, c: 'var(--lago)', r: 0 },
+  { t: 'totora', x: 24, y: 53, s: 52, c: 'var(--com-03)', r: -6 },
+  { t: 'quena', x: 31, y: 2, s: 34, c: 'var(--com-07)', r: 0 },
+  { t: 'charango', x: 2, y: 48, s: 40, c: 'var(--com-06)', r: -12, m: true },
+  { t: 'chullo', x: 8, y: 2, s: 30, c: 'var(--oro)', r: 8, m: true },
+  { t: 'mascara', x: 73, y: 4, s: 46, c: 'var(--rojo)', r: 8 },
+  { t: 'bombo', x: 67, y: 0, s: 34, c: 'var(--lago)', r: -6 },
+  { t: 'llama', x: 71, y: 32, s: 36, c: 'var(--com-03)', r: 0 },
+  { t: 'siku', x: 78, y: 48, s: 34, c: 'var(--oro)', r: 12 },
+  { t: 'chakana', x: 65, y: 45, s: 26, c: 'var(--rojo)', r: 0 },
+  { t: 'mascara', x: 94, y: 42, s: 40, c: 'var(--com-07)', r: -8, m: true },
+  { t: 'inti', x: 89, y: 2, s: 30, c: 'var(--com-06)', r: 0, m: true },
+  { t: 'quena', x: 42, y: 0, s: 26, c: 'var(--com-06)', r: 0, m: true },
+  { t: 'chullo', x: 57, y: 1, s: 24, c: 'var(--oro)', r: -6, m: true },
+  { t: 'llama', x: 35, y: 49, s: 28, c: 'var(--com-03)', r: 0 },
+  { t: 'charango', x: 60, y: 52, s: 32, c: 'var(--lago)', r: 14 },
+]
+
 // ---------- fotos sueltas a los costados del título ----------
 // las del cartel que no salen en el desfile, así no se repite ninguna
 const FOTOS_SUELTAS = [
@@ -907,6 +970,104 @@ onMounted(async () => {
   text-align: left;
 }
 
+/* celular: una sola cápsula (texto + lupa). La disciplina se elige en el
+   desfile de fotos de abajo, así que el selector se oculta aquí */
+@media (max-width: 760px) {
+  .portada .buscador {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px 6px 20px;
+    border-radius: var(--r-full);
+  }
+  .portada .segmento {
+    flex: 1 1 auto;
+    padding: 4px 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .portada .divisor,
+  .portada .segmento-select {
+    display: none;
+  }
+  .portada .buscador-btn {
+    flex: none;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+  }
+  .portada {
+    padding-top: 36px;
+  }
+  .portada-titulo {
+    font-size: clamp(2.3rem, 1.4rem + 4.4vw, 3rem);
+  }
+  .pasacalle {
+    margin-top: 32px;
+  }
+}
+
+/* ── PRUEBA: figuritas de fondo (cosas de Puno a línea) ── */
+.figuritas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fig {
+  position: absolute;
+  width: var(--tam);
+  height: var(--tam);
+  color: var(--color);
+  opacity: 0.7;
+  transform: rotate(var(--giro));
+  animation: figura 14s ease-in-out infinite;
+}
+
+.fig svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fig path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes figura {
+  0%,
+  100% {
+    transform: rotate(var(--giro)) translateY(0);
+  }
+  50% {
+    transform: rotate(calc(var(--giro) + 10deg)) translateY(-9px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fig {
+    animation: none;
+  }
+}
+
+/* en celular el título ocupa casi todo el ancho: solo quedan las de las orillas */
+@media (max-width: 760px) {
+  .fig {
+    display: none;
+    opacity: 0.45;
+  }
+  .fig.en-movil {
+    display: block;
+  }
+}
+
 /* ── fotos sueltas a los costados ── */
 .sueltas {
   display: none;
@@ -917,6 +1078,7 @@ onMounted(async () => {
     display: block;
     position: absolute;
     inset: 0 0 auto;
+    z-index: 1;
     height: clamp(440px, 52vh, 520px);
     pointer-events: none;
   }
