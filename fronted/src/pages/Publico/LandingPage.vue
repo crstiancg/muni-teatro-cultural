@@ -1,19 +1,17 @@
 <template>
   <q-page class="landing publico">
     <!-- ══════════ ① PORTADA ══════════ -->
+    <!-- Las fotos van en tres "cañas" de distinto largo, como el siku del logo:
+         el título queda sobre fondo liso y ninguna foto le compite. -->
     <section class="portada">
-      <div class="portada-fondo">
+      <!-- de fondo, la foto de la caña que está sonando -->
+      <div class="portada-fondo" aria-hidden="true">
         <Transition name="fundido">
-          <img
-            v-if="fotoActual"
-            :key="fotoActual.id"
-            :src="fotoActual.imagen_url"
-            :alt="fotoActual.descripcion"
-          />
+          <img :key="fotoSiku.src" :src="fotoSiku.src" alt="" />
         </Transition>
-        <div class="portada-velo" />
       </div>
 
+      <div class="portada-marco">
       <div class="portada-cuerpo">
         <p class="portada-sello">
           <span class="sello-linea" />
@@ -22,7 +20,6 @@
 
         <h1 class="portada-titulo">
           Detrás de cada expresión
-           <br />
           <em>hay una historia</em>
         </h1>
 
@@ -196,21 +193,39 @@
             </div>
           </Transition>
         </form>
+
+        <p v-if="stats.consejeros" class="portada-cifras">
+          <span><strong>{{ stats.consejeros }}</strong> artistas registrados</span>
+          <span class="cifra-sep" aria-hidden="true" />
+          <span><strong>{{ Object.keys(COMISIONES).length }}</strong> disciplinas</span>
+        </p>
       </div>
 
-      <button class="portada-scroll" aria-label="Ver más" @click="irA('comisiones')">
-        <span>Descubre</span>
-        <ChevronDown :size="18" />
-      </button>
-
-      <div v-if="fotos.length > 1" class="portada-puntos">
-        <button
-          v-for="(f, i) in fotos"
-          :key="f.id"
-          :class="{ activo: i === fotoIndex }"
-          :aria-label="`Fotografía ${i + 1}`"
-          @click="fotoIndex = i"
-        />
+      <!-- el siku: una caña por disciplina, de la más corta a la más larga.
+           Las 8 cañas son ventanas a UNA misma foto, que va cambiando con un
+           barrido de caña en caña. Cada caña lleva a los artistas de su disciplina. -->
+      <nav class="siku" aria-label="Explorar por disciplina" @mouseenter="sikuPausado = true" @mouseleave="sikuPausado = false">
+        <router-link
+          v-for="(c, cod, i) in COMISIONES"
+          :key="cod"
+          :to="{ name: 'ConsejerosPublico', query: { grupo: cod } }"
+          class="cana"
+          :style="{ '--acento': c.color, '--largo': `${46 + i * 7}%`, '--i': i }"
+          @focus="sikuPausado = true"
+          @blur="sikuPausado = false"
+        >
+          <Transition name="fundido">
+            <img
+              :key="fotoSiku.src"
+              :src="fotoSiku.src"
+              :alt="i === 0 ? fotoSiku.descripcion : ''"
+              :style="{ objectPosition: fotoSiku.pos, transitionDelay: `${i * 90}ms` }"
+            />
+          </Transition>
+          <span class="cana-nombre">{{ c.corto }}</span>
+        </router-link>
+        <span class="amarre" aria-hidden="true" />
+      </nav>
       </div>
     </section>
 
@@ -531,7 +546,7 @@ import {
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import EventoService from '@/services/EventoService'
-import { INSTITUCION, FOTOS_CARTEL, COMISIONES, comisionDe } from '@/config/institucion'
+import { INSTITUCION, COMISIONES, comisionDe } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 import ProximosEventos from '@/components/agenda/ProximosEventos.vue'
 
@@ -710,21 +725,31 @@ const destacado = computed(() => artistas.value[0] || null)
 const acompanan = computed(() => artistas.value.slice(1, 7))
 
 // ---------- portada ----------
-const fotos = computed(() => FOTOS_CARTEL)
+// una sola foto vista a través de las cañas; rota sola y se pausa con el mouse
+// encima. Sin fotos del edificio de la Gerencia: su letrero se lee entre cañas.
+const FOTOS_SIKU = [
+  { src: '/images/com-02.jpg', descripcion: 'Danzantes de diablada en escena', pos: '50% 40%' },
+  { src: '/images/wall2.jpg', descripcion: 'Banda en un escenario al aire libre', pos: '50% 50%' },
+  { src: '/images/com-07.jpg', descripcion: 'Máscaras de diablada frente a la catedral en la Candelaria', pos: '50% 50%' },
+  { src: '/images/com-03.jpg', descripcion: 'Actores con sombrero y máscara', pos: '40% 50%' },
+  { src: '/images/wall1.jpg', descripcion: 'Plaza de Armas de Puno de noche', pos: '50% 50%' },
+  { src: '/images/com-01.jpg', descripcion: 'Orquesta en el templo', pos: '50% 50%' },
+  { src: '/images/com-06.jpg', descripcion: 'Equipo del festival Hanan Cine', pos: '50% 50%' },
+]
 const fotoIndex = ref(0)
-const fotoActual = computed(() => fotos.value[fotoIndex.value] || null)
-// distinta a la del cartel de portada: no repetir la misma foto dos veces en la página
+const fotoSiku = computed(() => FOTOS_SIKU[fotoIndex.value % FOTOS_SIKU.length])
+const sikuPausado = ref(false)
+// distinta a las de la portada: no repetir la misma foto dos veces en la página
 const fotoCandelaria = '/images/com-02.jpg'
 
 let temporizador
 
 function rotarFotos() {
   clearInterval(temporizador)
-  if (fotos.value.length < 2) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   temporizador = setInterval(() => {
-    fotoIndex.value = (fotoIndex.value + 1) % fotos.value.length
-  }, 7000)
+    if (!sikuPausado.value) fotoIndex.value++
+  }, 5000)
 }
 
 // ---------- acordeón de comisiones ----------
@@ -742,10 +767,6 @@ function girarAcordeon() {
     if (acordeonPausado.value || !grupos.value.length) return
     hojaActiva.value = (hojaActiva.value + 1) % grupos.value.length
   }, 3600)
-}
-
-function irA(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 
 onBeforeUnmount(() => {
@@ -866,20 +887,23 @@ onMounted(async () => {
 }
 
 /* ═══════════ ① PORTADA ═══════════ */
+/* Fondo de tinta con el aguayo en oro tenue; a la derecha un siku de 8 cañas
+   (una por disciplina) que cuelga desde arriba, de la más corta a la más larga.
+   El título nunca queda encima de una foto. */
 .portada {
   position: relative;
-  min-height: calc(100vh - 66px);
-  min-height: calc(100svh - 66px);
-  display: flex;
-  align-items: center;
-  padding: clamp(64px, 8vw, 96px) var(--gutter) clamp(104px, 13vh, 150px);
-  /* antes "overflow: hidden": recortaba los paneles del buscador al desplegarse.
-     clip solo en horizontal (nada de scroll lateral) y el fondo se recorta aparte */
+  padding: 0 var(--gutter);
+  background: var(--tinta);
+  color: var(--sobre-foto);
+  /* clip solo en horizontal: los paneles del buscador pueden salir hacia abajo */
   overflow-x: clip;
   /* por encima de las secciones siguientes: los paneles pueden pasar sobre ellas */
   z-index: 5;
+  --alto-portada: clamp(600px, calc(100svh - 66px), 820px);
+
 }
 
+/* foto de fondo oscurecida: se lee el texto encima y el siku resalta */
 .portada-fondo {
   position: absolute;
   inset: 0;
@@ -892,37 +916,34 @@ onMounted(async () => {
     height: 100%;
     object-fit: cover;
     display: block;
+    filter: blur(2px) saturate(0.8);
+    transform: scale(1.04);
+  }
+  /* velo parejo, un poco más denso del lado del texto */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, rgba(22, 32, 46, 0.9) 0%, rgba(22, 32, 46, 0.78) 50%, rgba(22, 32, 46, 0.7) 100%);
   }
 }
 
-.portada-velo {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to right,
-      rgba(22, 32, 46, 0.9) 0%,
-      rgba(22, 32, 46, 0.68) 52%,
-      rgba(22, 32, 46, 0.35) 100%
-    ),
-    linear-gradient(to top, rgba(22, 32, 46, 0.62) 0%, transparent 42%);
-}
-
-.fundido-enter-active,
-.fundido-leave-active {
-  transition: opacity 1.2s ease;
-}
-
-.fundido-enter-from,
-.fundido-leave-to {
-  opacity: 0;
+.portada-marco {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(32px, 4vw, 64px);
+  max-width: var(--ancho);
+  min-height: var(--alto-portada);
+  margin: 0 auto;
 }
 
 .portada-cuerpo {
   position: relative;
-  width: 100%;
-  max-width: var(--ancho);
-  margin: 0 auto;
+  z-index: 2;
+  min-width: 0;
+  align-self: center;
+  padding: clamp(48px, 7vh, 88px) 0;
 }
 
 .portada-sello {
@@ -940,17 +961,17 @@ onMounted(async () => {
 }
 
 .portada-titulo {
-  @include display(900);
-  font-size: var(--t-3xl);
-  line-height: 0.92;
-  letter-spacing: -0.01em;
+  @include display(800);
+  font-size: clamp(2.5rem, 1.5rem + 3.4vw, 4.4rem);
+  line-height: 1;
+  letter-spacing: -0.015em;
   color: var(--sobre-foto);
   margin: 0 0 20px;
-  max-width: 15ch;
-  text-shadow: 0 2px 40px rgba(22, 32, 46, 0.35);
 
   em {
+    display: block;
     font-style: italic;
+    font-weight: 600;
     color: var(--oro-vivo);
     font-variation-settings:
       'SOFT' 40,
@@ -959,11 +980,184 @@ onMounted(async () => {
 }
 
 .portada-bajada {
-  color: rgba(253, 251, 247, 0.9);
-  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
+  color: rgba(253, 251, 247, 0.8);
+  font-size: clamp(1rem, 0.92rem + 0.35vw, 1.15rem);
   line-height: 1.6;
-  max-width: 46ch;
-  margin: 0 0 36px;
+  max-width: 40ch;
+  margin: 0 0 28px;
+}
+
+/* cifras del registro en una línea, bajo el buscador */
+.portada-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 22px 0 0;
+  font-size: var(--t-sm);
+  color: rgba(253, 251, 247, 0.72);
+
+  strong {
+    font-weight: 800;
+    color: var(--oro-vivo);
+  }
+}
+
+.cifra-sep {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(253, 251, 247, 0.4);
+}
+
+/* ── el siku ── */
+.siku {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  align-items: start;
+  --hueco: clamp(6px, 0.8vw, 12px);
+  gap: var(--hueco);
+  /* alto fijo para que el largo en % de cada caña tenga contra qué medirse */
+  align-self: center;
+  height: calc(var(--alto-portada) - 150px);
+  /* las cañas miden la foto contra el siku entero (unidades cqw/cqh) */
+  container-type: size;
+}
+
+.cana {
+  position: relative;
+  display: block;
+  height: var(--largo);
+  overflow: hidden;
+  border-radius: var(--r-full);
+  background: #223047;
+  box-shadow: inset 0 0 0 1px rgba(253, 251, 247, 0.08);
+  text-decoration: none;
+  transition:
+    height 0.5s cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 0.4s ease;
+
+  /* la foto mide lo que el siku entero y se corre según la posición de la
+     caña: así las 8 cañas muestran pedazos contiguos de la MISMA foto */
+  img {
+    position: absolute;
+    top: 0;
+    left: calc(var(--i) * -1 * ((100cqw - 7 * var(--hueco)) / 8 + var(--hueco)));
+    width: 100cqw;
+    height: 100cqh;
+    max-width: none;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.85);
+    transition: filter 0.5s ease;
+  }
+
+  /* velo abajo + filete del color de la disciplina en la punta */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(22, 32, 46, 0.85), transparent 55%);
+    pointer-events: none;
+  }
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    z-index: 2;
+    background: var(--acento);
+  }
+
+  /* la caña que se toca se enciende y baja un poco */
+  &:hover,
+  &:focus-visible {
+    height: calc(var(--largo) + 28px);
+    box-shadow: inset 0 0 0 1px rgba(253, 251, 247, 0.2);
+
+    img {
+      filter: brightness(1.1);
+    }
+    .cana-nombre {
+      color: var(--oro-vivo);
+    }
+  }
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.cana-nombre {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(26px, 3vw, 40px);
+  z-index: 1;
+  transform: translateX(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  max-height: calc(100% - 120px);
+  overflow: hidden;
+  font: 700 0.72rem var(--fuente-texto);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--sobre-foto);
+  transition: color 0.4s ease;
+}
+
+/* el amarre: la faja de aguayo que sujeta las cañas */
+.amarre {
+  position: absolute;
+  left: -8px;
+  right: -8px;
+  top: 48px;
+  height: 10px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--oro-vivo) 0 14px,
+    var(--rojo) 14px 22px,
+    var(--lago) 22px 30px,
+    var(--sobre-foto) 30px 33px
+  );
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+/* tablet y celular: el siku arriba, a lo ancho, y el texto debajo */
+@media (max-width: 900px) {
+  .portada-marco {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 0;
+  }
+  .siku {
+    order: -1;
+    margin-top: 28px;
+    height: clamp(200px, 46vw, 320px);
+  }
+  .amarre {
+    top: 30px;
+    height: 8px;
+  }
+  .portada-cuerpo {
+    padding: 28px 0 48px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cana-nombre {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cana,
+  .cana img {
+    transition: none;
+  }
 }
 
 /* ── buscador segmentado ── */
@@ -1367,77 +1561,6 @@ onMounted(async () => {
   transform: translateY(-6px);
 }
 
-.portada-scroll {
-  position: absolute;
-  left: 50%;
-  bottom: 52px;
-  transform: translateX(-50%);
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(253, 251, 247, 0.82);
-  font-family: var(--fuente-texto);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-
-  svg {
-    animation: flotar 2.2s ease-in-out infinite;
-  }
-
-  &:hover {
-    color: var(--oro-vivo);
-  }
-
-  &:focus-visible {
-    @include foco;
-  }
-}
-
-@keyframes flotar {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(5px);
-  }
-}
-
-.portada-puntos {
-  position: absolute;
-  right: var(--gutter);
-  bottom: 54px;
-  display: flex;
-  gap: 8px;
-  z-index: 2;
-
-  button {
-    width: 26px;
-    height: 4px;
-    padding: 0;
-    border: none;
-    border-radius: var(--r-full);
-    background: rgba(253, 251, 247, 0.4);
-    cursor: pointer;
-    transition: all var(--transicion);
-
-    &.activo {
-      background: var(--oro-vivo);
-      width: 42px;
-    }
-
-    &:focus-visible {
-      @include foco;
-    }
-  }
-}
-
 @media (max-width: 760px) {
   .buscador {
     flex-wrap: wrap;
@@ -1472,16 +1595,6 @@ onMounted(async () => {
     border-radius: var(--r-sm);
   }
 
-  .portada-puntos,
-  .portada-scroll {
-    display: none;
-  }
-}
-
-@media (max-height: 680px) {
-  .portada-scroll {
-    display: none;
-  }
 }
 
 /* ═══════════ ② FRANJA ═══════════ */
@@ -1526,10 +1639,6 @@ onMounted(async () => {
 
 @media (prefers-reduced-motion: reduce) {
   .franja-pista {
-    animation: none;
-  }
-
-  .portada-scroll svg {
     animation: none;
   }
 }

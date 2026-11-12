@@ -30,22 +30,6 @@ export const INSTITUCION = {
   },
 }
 
-// Fotos del cartel de portada. Son fotos curadas de Puno que ya venían en
-// public/images: el cartel institucional NO usa las actividades que suben los
-// artistas, porque son fotos de celular, de calidad impredecible, y pueden no
-// existir. Las actividades tienen su lugar en la galería.
-// PENDIENTE: sumar fotos propias de la Candelaria (parada, bordadores, sikuris).
-export const FOTOS_CARTEL = [
-  {
-    id: 'c1',
-    imagen_url: '/images/wallpaper_puno.png',
-    descripcion: 'Danzantes y balsa de totora frente al lago Titicaca',
-  },
-  { id: 'c2', imagen_url: '/images/wall1.jpg', descripcion: 'Islas flotantes de los Uros' },
-  { id: 'c3', imagen_url: '/images/wall2.jpg', descripcion: 'Paisaje de Puno' },
-  { id: 'c4', imagen_url: '/images/wall3.jpg', descripcion: 'Paisaje de Puno' },
-]
-
 // Nombre corto y color de cada comisión. El backend las devuelve como
 // "Comision especializada de artes escenicas - teatro", que en una tarjeta
 // ocupa tres líneas y se repite idéntico en las ocho.
