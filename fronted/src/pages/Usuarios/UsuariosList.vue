@@ -18,10 +18,10 @@
     <q-separator />
     <div class="q-gutter-xs q-pa-sm">
       <q-btn
-        outline
+        unelevated
         color="primary"
         :disable="loading"
-        :label="$q.screen.lt.sm ? '' : 'Agregar'"
+        label="Agregar"
         icon-right="add"
         @click="abrirCrear"
       />
@@ -69,7 +69,7 @@
 
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               {{ col.value }}
             </q-td>
             <q-td auto-width>
@@ -106,7 +106,6 @@ import UsuariosForm from '@/pages/Usuarios/UsuariosForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'ID', align: 'left', field: (row) => row.id, sortable: true },
   { name: 'name', label: 'USUARIO', align: 'left', field: (row) => row.name, sortable: true },
   { name: 'email', label: 'EMAIL', align: 'left', field: (row) => row.email, sortable: true },
 ]

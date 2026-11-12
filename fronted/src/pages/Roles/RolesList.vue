@@ -11,10 +11,10 @@
     </q-toolbar>
     <div class="q-pa-sm">
       <q-btn
-        outline
+        unelevated
         color="primary"
         :disable="loading"
-        :label="$q.screen.lt.sm ? '' : 'Agregar'"
+        label="Agregar"
         icon-right="add"
         @click="abrirCrear"
       />
@@ -64,7 +64,7 @@
 
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               {{ col.value }}
             </q-td>
             <q-td auto-width>
@@ -103,7 +103,6 @@ import RolesForm from '@/pages/Roles/RolesForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'Id', align: 'left', field: (row) => row.id, sortable: true },
   { name: 'name', label: 'Nombre', align: 'left', field: (row) => row.name, sortable: true },
 ]
 

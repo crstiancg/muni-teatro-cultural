@@ -19,7 +19,7 @@
     </div>
     <q-separator />
     <div class="q-gutter-xs q-pa-sm">
-      <q-btn outline color="primary" :disable="loading" label="Agregar Grupo" icon-right="add" @click="abrirCrearGrupo" />
+      <q-btn unelevated color="primary" :disable="loading" label="Agregar grupo" icon-right="add" @click="abrirCrearGrupo" />
     </div>
     <q-card class="q-ma-sm" flat :bordered="!$q.dark.isActive">
       <q-table
@@ -75,7 +75,7 @@
                 @click="toggleExpand(props)"
               />
             </q-td>
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               {{ col.value }}
             </q-td>
             <q-td auto-width>

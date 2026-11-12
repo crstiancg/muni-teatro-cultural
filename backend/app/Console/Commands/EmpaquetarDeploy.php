@@ -161,12 +161,18 @@ class EmpaquetarDeploy extends Command
     {
         return <<<'ENV'
         # Copiar a ".env" y completar. NUNCA subir este archivo a git.
-        APP_NAME="Registro Cultural de Puno"
+        APP_NAME="RACC Puno"
         APP_ENV=production
         APP_KEY=
         APP_DEBUG=false
-        APP_URL=https://tudominio
-        FRONTEND_URL=https://tudominio
+        # dominio REAL del sitio: va en la canónica, el sitemap, robots.txt y Open Graph.
+        # Si queda un valor de ejemplo, Google indexa URLs de un dominio que no existe.
+        APP_URL=https://racc.munipuno.gob.pe
+        FRONTEND_URL=https://racc.munipuno.gob.pe
+
+        # identidad SEO (config/seo.php). SEO_REDES: perfiles oficiales separados
+        # por coma, p. ej. https://www.facebook.com/MuniPuno,https://www.youtube.com/@munipuno
+        SEO_REDES=
 
         LOG_CHANNEL=daily
         LOG_LEVEL=error

@@ -12,10 +12,10 @@
     <q-separator />
     <div class="q-gutter-xs q-pa-sm">
       <q-btn
-        outline
+        unelevated
         color="primary"
         :disable="loading"
-        :label="$q.screen.lt.sm ? '' : 'Agregar'"
+        label="Agregar"
         icon-right="add"
         @click="abrirCrear"
       />
@@ -65,7 +65,7 @@
 
         <template v-slot:body="props">
           <q-tr :props="props">
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               {{ col.value }}
             </q-td>
             <q-td auto-width>
@@ -104,7 +104,6 @@ import ProfesionesForm from '@/pages/Profesiones/ProfesionesForm.vue'
 
 const $q = useQuasar()
 const columns = [
-  { name: 'id', label: 'Id', align: 'left', field: (row) => row.id, sortable: true },
   { name: 'nombre', label: 'Nombre', align: 'left', field: (row) => row.nombre, sortable: true },
 ]
 

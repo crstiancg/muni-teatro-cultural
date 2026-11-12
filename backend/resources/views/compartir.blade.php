@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $titulo }} · {{ config('app.name') }}</title>
+    <title>{{ $titulo }} · {{ config('seo.marca') }}</title>
     <meta name="description" content="{{ $descripcion }}">
     <link rel="canonical" href="{{ $urlPerfil }}">
 
     {{-- og:url apunta a este mismo link: si apuntara a la SPA, el bot la volvería a leer sin etiquetas --}}
     <meta property="og:type" content="profile">
-    <meta property="og:site_name" content="{{ config('app.name') }}">
+    <meta property="og:site_name" content="{{ config('seo.marca') }}">
     <meta property="og:locale" content="es_PE">
     <meta property="og:title" content="{{ $titulo }}">
     <meta property="og:description" content="{{ $descripcion }}">

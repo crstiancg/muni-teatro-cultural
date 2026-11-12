@@ -42,17 +42,17 @@
       </header>
 
       <!-- ══════════ MOSAICO DE FOTOS ══════════ -->
-      <section v-if="actividades.length" class="mosaico-zona">
-        <div class="mosaico" :class="`piezas-${Math.min(actividades.length, 5)}`">
+      <section v-if="fotos.length" class="mosaico-zona">
+        <div class="mosaico" :class="`piezas-${Math.min(fotos.length, 5)}`">
           <button class="pieza principal" @click="abrirVisor(0)">
             <img
-              :src="actividades[0].imagen_url"
-              :alt="actividades[0].titulo || actividades[0].descripcion_texto || ''"
+              :src="fotos[0].imagen_url"
+              :alt="fotos[0].titulo || fotos[0].descripcion_texto || ''"
             />
           </button>
 
           <button
-            v-for="(act, i) in actividades.slice(1, 5)"
+            v-for="(act, i) in fotos.slice(1, 5)"
             :key="act.id"
             class="pieza"
             @click="abrirVisor(i + 1)"
@@ -61,14 +61,14 @@
           </button>
         </div>
 
-        <button v-if="actividades.length > 1" class="ver-fotos" @click="abrirVisor(0)">
-          <LayoutGrid :size="16" /> Ver las {{ actividades.length }} fotos
+        <button v-if="fotos.length > 1" class="ver-fotos" @click="abrirVisor(0)">
+          <LayoutGrid :size="16" /> Ver las {{ fotos.length }} fotos
         </button>
       </section>
 
       <div v-else class="sin-fotos">
         <ImageOff :size="30" />
-        <p>Este artista todavía no publicó actividades.</p>
+        <p>Este artista todavía no publicó fotos.</p>
       </div>
 
       <!-- ══════════ CUERPO ══════════ -->
@@ -100,10 +100,11 @@
             </div>
 
             <ul class="lista-actividades">
-              <li v-for="(act, i) in actividades.slice(0, 4)" :key="act.id">
-                <button class="act-foto" @click="abrirVisor(i)">
+              <li v-for="act in actividades.slice(0, 4)" :key="act.id">
+                <button v-if="act.imagen_url" class="act-foto" @click="abrirVisor(fotos.indexOf(act))">
                   <img :src="act.imagen_url" alt="" loading="lazy" />
                 </button>
+                <span v-else class="act-foto sin-imagen" aria-hidden="true"><ImageOff :size="22" /></span>
                 <div class="act-texto">
                   <p class="act-titulo">{{ act.titulo || 'Actividad' }}</p>
                   <!-- con formato (negritas, listas): HTML sanitizado en el backend -->
@@ -225,8 +226,8 @@
       <div class="visor-escena" @click.self="cerrarVisor">
         <img
           class="visor-img"
-          :src="actividades[visorIndex].imagen_url"
-          :alt="actividades[visorIndex].titulo || actividades[visorIndex].descripcion_texto || ''"
+          :src="fotos[visorIndex].imagen_url"
+          :alt="fotos[visorIndex].titulo || fotos[visorIndex].descripcion_texto || ''"
         />
         <button class="visor-nav izq" aria-label="Anterior" @click="navegar(-1)">
           <ChevronLeft :size="26" />
@@ -249,19 +250,19 @@
         </div>
 
         <div class="visor-descripcion">
-          <h3 v-if="actividades[visorIndex].titulo" class="visor-titulo">
-            {{ actividades[visorIndex].titulo }}
+          <h3 v-if="fotos[visorIndex].titulo" class="visor-titulo">
+            {{ fotos[visorIndex].titulo }}
           </h3>
           <!-- HTML sanitizado en el backend al guardar (App\Support\Html::limpio) -->
           <div
-            v-if="actividades[visorIndex].descripcion"
+            v-if="fotos[visorIndex].descripcion"
             class="visor-html"
-            v-html="actividades[visorIndex].descripcion"
+            v-html="fotos[visorIndex].descripcion"
           />
           <p v-else class="visor-sin-texto">Esta fotografía no tiene descripción.</p>
         </div>
 
-        <div class="visor-pie">Foto {{ visorIndex + 1 }} de {{ actividades.length }}</div>
+        <div class="visor-pie">Foto {{ visorIndex + 1 }} de {{ fotos.length }}</div>
       </aside>
     </div>
   </q-page>
@@ -323,6 +324,8 @@ const iconosPorGrupo = {
 const comision = computed(() => comisionDe(persona.value?.cod_grupo))
 const iconoComision = computed(() => iconosPorGrupo[persona.value?.cod_grupo] || Sparkles)
 const actividades = computed(() => persona.value?.actividades || [])
+// la imagen de una actividad es opcional: el mosaico y el visor solo usan las que la tienen
+const fotos = computed(() => actividades.value.filter((a) => a.imagen_url))
 const inicial = computed(() => (persona.value?.nombre?.charAt(0) || '?').toUpperCase())
 
 // mismas claves que Persona::REDES en el backend; solo se muestran las cargadas
@@ -377,7 +380,7 @@ function cerrarVisor() {
 }
 
 function navegar(paso) {
-  const total = actividades.value.length
+  const total = fotos.value.length
   visorIndex.value = (visorIndex.value + paso + total) % total
 }
 
@@ -722,7 +725,12 @@ watch(
   flex-wrap: wrap;
   margin-bottom: 18px;
 
+  /* fuera de .bloque (p. ej. "Otros artistas de…") no heredaba la tipografía
+     display y caía al h2 por defecto de Quasar: Inter 300 gigante */
   h2 {
+    @include display(700);
+    font-size: var(--t-lg);
+    color: var(--tinta);
     margin: 0;
   }
 }

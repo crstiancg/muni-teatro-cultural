@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Persona;
+use App\Support\Seo;
 use App\Support\UserAgent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,11 +16,11 @@ class CompartirPerfilController extends Controller
 {
     public function __invoke(Request $request, Persona $persona)
     {
-        $urlPerfil = config('app.frontend_url') . '/consejeros/' . $persona->slug;
+        $urlPerfil = Seo::base() . '/consejeros/' . $persona->slug;
 
         // un perfil no publicado no se previsualiza: se manda al portal
         if ($persona->estado !== 'aprobado' || ! $persona->codigo_comision) {
-            return redirect()->away(config('app.frontend_url') . '/consejeros');
+            return redirect()->away(Seo::base() . '/consejeros');
         }
 
         if (! UserAgent::esBot($request->userAgent())) {

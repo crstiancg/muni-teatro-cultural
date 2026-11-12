@@ -165,12 +165,15 @@ class PersonaPublicaController extends Controller
         ];
     }
 
-    // últimas actividades públicas de CUALQUIER consejero, para destacar en portada
+    // últimas actividades públicas de CUALQUIER consejero, para destacar en portada.
+    // Es una galería de fotos: la imagen es opcional al cargar una actividad, así
+    // que solo entran las que la tienen (si no, el mosaico muestra huecos).
     public function actividadesDestacadas()
     {
         $actividades = Actividad::query()
             ->where('flag_activo', true)
             ->where('flag_publico', true)
+            ->whereHas('adjunto')
             ->whereHas('persona', fn ($q) => $q->publicado())
             ->with('persona:id,slug,nombre_completo')
             ->latest()

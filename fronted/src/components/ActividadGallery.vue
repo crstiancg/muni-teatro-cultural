@@ -5,7 +5,7 @@
         outline
         no-caps
         :color="mostrarAnulados ? 'primary' : 'grey-7'"
-        :label="mostrarAnulados ? 'Ocultar Anulados' : 'Mostrar Anulados'"
+        :label="mostrarAnulados ? 'Ocultar anulados' : 'Mostrar anulados'"
         @click="mostrarAnulados = !mostrarAnulados"
       />
       <q-space />

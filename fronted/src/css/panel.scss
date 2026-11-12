@@ -439,3 +439,113 @@ body.panel .text-blue-10 {
 body.panel.body--dark .text-positive {
   color: var(--estado-publicado-texto) !important;
 }
+
+/* Monograma de la marca (tres cañas de siku), igual que en el portal público.
+   Va dentro de .marca-logo del panel lateral y del login. */
+.siku {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+
+  i {
+    display: block;
+    width: 4px;
+    border-radius: 2px;
+    background: currentColor;
+  }
+
+  i:nth-child(1) {
+    height: 11px;
+    opacity: 0.75;
+  }
+  i:nth-child(2) {
+    height: 20px;
+  }
+  i:nth-child(3) {
+    height: 15px;
+    opacity: 0.85;
+  }
+}
+
+// Listados en celular: cada fila de la tabla pasa a ser una tarjeta apilada.
+// Antes la tabla se cortaba a la derecha y no se veían el correo, el estado ni
+// los botones de acción. Cada celda muestra su columna con data-label.
+@media (max-width: 767px) {
+  body.panel .my-sticky-header-table {
+    max-height: none;
+
+    .q-table__middle {
+      overflow: visible;
+    }
+
+    table,
+    tbody {
+      display: block;
+      width: 100%;
+    }
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 12px;
+      height: auto;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--panel-borde);
+    }
+
+    tbody td {
+      display: block;
+      height: auto;
+      padding: 0;
+      border: 0;
+      white-space: normal;
+      text-align: left !important;
+      flex: 1 1 100%;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    // el avatar no ocupa una línea completa
+    tbody td.q-table--col-auto-width {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    // acciones (última celda): en fila, al pie de la tarjeta y a la derecha
+    tbody td:last-child {
+      flex: 1 1 100%;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 6px;
+    }
+
+    // Quasar usa td::before (absoluto) para el hover: se pisa para que la
+    // etiqueta quede ARRIBA del valor y no encima
+    tbody td[data-label]::before {
+      content: attr(data-label);
+      position: static !important;
+      inset: auto;
+      background: none !important;
+      opacity: 1;
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--panel-texto-suave);
+      margin-bottom: 2px;
+    }
+
+    // celdas vacías (p. ej. sin celular): no dejar la etiqueta sola
+    tbody td[data-label]:empty {
+      display: none;
+    }
+  }
+}

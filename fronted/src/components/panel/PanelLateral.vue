@@ -1,10 +1,11 @@
 <template>
   <nav class="lateral" aria-label="Menú del panel">
     <router-link :to="{ name: 'Dashboard' }" class="marca">
-      <span class="marca-logo"><Drama :size="20" /></span>
+      <!-- mismo monograma que el portal: las tres cañas del siku -->
+      <span class="marca-logo" aria-hidden="true"><span class="siku"><i /><i /><i /></span></span>
       <span class="marca-texto">
-        <span class="marca-nombre">CPC</span>
-        <span class="marca-bajada">Gestión cultural · Puno</span>
+        <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
+        <span class="marca-bajada">Registro cultural · {{ INSTITUCION.ciudad }}</span>
       </span>
     </router-link>
 
@@ -41,7 +42,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Drama, ExternalLink } from 'lucide-vue-next'
+import { ExternalLink } from 'lucide-vue-next'
+import { INSTITUCION } from '@/config/institucion'
 
 defineProps({
   secciones: { type: Array, required: true },

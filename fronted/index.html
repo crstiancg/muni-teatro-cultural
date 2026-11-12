@@ -1,25 +1,32 @@
 <!doctype html>
-<html>
+<html lang="es-PE">
   <head>
-    <title><%= productName %></title>
+    <!-- título y descripción por defecto: en producción SpaController los
+         reemplaza por los de cada página (título, canónica, Open Graph, JSON-LD) -->
+    <title>Registro de Agentes Culturales de Puno | RACC Puno</title>
 
     <meta charset="utf-8" />
-    <meta name="description" content="<%= productDescription %>" />
+    <meta
+      name="description"
+      content="Directorio oficial de artistas, agrupaciones y agentes culturales de Puno, Capital Folclórica del Perú."
+    />
     <meta name="format-detection" content="telephone=no" />
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1<% if (ctx.mode.cordova || ctx.mode.capacitor) { %>, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover<% } %>"
     />
 
-    <!-- favicon RACC: SVG para navegadores modernos, PNG/ICO de respaldo -->
+    <!-- identidad RACC: monograma de las tres cañas del siku (fronted/public/favicon.svg) -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/icons/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <meta name="theme-color" content="#004173" />
-    <link rel="icon" type="image/png" sizes="128x128" href="icons/favicon-128x128.png" />
-    <link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96x96.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png" />
-    <link rel="icon" type="image/ico" href="favicon.ico" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#16202e" />
+    <meta name="application-name" content="RACC Puno" />
+    <meta name="apple-mobile-web-app-title" content="RACC Puno" />
   </head>
   <body>
     <!-- quasar:entry-point -->

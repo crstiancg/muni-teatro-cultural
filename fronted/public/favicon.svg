@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- RACC en dos filas: a 16 px cuatro letras en una línea no se leen -->
-  <rect width="64" height="64" rx="14" fill="#004173"/>
-  <g fill="#ffffff" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-weight="900" font-size="25" text-anchor="middle" letter-spacing="-0.5">
-    <text x="32" y="29">RA</text>
-    <text x="32" y="54">CC</text>
-  </g>
+  <!-- Monograma RACC: las tres cañas del siku (el mismo de la cabecera del portal)
+       sobre el color tinta. Oro, rojo y lago en tonos vivos para que se lean a 16 px. -->
+  <rect width="64" height="64" rx="14" fill="#16202e"/>
+  <rect x="13.5" y="29" width="9" height="22" rx="4.5" fill="#e8b33c"/>
+  <rect x="27.5" y="13" width="9" height="38" rx="4.5" fill="#e4505f"/>
+  <rect x="41.5" y="21" width="9" height="30" rx="4.5" fill="#3fb8c2"/>
 </svg>

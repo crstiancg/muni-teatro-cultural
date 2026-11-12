@@ -6,6 +6,7 @@ use App\Models\Agrupacion;
 use App\Models\Evento;
 use App\Models\Persona;
 use App\Support\Html;
+use App\Support\Seo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -34,46 +35,49 @@ class SpaController extends Controller
     {
         $segmentos = $request->segments();
         $base = $this->base();
-        $sitio = config('seo.sitio');
+        $marca = config('seo.marca');
+        $ciudad = config('seo.ciudad');
 
         // panel y login: se sirven, pero no se indexan
         if (in_array($segmentos[0] ?? '', config('seo.rutas_privadas'))) {
-            return [['titulo' => $sitio, 'robots' => 'noindex, nofollow'], 200];
+            return [['titulo' => $marca, 'robots' => 'noindex, nofollow'], 200];
         }
 
         $ruta = implode('/', $segmentos);
 
         return match (true) {
+            // portada: la entidad completa (organización + sitio web con buscador)
             $ruta === '' => [[
-                'titulo' => "{$sitio} · " . config('seo.ciudad'),
+                'titulo' => config('seo.nombre_largo') . " | {$marca}",
                 'descripcion' => config('seo.descripcion'),
                 'canonica' => "{$base}/",
                 'jsonld' => [[
                     '@context' => 'https://schema.org',
-                    '@type' => 'WebSite',
-                    'name' => $sitio,
-                    'url' => "{$base}/",
+                    '@graph' => [Seo::organizacion(), Seo::sitio()],
                 ]],
             ], 200],
             $ruta === 'consejeros' => [[
-                'titulo' => "Artistas y agentes culturales · {$sitio}",
-                'descripcion' => 'Directorio de artistas y agentes culturales de ' . config('seo.ciudad') . ': música, danza, teatro, artes plásticas y más.',
+                'titulo' => "Artistas y agentes culturales de {$ciudad} | {$marca}",
+                'descripcion' => "Directorio de artistas y agentes culturales de {$ciudad}: músicos, danzantes, sikuris, bordadores, teatro, artes plásticas y más.",
                 'canonica' => "{$base}/consejeros",
+                'jsonld' => [$this->coleccion("Artistas y agentes culturales de {$ciudad}", "{$base}/consejeros")],
             ], 200],
             $ruta === 'privacidad' => [[
-                'titulo' => "Política de privacidad · {$sitio}",
+                'titulo' => "Política de privacidad | {$marca}",
                 'descripcion' => 'Cómo tratamos los datos personales de artistas, agentes culturales e integrantes de agrupaciones (Ley N.° 29733).',
                 'canonica' => "{$base}/privacidad",
             ], 200],
             $ruta === 'agrupaciones' => [[
-                'titulo' => "Agrupaciones · {$sitio}",
-                'descripcion' => 'Conjuntos, comparsas y elencos que mantienen viva la cultura de ' . config('seo.ciudad') . '.',
+                'titulo' => "Agrupaciones culturales de {$ciudad} | {$marca}",
+                'descripcion' => "Conjuntos de sikuris, bandas, comparsas y elencos que mantienen viva la cultura de {$ciudad}.",
                 'canonica' => "{$base}/agrupaciones",
+                'jsonld' => [$this->coleccion("Agrupaciones culturales de {$ciudad}", "{$base}/agrupaciones")],
             ], 200],
             $ruta === 'agenda' => [[
-                'titulo' => "Agenda cultural · {$sitio}",
-                'descripcion' => 'Funciones, conciertos, ferias y talleres en ' . config('seo.ciudad') . ': el calendario cultural de la ciudad.',
+                'titulo' => "Agenda cultural de {$ciudad}: eventos, conciertos y festivales | {$marca}",
+                'descripcion' => "Funciones, conciertos, ferias, talleres y festividades en {$ciudad}: el calendario cultural de la ciudad.",
                 'canonica' => "{$base}/agenda",
+                'jsonld' => [$this->coleccion("Agenda cultural de {$ciudad}", "{$base}/agenda")],
             ], 200],
             count($segmentos) >= 2 && $segmentos[0] === 'consejeros' => $this->metaPersona($segmentos[1], $segmentos[2] ?? null),
             count($segmentos) === 2 && $segmentos[0] === 'agrupaciones' => $this->metaAgrupacion($segmentos[1]),
@@ -100,11 +104,13 @@ class SpaController extends Controller
         $portada = $persona->actividades()->where('flag_activo', true)->where('flag_publico', true)->latest()->first();
         $agrupaciones = $persona->agrupaciones()->publicado()->get(['agrupaciones.nombre', 'agrupaciones.slug']);
 
+        $ciudad = config('seo.ciudad');
         $descripcion = Str::limit(Html::texto($persona->biografia), 160)
-            ?: "{$persona->nombre_completo}, de {$comision}, en el registro cultural de " . config('seo.ciudad') . '.';
+            ?: "{$persona->nombre_completo}: {$comision} en {$ciudad}. Perfil, trayectoria y actividades en el Registro de Agentes Culturales de {$ciudad}.";
 
         return [[
-            'titulo' => ($subpagina ? 'Galería de ' : '') . "{$persona->nombre_completo} · {$comision} | " . config('seo.sitio'),
+            // "Nombre · Familia en Puno | RACC Puno": nombre + disciplina + ciudad es lo que se busca
+            'titulo' => ($subpagina ? 'Galería de ' : '') . "{$persona->nombre_completo} · {$comision} en {$ciudad} | " . config('seo.marca'),
             'descripcion' => $descripcion,
             // la galería es una vista del mismo perfil: una sola URL canónica
             'canonica' => $url,
@@ -119,7 +125,14 @@ class SpaController extends Controller
                     'image' => $persona->foto?->url,
                     'description' => $descripcion,
                     'knowsAbout' => $comision,
-                    'homeLocation' => ['@type' => 'Place', 'name' => config('seo.ciudad')],
+                    'jobTitle' => $comision,
+                    'homeLocation' => [
+                        '@type' => 'Place',
+                        'name' => $ciudad,
+                        'address' => ['@type' => 'PostalAddress', 'addressLocality' => $ciudad, 'addressCountry' => 'PE'],
+                    ],
+                    // registrado en el RACC: lo une a la entidad de la portada
+                    'affiliation' => ['@id' => Seo::idOrganizacion()],
                     'sameAs' => array_values($persona->redes_sociales ?? []) ?: null,
                     'memberOf' => $agrupaciones->map(fn ($a) => [
                         '@type' => 'PerformingGroup',
@@ -146,11 +159,12 @@ class SpaController extends Controller
         $base = $this->base();
         $url = "{$base}/agrupaciones/{$agrupacion->slug}";
         $comision = $agrupacion->comision?->nombre;
+        $ciudad = config('seo.ciudad');
         $descripcion = Str::limit(Html::texto($agrupacion->descripcion), 160)
-            ?: "{$agrupacion->nombre}, agrupación de {$comision} en " . config('seo.ciudad') . '.';
+            ?: "{$agrupacion->nombre}: agrupación de {$comision} en {$ciudad}. Integrantes, actividades y contacto.";
 
         return [[
-            'titulo' => "{$agrupacion->nombre} · {$comision} | " . config('seo.sitio'),
+            'titulo' => "{$agrupacion->nombre} · {$comision} en {$ciudad} | " . config('seo.marca'),
             'descripcion' => $descripcion,
             'canonica' => $url,
             'imagen' => $agrupacion->portada?->url ?? $agrupacion->logo?->url,
@@ -164,6 +178,13 @@ class SpaController extends Controller
                     'image' => $agrupacion->portada?->url,
                     'description' => $descripcion,
                     'sameAs' => array_values($agrupacion->redes_sociales ?? []) ?: null,
+                    'genre' => $comision,
+                    'location' => [
+                        '@type' => 'Place',
+                        'name' => $ciudad,
+                        'address' => ['@type' => 'PostalAddress', 'addressLocality' => $ciudad, 'addressCountry' => 'PE'],
+                    ],
+                    'memberOf' => ['@id' => Seo::idOrganizacion()],
                     // solo nombres: el DNI de los integrantes nunca sale al público
                     'member' => $agrupacion->integrantes
                         ->map(fn ($i) => ['@type' => 'Person', 'name' => $i->nombre_completo])
@@ -178,7 +199,7 @@ class SpaController extends Controller
     private function metaEvento(string $segmento): array
     {
         $id = preg_match('/^(\d+)(?:-|$)/', $segmento, $m) ? (int) $m[1] : null;
-        $evento = $id ? Evento::publicado()->with('comision:codigo,nombre')->find($id) : null;
+        $evento = $id ? Evento::publicado()->with(['comision:codigo,nombre', 'persona', 'agrupacion'])->find($id) : null;
 
         if (! $evento) {
             return [$this->noEncontrado(), 404];
@@ -192,8 +213,18 @@ class SpaController extends Controller
         $descripcion = Str::limit(Html::texto($evento->descripcion), 160)
             ?: "{$evento->titulo}: {$cuando} · {$donde}.";
 
+        // quién lo organiza: la municipalidad (la entidad del sitio) o el artista / la agrupación
+        $org = $evento->organizador();
+        $organizador = match ($org['tipo']) {
+            'persona' => array_filter(['@type' => 'Person', 'name' => $org['nombre'],
+                'url' => $org['slug'] ? "{$base}/consejeros/{$org['slug']}" : null]),
+            'agrupacion' => array_filter(['@type' => 'PerformingGroup', 'name' => $org['nombre'],
+                'url' => $org['slug'] ? "{$base}/agrupaciones/{$org['slug']}" : null]),
+            default => ['@id' => Seo::idOrganizacion()],
+        };
+
         return [[
-            'titulo' => "{$evento->titulo} · Agenda cultural | " . config('seo.sitio'),
+            'titulo' => "{$evento->titulo} · {$evento->fecha_inicio->locale('es')->isoFormat('D [de] MMMM')} en " . config('seo.ciudad') . ' | ' . config('seo.marca'),
             'descripcion' => $descripcion,
             'canonica' => $url,
             'imagen' => $evento->imagen_url,
@@ -220,7 +251,16 @@ class SpaController extends Controller
                             'address' => trim(($evento->direccion ? "{$evento->direccion}, " : '') . config('seo.ciudad')),
                         ]),
                     'isAccessibleForFree' => $evento->flag_gratuito,
-                    'organizer' => ['@type' => 'Organization', 'name' => config('seo.sitio')],
+                    // Google pide "offers" en eventos: gratis = precio 0
+                    'offers' => [
+                        '@type' => 'Offer',
+                        'price' => $evento->flag_gratuito ? 0 : (float) $evento->costo,
+                        'priceCurrency' => 'PEN',
+                        'url' => $url,
+                        'availability' => 'https://schema.org/InStock',
+                    ],
+                    'organizer' => $organizador,
+                    'inLanguage' => 'es-PE',
                 ]),
                 $this->migas([['Agenda cultural', "{$base}/agenda"], [$evento->titulo, $url]]),
             ],
@@ -229,7 +269,22 @@ class SpaController extends Controller
 
     private function noEncontrado(): array
     {
-        return ['titulo' => 'Página no encontrada · ' . config('seo.sitio'), 'robots' => 'noindex'];
+        return ['titulo' => 'Página no encontrada | ' . config('seo.marca'), 'robots' => 'noindex'];
+    }
+
+    // páginas de listado (directorio, agenda): colección publicada por la organización
+    private function coleccion(string $nombre, string $url): array
+    {
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            'name' => $nombre,
+            'url' => $url,
+            'inLanguage' => 'es-PE',
+            'isPartOf' => ['@id' => Seo::idSitio()],
+            'publisher' => ['@id' => Seo::idOrganizacion()],
+            'about' => ['@type' => 'Place', 'name' => config('seo.ciudad') . ', Perú'],
+        ];
     }
 
     private function migas(array $pasos): array
@@ -250,7 +305,7 @@ class SpaController extends Controller
 
     private function base(): string
     {
-        return config('app.frontend_url');
+        return Seo::base();
     }
 
     // ---------- armado del <head> ----------
@@ -259,6 +314,12 @@ class SpaController extends Controller
     {
         $e = fn (?string $texto) => htmlspecialchars((string) $texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $descripcion = $meta['descripcion'] ?? config('seo.descripcion');
+
+        // sin imagen propia (portada, listados, perfiles sin foto) va la imagen de la
+        // marca: un link sin imagen en WhatsApp/Facebook se ve vacío y se comparte menos
+        $imagenPropia = $meta['imagen'] ?? null;
+        $meta['imagen'] = $imagenPropia ?: Seo::url(config('seo.imagen'));
+        $imagenAlt = $imagenPropia ? $meta['titulo'] : config('seo.imagen_alt');
 
         $etiquetas = array_filter([
             '<meta name="description" content="' . $e($descripcion) . '">',
@@ -270,8 +331,19 @@ class SpaController extends Controller
             '<meta property="og:title" content="' . $e($meta['titulo']) . '">',
             '<meta property="og:description" content="' . $e($descripcion) . '">',
             isset($meta['canonica']) ? '<meta property="og:url" content="' . $e($meta['canonica']) . '">' : null,
-            isset($meta['imagen']) ? '<meta property="og:image" content="' . $e($meta['imagen']) . '">' : null,
-            '<meta name="twitter:card" content="' . (isset($meta['imagen']) ? 'summary_large_image' : 'summary') . '">',
+            '<meta property="og:image" content="' . $e($meta['imagen']) . '">',
+            '<meta property="og:image:alt" content="' . $e($imagenAlt) . '">',
+            // medidas solo de la imagen de marca (las subidas por usuarios varían)
+            $imagenPropia ? null : '<meta property="og:image:width" content="' . config('seo.imagen_ancho') . '">',
+            $imagenPropia ? null : '<meta property="og:image:height" content="' . config('seo.imagen_alto') . '">',
+            '<meta name="twitter:card" content="summary_large_image">',
+            '<meta name="twitter:title" content="' . $e($meta['titulo']) . '">',
+            '<meta name="twitter:description" content="' . $e($descripcion) . '">',
+            '<meta name="twitter:image" content="' . $e($meta['imagen']) . '">',
+            // señales geográficas: el registro es de Puno, Perú
+            '<meta name="geo.region" content="PE-PUN">',
+            '<meta name="geo.placename" content="' . $e(config('seo.ciudad')) . '">',
+            '<link rel="alternate" type="text/plain" title="llms.txt" href="' . $e(Seo::url('llms.txt')) . '">',
         ]);
 
         // JSON_HEX_TAG: un "</script>" escrito por un usuario no puede cerrar el bloque
@@ -282,8 +354,12 @@ class SpaController extends Controller
         }
 
         // fuera la descripción genérica del build; el título se reemplaza
-        $html = preg_replace('/<meta\s+name="description"[^>]*>\s*/i', '', $html);
+        // el build minificado escribe name=description SIN comillas: con el patrón
+        // anterior (que las exigía) cada página salía con dos meta description
+        $html = preg_replace('/<meta\s+name=["\']?description["\']?[^>]*>\s*/i', '', $html);
         $html = preg_replace('/<title>.*?<\/title>/is', '<title>' . $e($meta['titulo']) . '</title>', $html, 1);
+        // idioma del documento para buscadores y lectores de pantalla (por si el build no lo trae)
+        $html = preg_replace('/<html(?![^>]*\blang=)([^>]*)>/i', '<html lang="es-PE"$1>', $html, 1);
 
         return str_replace('</head>', '    ' . implode("\n    ", $etiquetas) . "\n  </head>", $html);
     }

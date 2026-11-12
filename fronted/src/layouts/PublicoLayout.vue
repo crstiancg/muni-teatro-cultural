@@ -10,7 +10,8 @@
           <span class="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <span class="brand-text">
             <span class="brand-nombre">{{ INSTITUCION.nombre }}</span>
-            <span class="brand-sub">{{ INSTITUCION.ciudad }} · registro de agentes culturales del consejo provincial de cultura</span>
+            <span class="brand-sub brand-sub-largo">{{ INSTITUCION.ciudad }} · registro de agentes culturales del consejo provincial de cultura</span>
+            <span class="brand-sub brand-sub-corto">{{ INSTITUCION.ciudad }} · registro cultural</span>
           </span>
         </router-link>
 
@@ -33,9 +34,13 @@
           >
             Agrupaciones
           </router-link>
+          <!-- es un ancla dentro de Inicio: vue-router ignora el hash al marcar
+               el activo, así que sin esto se subrayaban Inicio y Comisiones a la vez -->
           <router-link
             :to="{ name: 'Inicio', hash: '#comisiones' }"
             class="nav-link"
+            active-class=""
+            exact-active-class=""
             @click="menuAbierto = false"
           >
             Comisiones
@@ -98,9 +103,13 @@
 
         <div class="foot-col">
           <h2>Contacto</h2>
-          <p v-for="linea in INSTITUCION.contacto.direccion" :key="linea">{{ linea }}</p>
-          <p v-for="linea in INSTITUCION.contacto.telefono" :key="linea">{{ linea }}</p>
-          <p v-for="linea in INSTITUCION.contacto.correo" :key="linea">{{ linea }}</p>
+          <p>{{ INSTITUCION.contacto.direccion.join(', ') }}</p>
+          <p v-for="tel in INSTITUCION.contacto.telefono" :key="tel">
+            Teléfono: <a :href="`tel:${tel.replace(/[^\d+]/g, '')}`">{{ tel }}</a>
+          </p>
+          <p v-for="mail in INSTITUCION.contacto.correo" :key="mail">
+            <a :href="`mailto:${mail}`">{{ mail }}</a>
+          </p>
         </div>
 
         <div class="foot-col">
@@ -239,6 +248,20 @@ onBeforeUnmount(() => document.documentElement.classList.remove('sin-barra-scrol
   margin-top: 3px;
 }
 
+/* en celular el subtítulo largo ocupaba 3 líneas de la cabecera */
+.brand-sub-corto {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .brand-sub-largo {
+    display: none;
+  }
+  .brand-sub-corto {
+    display: block;
+  }
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -283,10 +306,8 @@ onBeforeUnmount(() => document.documentElement.classList.remove('sin-barra-scrol
 
 .cta {
   font-family: var(--fuente-texto);
-  font-size: var(--t-xs);
+  font-size: var(--t-sm);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: #fff;
   background: var(--rojo);
   text-decoration: none;

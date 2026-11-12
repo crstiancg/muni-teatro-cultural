@@ -8,10 +8,11 @@
         </router-link>
 
         <div class="marca">
-          <span class="marca-logo"><Drama :size="22" /></span>
+          <!-- mismo monograma que el portal: las tres cañas del siku -->
+          <span class="marca-logo" aria-hidden="true"><span class="siku"><i /><i /><i /></span></span>
           <span class="marca-texto">
-            <span class="marca-nombre">CPC</span>
-            <span class="marca-bajada">Registro de agentes culturales · Puno</span>
+            <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
+            <span class="marca-bajada">Registro de agentes culturales · {{ INSTITUCION.ciudad }}</span>
           </span>
         </div>
 
@@ -124,7 +125,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { ArrowLeft, Drama, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
+import { ArrowLeft, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
+import { INSTITUCION } from '@/config/institucion'
 import { useUserStore } from '@/stores/user-store'
 import EventoService from '@/services/EventoService'
 import { cuandoTexto } from '@/utils/fechasAgenda'

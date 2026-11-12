@@ -283,6 +283,7 @@
               :key="g.cod_grupo"
               :to="{ name: 'ConsejerosPublico', query: { grupo: g.cod_grupo } }"
               class="hoja"
+              :data-grupo="g.cod_grupo"
               :class="{ abierta: i === hojaActiva }"
               :style="{ '--acento': comisionDe(g.cod_grupo).color }"
               :aria-label="`${comisionDe(g.cod_grupo).corto}: ${g.consejeros} artistas`"
@@ -298,7 +299,7 @@
 
               <!-- lomo: lo que se ve cuando está cerrada -->
               <span class="hoja-lomo">
-                <span class="hoja-num">{{ String(i + 1).padStart(2, '0') }}</span>
+                <span class="hoja-num">{{ g.cod_grupo }}</span>
                 <span class="hoja-vertical">{{ comisionDe(g.cod_grupo).corto }}</span>
               </span>
 
@@ -322,7 +323,6 @@
         </div>
       </div>
 
-      <span class="cenefa cenefa-abajo" aria-hidden="true" />
     </section>
 
     <!-- ══════════ ④ ARTISTAS ══════════ -->
@@ -415,23 +415,27 @@
 
       <div class="candelaria-inner">
         <div v-revelar class="candelaria-texto">
-          <p class="kicker">Febrero en {{ INSTITUCION.ciudad }}</p>
-          <h2>LA CULTURA DE  <em>PUNO VIVE EN SU GENTE</em> </h2>
+          <p class="kicker">Consejo Provincial de Cultura</p>
+          <h2>La cultura de {{ INSTITUCION.ciudad }} <em>vive en su gente</em></h2>
           <p class="parrafo">
-           El Consejo Provincial de Cultura de Puno, instituido mediante la Ordenanza Municipal N.º 010-2019-C/MPP, del 25 de abril de 2019, constituye un espacio de representación y participación de los agentes culturales de la provincia de puno y de la mano con la gerencia de cultura y turismo tienen el objetiovo de reconocer, conectar y fortalecer a quienes hacen de nuestra cultura una exprecion viva de identidad , memoria y futuro. agregar un boton          </p>
+            El Consejo Provincial de Cultura de {{ INSTITUCION.ciudad }}, creado por la Ordenanza Municipal
+            N.° 010-2019-C/MPP del 25 de abril de 2019, reúne a los agentes culturales de la provincia.
+            Junto con la Gerencia de Cultura y Turismo, busca reconocer, conectar y fortalecer a quienes
+            hacen de nuestra cultura una expresión viva de identidad, memoria y futuro.
+          </p>
 
           <dl class="datos">
             <div>
               <dt>2019</dt>
-              <dd>Se creo el consejo provincial de cultura</dd>
+              <dd>Año de creación del Consejo</dd>
             </div>
             <div>
               <dt>+400</dt>
-              <dd>Ajentes Culturales</dd>
+              <dd>Agentes culturales</dd>
             </div>
             <div>
-              <dt>25 </dt>
-              <dd>De Abril se creo la ordenza municipal</dd>
+              <dt>8</dt>
+              <dd>Comisiones especializadas</dd>
             </div>
           </dl>
 
@@ -443,13 +447,12 @@
         <figure v-revelar="120" class="candelaria-foto">
           <img
             :src="fotoCandelaria"
-            alt="Danzantes de la Festividad de la Virgen de la Candelaria junto al lago Titicaca"
+            alt="Danzantes de diablada en escena con trajes bordados"
             loading="lazy"
           />
         </figure>
       </div>
 
-      <span class="cenefa cenefa-abajo" aria-hidden="true" />
     </section>
 
     <!-- ══════════ ⑥ GALERÍA ══════════ -->
@@ -474,7 +477,8 @@
             class="mosaico-item"
             :class="`m-${i}`"
           >
-            <img :src="act.imagen_url" :alt="act.titulo || act.descripcion || ''" loading="lazy" />
+            <img v-if="act.imagen_url" :src="act.imagen_url" :alt="act.titulo || act.descripcion || ''" loading="lazy" />
+            <span v-else class="sin-imagen" aria-hidden="true"><ImageOff :size="28" /></span>
             <span class="mosaico-pie">{{ act.persona_nombre }}</span>
           </router-link>
         </div>
@@ -485,7 +489,6 @@
     <section class="cierre">
       <img src="/images/wall3.jpg" alt="" loading="lazy" />
       <span class="cierre-velo" />
-      <span class="cenefa cenefa-arriba" aria-hidden="true" />
 
       <div v-revelar class="cierre-texto">
         <p class="cierre-sello">Registro abierto</p>
@@ -524,6 +527,7 @@ import {
   Video,
   Palette,
   Megaphone,
+  ImageOff,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import EventoService from '@/services/EventoService'
@@ -709,7 +713,8 @@ const acompanan = computed(() => artistas.value.slice(1, 7))
 const fotos = computed(() => FOTOS_CARTEL)
 const fotoIndex = ref(0)
 const fotoActual = computed(() => fotos.value[fotoIndex.value] || null)
-const fotoCandelaria = '/images/wallpaper_puno.png'
+// distinta a la del cartel de portada: no repetir la misma foto dos veces en la página
+const fotoCandelaria = '/images/com-02.jpg'
 
 let temporizador
 
@@ -750,13 +755,14 @@ onBeforeUnmount(() => {
 
 onMounted(async () => {
   // en paralelo y aparte: si la agenda falla, la portada se ve igual (sin esa sección)
-  EventoService.proximos(4)
+  EventoService.proximos(5)
     .then((r) => (proximos.value = r.data))
     .catch(() => {})
 
   const data = await PersonaPublicaService.getPortada()
   stats.value = data.stats
-  grupos.value = data.grupos
+  // por código (01 Música … 08 Gestión): el acordeón muestra el número de cada comisión
+  grupos.value = [...data.grupos].sort((a, b) => a.cod_grupo.localeCompare(b.cod_grupo))
   destacadas.value = data.destacadas
   artistas.value = data.artistas || []
   agrupaciones.value = data.agrupaciones || []
@@ -895,9 +901,9 @@ onMounted(async () => {
   background:
     linear-gradient(
       to right,
-      rgba(22, 32, 46, 0.88) 0%,
-      rgba(22, 32, 46, 0.5) 52%,
-      rgba(22, 32, 46, 0.2) 100%
+      rgba(22, 32, 46, 0.9) 0%,
+      rgba(22, 32, 46, 0.68) 52%,
+      rgba(22, 32, 46, 0.35) 100%
     ),
     linear-gradient(to top, rgba(22, 32, 46, 0.62) 0%, transparent 42%);
 }
@@ -937,7 +943,7 @@ onMounted(async () => {
   @include display(900);
   font-size: var(--t-3xl);
   line-height: 0.92;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   color: var(--sobre-foto);
   margin: 0 0 20px;
   max-width: 15ch;
@@ -1615,25 +1621,16 @@ onMounted(async () => {
   place-items: center;
   color: var(--tinta-tenue);
 }
-/* Color de cada disciplina (en formato R, G, B para poder usar rgba) */
-.hoja:nth-child(1) { --c: 249, 166, 10;  --c-oscuro: 150, 88, 0;   } /* Artes escénicas  */
-.hoja:nth-child(2) { --c: 240, 84, 95;   --c-oscuro: 150, 35, 55;  } /* Artes plásticas  */
-.hoja:nth-child(3) { --c: 123, 79, 181;  --c-oscuro: 70, 40, 115;  } /* Audiovisuales    */
-.hoja:nth-child(4) { --c: 30, 158, 130;  --c-oscuro: 10, 90, 75;   } /* Danza            */
-.hoja:nth-child(5) { --c: 58, 143, 209;  --c-oscuro: 25, 80, 140;  } /* Bordado y trajes */
-.hoja:nth-child(6) { --c: 30, 90, 160;   --c-oscuro: 10, 45, 95;   } /* Literatura       */
-.hoja:nth-child(7) { --c: 138, 92, 196;  --c-oscuro: 80, 50, 125;  } /* Música           */
-.hoja:nth-child(8) { --c: 244, 123, 42;  --c-oscuro: 170, 70, 10;  } /* Gestión cultural */
-
-/* Color de cada disciplina (en formato R, G, B para poder usar rgba) */
-.hoja:nth-child(1) { --c: 249, 166, 10;  --c-oscuro: 150, 88, 0;   } /* Artes escénicas  */
-.hoja:nth-child(2) { --c: 240, 84, 95;   --c-oscuro: 150, 35, 55;  } /* Artes plásticas  */
-.hoja:nth-child(3) { --c: 123, 79, 181;  --c-oscuro: 70, 40, 115;  } /* Audiovisuales    */
-.hoja:nth-child(4) { --c: 30, 158, 130;  --c-oscuro: 10, 90, 75;   } /* Danza            */
-.hoja:nth-child(5) { --c: 58, 143, 209;  --c-oscuro: 25, 80, 140;  } /* Bordado y trajes */
-.hoja:nth-child(6) { --c: 30, 90, 160;   --c-oscuro: 10, 45, 95;   } /* Literatura       */
-.hoja:nth-child(7) { --c: 138, 92, 196;  --c-oscuro: 80, 50, 125;  } /* Música           */
-.hoja:nth-child(8) { --c: 244, 123, 42;  --c-oscuro: 170, 70, 10;  } /* Gestión cultural */
+/* Color de cada disciplina POR CÓDIGO (no por posición): los mismos tonos que
+   --com-01…08 de tokens.scss, en R, G, B para poder usar rgba */
+.hoja[data-grupo='01'] { --c: 150, 105, 10; --c-oscuro: 83, 58, 6;   } /* Música           */
+.hoja[data-grupo='02'] { --c: 179, 36, 58;  --c-oscuro: 98, 20, 32;  } /* Danza            */
+.hoja[data-grupo='03'] { --c: 163, 39, 99;  --c-oscuro: 90, 21, 54;  } /* Artes escénicas  */
+.hoja[data-grupo='04'] { --c: 11, 106, 115; --c-oscuro: 6, 58, 63;   } /* Literatura       */
+.hoja[data-grupo='05'] { --c: 154, 74, 22;  --c-oscuro: 85, 41, 12;  } /* Bordado y trajes */
+.hoja[data-grupo='06'] { --c: 63, 79, 191;  --c-oscuro: 35, 43, 105; } /* Audiovisuales    */
+.hoja[data-grupo='07'] { --c: 31, 122, 90;  --c-oscuro: 17, 67, 50;  } /* Artes plásticas  */
+.hoja[data-grupo='08'] { --c: 74, 85, 104;  --c-oscuro: 41, 47, 57;  } /* Gestión cultural */
 
 .hoja-velo {
   position: absolute;
@@ -2182,7 +2179,6 @@ onMounted(async () => {
 .galeria-zona {
   padding: var(--seccion-y) 0;
   background-color: var(--papel);
-  background-image: var(--patron);
 }
 
 .mosaico {
