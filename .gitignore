@@ -1,3 +1,6 @@
 # Vault de Obsidian (documentación personal/local, no se sube)
 obsidian/
 .obsidian/
+
+# datos de la presentación para Dokploy (base y fotos locales): no se suben a git
+dokploy/datos/
