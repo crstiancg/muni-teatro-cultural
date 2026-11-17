@@ -160,6 +160,14 @@ const routes = [
   },
 
   {
+    // la abre el QR de la ficha de registro: el token es aleatorio a propósito
+    // (el código CPC0001 es correlativo y se podría recorrer)
+    path: '/v/:token',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [{ path: '', name: 'VerificarRegistro', component: () => import('@/pages/Publico/VerificarRegistroPage.vue') }],
+  },
+
+  {
     path: '/:catchAll(.*)*',
     component: () => import('@/pages/ErrorNotFound.vue'),
   },

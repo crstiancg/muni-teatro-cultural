@@ -22,5 +22,7 @@ return [
         'login', 'dashboard', 'perfil', 'curriculum-vitae', 'mis-agrupaciones', 'personas',
         'comisiones', 'profesiones', 'universidades', 'carreras', 'usuarios', 'roles',
         'permisos', 'gestion',
+        // verificación del QR de la ficha: pública, pero cada URL es de una persona
+        'v',
     ],
 ];

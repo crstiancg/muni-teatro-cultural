@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Notifications\AvisoPerfil;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -85,16 +86,98 @@ class Persona extends Model
         }
     }
 
+    // el token del QR solo se imprime en la ficha: si viajara en la API, cualquiera
+    // con acceso al panel podría armar verificaciones sin tener la ficha
+    protected $hidden = ['qr_token'];
+
+    protected $appends = ['codigo_registro'];
+
     protected function casts(): array
     {
         return [
             'redes_sociales' => 'array',
             'registros' => 'array',
+            'numero_registro' => 'integer',
+            'registrado_en' => 'datetime',
             'revisado_en' => 'datetime',
             'flag_celular_publico' => 'boolean',
             'flag_correo_publico' => 'boolean',
             'flag_discapacidad' => 'boolean',
         ];
+    }
+
+    // ---------- Registro de Agentes Culturales ----------
+
+    // CPC0001: se arma del número, nunca se guarda (una sola fuente de verdad)
+    public function getCodigoRegistroAttribute(): ?string
+    {
+        if (! $this->numero_registro) {
+            return null;
+        }
+
+        return config('registro.prefijo') . str_pad((string) $this->numero_registro, config('registro.digitos'), '0', STR_PAD_LEFT);
+    }
+
+    // Se llama en cada aprobación pero solo actúa la primera vez: un registro
+    // oficial no se renumera, aunque lo observen y lo vuelvan a aprobar.
+    // El índice único de numero_registro es la red de seguridad si dos admins
+    // aprueban a la vez: el que pierde reintenta con el siguiente número.
+    public function asignarRegistro(): void
+    {
+        if ($this->numero_registro) {
+            return;
+        }
+
+        for ($intento = 1; ; $intento++) {
+            try {
+                $this->forceFill([
+                    'numero_registro' => (int) static::max('numero_registro') + 1,
+                    'qr_token' => $this->qr_token ?? static::nuevoQrToken(),
+                    'registrado_en' => now(),
+                ])->save();
+
+                return;
+            } catch (UniqueConstraintViolationException $e) {
+                if ($intento >= 3) {
+                    throw $e;
+                }
+                $this->numero_registro = null;
+            }
+        }
+    }
+
+    // 10 caracteres base62 (62^10 combinaciones): no se adivina y entra en un QR chico
+    public static function nuevoQrToken(): string
+    {
+        do {
+            $token = Str::random(10);
+        } while (static::where('qr_token', $token)->exists());
+
+        return $token;
+    }
+
+    // URL absoluta: un celular que escanea "/v/ABC" solo muestra el texto
+    public function verificacionUrl(): string
+    {
+        $base = config('registro.verificacion_url') ?: config('app.frontend_url') ?: config('app.url');
+
+        return rtrim((string) $base, '/') . '/v/' . $this->qr_token;
+    }
+
+    // vigente = hoy está aprobado; si lo observaron después, sigue inscrito pero no vigente
+    public function registroVigente(): bool
+    {
+        return $this->numero_registro !== null && $this->estado === 'aprobado';
+    }
+
+    // la comisión de la persona es una "familia" (especialidad); su grupo es la comisión principal
+    public function comisionPrincipal(): ?Comision
+    {
+        $familia = $this->comision;
+
+        return $familia
+            ? Comision::where('tipo', 'grupo')->where('cod_grupo', $familia->cod_grupo)->first()
+            : null;
     }
 
     // ÚNICO criterio de "aparece en el portal": todo PersonaPublicaController

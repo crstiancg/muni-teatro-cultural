@@ -8,6 +8,7 @@ use App\Http\Requests\StoreRegistrosRequest;
 use App\Models\Persona;
 use App\Notifications\AvisoPerfil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 // Flujo del perfil público (bio + redes) y su revisión:
 // borrador -> pendiente -> aprobado | observado -> pendiente ...
@@ -86,8 +87,16 @@ class PerfilPublicoController extends Controller implements HasMiddleware
         abort_unless($persona->estado === 'pendiente', 422, 'Solo se puede aprobar un perfil en revisión.');
         abort_unless($persona->codigo_comision, 422, 'La persona no tiene comisión asignada.');
 
-        $this->resolver($request, $persona, 'aprobado', null);
-        $this->avisarArtista($persona, 'aprobado', 'Tu perfil fue aprobado y ya aparece en el portal.');
+        // juntos: no puede quedar aprobado sin código ni con código sin aprobar
+        DB::transaction(function () use ($request, $persona) {
+            $this->resolver($request, $persona, 'aprobado', null);
+            $persona->asignarRegistro();
+        });
+        $this->avisarArtista(
+            $persona,
+            'aprobado',
+            "Tu perfil fue aprobado y ya aparece en el portal. Tu código de registro es {$persona->codigo_registro}: descarga tu ficha desde Curriculum Vitae."
+        );
 
         return response()->json($this->conHistorial($persona));
     }

@@ -18,6 +18,7 @@ use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\EventoPublicoController;
+use App\Http\Controllers\FichaRegistroController;
 use App\Http\Controllers\NotificacionController;
 use App\Http\Controllers\PerfilPublicoController;
 use App\Http\Controllers\PersonaController;
@@ -52,6 +53,11 @@ Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaControlle
 Route::get('publico/eventos', [EventoPublicoController::class, 'index'])->middleware('throttle:60,1');
 Route::get('publico/eventos/proximos', [EventoPublicoController::class, 'proximos']);
 Route::get('publico/eventos/{id}', [EventoPublicoController::class, 'show'])->whereNumber('id');
+
+// verificación pública de la ficha de registro desde su QR (sin login)
+Route::get('publico/verificar/{token}', [FichaRegistroController::class, 'verificar'])
+    ->where('token', '[A-Za-z0-9]{6,16}')
+    ->middleware('throttle:60,1');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     $user = $request->user();
@@ -113,6 +119,10 @@ Route::middleware('auth:api')->group(function () {
     Route::put('personas/{persona}/perfil-publico', [PerfilPublicoController::class, 'update']);
     Route::put('personas/{persona}/aprobar', [PerfilPublicoController::class, 'aprobar']);
     Route::put('personas/{persona}/observar', [PerfilPublicoController::class, 'observar']);
+
+    // ficha de registro de agente cultural (PDF): la propia y la de cualquiera (admin)
+    Route::get('mi-informacion/ficha-registro', [FichaRegistroController::class, 'mia']);
+    Route::get('personas/{persona}/ficha-registro', [FichaRegistroController::class, 'show']);
 
     Route::get('dashboard/admin', [DashboardController::class, 'admin']);
 
