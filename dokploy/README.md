@@ -26,8 +26,18 @@ Anotá el *Internal Host*, la base, el usuario y la contraseña: van en el paso 
 |---|---|
 | Provider | GitHub → `crstiancg/muni-teatro-cultural`, rama `main` |
 | Build Type | **Dockerfile** |
+| Build Path (sección GitHub) | `/` — es una **carpeta**, no la ruta del Dockerfile |
 | Docker File | `dokploy/Dockerfile` |
-| Docker Context Path | `.` (la raíz del repo, no `dokploy/`) |
+| Docker Context Path | `.` (la raíz del repo) — **no dejarlo vacío** |
+
+> Errores típicos de esta pantalla:
+> - `cannot create .../dokploy/Dockerfile/.env: Directory nonexistent` → pusiste la
+>   ruta del Dockerfile en **Build Path**. Ahí va `/`.
+> - `"/fronted/package-lock.json": not found` / `"/dokploy": not found` → el **Docker
+>   Context Path** quedó vacío: Dokploy usa entonces la carpeta del Dockerfile
+>   (`dokploy/`) y desde ahí no ve `fronted/` ni `backend/`. Ahí va `.`.
+>
+> Cada sección tiene su propio **Save**: recargá la página antes de desplegar.
 
 ## 3. Variables de entorno (pestaña *Environment*)
 
