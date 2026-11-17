@@ -81,7 +81,9 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // español por defecto: los mensajes de validación están en lang/es. El
+    // fallback queda en inglés (los trae el framework) por si falta una clave.
+    'locale' => env('APP_LOCALE', 'es'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
