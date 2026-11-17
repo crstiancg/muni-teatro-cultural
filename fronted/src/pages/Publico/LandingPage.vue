@@ -1,34 +1,46 @@
 <template>
   <q-page class="landing publico">
     <!-- ══════════ ① PORTADA ══════════ -->
+    <!-- "El pasacalle": título y buscador al centro, y abajo las fotos de cada
+         disciplina pasan de lado a lado como una comparsa en la Candelaria. -->
     <section class="portada">
-      <div class="portada-fondo">
-        <Transition name="fundido">
-          <img
-            v-if="fotoActual"
-            :key="fotoActual.id"
-            :src="fotoActual.imagen_url"
-            :alt="fotoActual.descripcion"
-          />
-        </Transition>
-        <div class="portada-velo" />
+      <!-- PRUEBA: figuritas de fondo con cosas de Puno (siku, charango, máscara…).
+           Para quitarlas: este bloque, FIGURITAS en el script y sus estilos. -->
+      <div class="figuritas" aria-hidden="true">
+        <span
+          v-for="(f, i) in FIGURITAS"
+          :key="i"
+          :class="['fig', { 'en-movil': f.m }]"
+          :style="{
+            left: `${f.x}%`,
+            top: `${f.y}%`,
+            '--tam': `${Math.round(f.s * 1.35)}px`,
+            '--color': f.c,
+            '--giro': `${f.r}deg`,
+            animationDelay: `${-i * 1.7}s`,
+          }"
+        >
+          <svg viewBox="0 0 48 48"><path :d="DIBUJOS[f.t]" /></svg>
+        </span>
       </div>
 
-      <div class="portada-cuerpo">
-        <p class="portada-sello">
-          <span class="sello-linea" />
-          {{ INSTITUCION.lema }}
-        </p>
+      <!-- fotos sueltas a los costados del título (solo en pantallas anchas) -->
+      <div class="sueltas" aria-hidden="true">
+        <img
+          v-for="f in FOTOS_SUELTAS"
+          :key="f.clase"
+          :src="f.src"
+          :class="['suelta', f.clase]"
+          :style="{ objectPosition: f.pos }"
+          alt=""
+          loading="lazy"
+        />
+      </div>
 
-        <h1 class="portada-titulo">
-          Detrás de cada expresión
-           <br />
-          <em>hay una historia</em>
-        </h1>
-
+      <div class="portada-cabeza">
+        <h1 class="portada-titulo">Detrás de cada expresión hay una historia</h1>
         <p class="portada-bajada">
-          El registro vivo de artistas, comisiones y familias culturales de
-          {{ INSTITUCION.ciudad }}.
+          Artistas, agrupaciones y familias culturales de {{ INSTITUCION.ciudad }}, capital folclórica del Perú.
         </p>
 
         <!-- buscador: resultados reales en vivo (artistas y agrupaciones), con teclado.
@@ -198,20 +210,23 @@
         </form>
       </div>
 
-      <button class="portada-scroll" aria-label="Ver más" @click="irA('comisiones')">
-        <span>Descubre</span>
-        <ChevronDown :size="18" />
-      </button>
-
-      <div v-if="fotos.length > 1" class="portada-puntos">
-        <button
-          v-for="(f, i) in fotos"
-          :key="f.id"
-          :class="{ activo: i === fotoIndex }"
-          :aria-label="`Fotografía ${i + 1}`"
-          @click="fotoIndex = i"
-        />
-      </div>
+      <!-- el pasacalle: la fila se repite dos veces para que el desfile no se corte;
+           la copia no se lee ni se enfoca. Se detiene con el mouse o el teclado. -->
+      <nav class="pasacalle" aria-label="Explorar por disciplina">
+        <ul class="pista">
+          <li v-for="(d, n) in desfile" :key="n" :aria-hidden="n >= disciplinasDesfile.length">
+            <router-link
+              :to="{ name: 'ConsejerosPublico', query: { grupo: d.cod } }"
+              class="comparsa"
+              :style="{ '--acento': d.color }"
+              :tabindex="n >= disciplinasDesfile.length ? -1 : 0"
+            >
+              <img :src="d.foto" alt="" :loading="n < 6 ? 'eager' : 'lazy'" />
+              <span class="comparsa-nombre"><i aria-hidden="true" />{{ d.corto }}</span>
+            </router-link>
+          </li>
+        </ul>
+      </nav>
     </section>
 
     <!-- ══════════ ② FRANJA DE DANZAS ══════════ -->
@@ -531,7 +546,7 @@ import {
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import EventoService from '@/services/EventoService'
-import { INSTITUCION, FOTOS_CARTEL, COMISIONES, comisionDe } from '@/config/institucion'
+import { INSTITUCION, COMISIONES, comisionDe } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 import ProximosEventos from '@/components/agenda/ProximosEventos.vue'
 
@@ -710,22 +725,65 @@ const destacado = computed(() => artistas.value[0] || null)
 const acompanan = computed(() => artistas.value.slice(1, 7))
 
 // ---------- portada ----------
-const fotos = computed(() => FOTOS_CARTEL)
-const fotoIndex = ref(0)
-const fotoActual = computed(() => fotos.value[fotoIndex.value] || null)
-// distinta a la del cartel de portada: no repetir la misma foto dos veces en la página
-const fotoCandelaria = '/images/com-02.jpg'
-
-let temporizador
-
-function rotarFotos() {
-  clearInterval(temporizador)
-  if (fotos.value.length < 2) return
-  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  temporizador = setInterval(() => {
-    fotoIndex.value = (fotoIndex.value + 1) % fotos.value.length
-  }, 7000)
+// ---------- PRUEBA: figuritas de fondo de la portada ----------
+// dibujos a línea (viewBox 48×48) de instrumentos y cosas de la cultura de Puno
+const DIBUJOS = {
+  // zampoña: cañas que bajan de largo, amarradas
+  siku: 'M8 8v32M13 8v28M18 8v24M23 8v20M28 8v17M33 8v14M38 8v11M5 14h36',
+  charango:
+    'M24 18c-4 0-6 3-6 6 0 2 1 3 1 4-3 2-5 4-5 8 0 5 4 8 10 8s10-3 10-8c0-4-2-6-5-8 0-1 1-2 1-4 0-3-2-6-6-6zM24 18V8M21.5 3h5v5h-5zM21.5 33a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M20 39h8',
+  bombo: 'M10 15a14 5 0 1 0 28 0 14 5 0 1 0-28 0M10 15v17c0 3 6 5 14 5s14-2 14-5V15M10 21l7 10 7-10 7 10 7-10M36 4l-8 8',
+  quena: 'M9.3 39.7 35.3 5.7l3.4 2.6-26 34zM19.6 29.5h.1M22.3 26h.1M25 22.5h.1M27.7 19h.1',
+  // máscara de diablada: cachos y ojos saltones
+  mascara:
+    'M14 18c0 11 4 20 10 20s10-9 10-20c-2-4-6-6-10-6s-8 2-10 6zM14 18c-5-3-7-9-5-14 2 4 6 6 9 9M34 18c5-3 7-9 5-14-2 4-6 6-9 9M17 23a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M26 23a2.5 2.5 0 1 0 5 0 2.5 2.5 0 1 0-5 0M19 31c3 2.5 7 2.5 10 0',
+  chullo: 'M12 31c0-11 5-19 12-19s12 8 12 19zM12 31v7M36 31v7M21 9a3 3 0 1 0 6 0 3 3 0 1 0-6 0M13 25l4 3 4-3 4 3 4-3 4 3 3-2',
+  llama: 'M33 9v19H16c-3 0-5 2-5 5v9M16 42v-9M28 42V28M33 42V28M33 9c0-3 1-5 3-5l1-2 1 2c1 1 1 2 1 3l2 1-1 2h-4',
+  // balsa de totora del lago
+  totora: 'M3 14c2 13 10 20 21 20s19-7 21-20M3 14l7 9M45 14l-7 9M10 23c4 4 9 5 14 5s10-1 14-5M16 26v7M24 28v6M32 26v7M2 42c4-2 8-2 12 0s8 2 12 0 8-2 12 0 6 1 9 0',
+  // cruz andina escalonada
+  chakana: 'M19 5h10v7h7v7h7v10h-7v7h-7v7H19v-7h-7v-7H5V19h7v-7h7zM20 24a4 4 0 1 0 8 0 4 4 0 1 0-8 0',
+  inti: 'M17 24a7 7 0 1 0 14 0 7 7 0 1 0-14 0M24 5v6M24 37v6M5 24h6M37 24h6M10.6 10.6l4.2 4.2M33.2 33.2l4.2 4.2M37.4 10.6l-4.2 4.2M14.8 33.2l-4.2 4.2',
 }
+
+// x / y en % de la portada, s = tamaño en px, r = giro, m = también en celular
+const FIGURITAS = [
+  { t: 'siku', x: 22, y: 0, s: 46, c: 'var(--oro)', r: -10 },
+  { t: 'inti', x: 27, y: 30, s: 30, c: 'var(--rojo)', r: 0 },
+  { t: 'chakana', x: 19, y: 43, s: 32, c: 'var(--lago)', r: 0 },
+  { t: 'totora', x: 24, y: 53, s: 52, c: 'var(--com-03)', r: -6 },
+  { t: 'quena', x: 31, y: 2, s: 34, c: 'var(--com-07)', r: 0 },
+  { t: 'charango', x: 2, y: 48, s: 40, c: 'var(--com-06)', r: -12, m: true },
+  { t: 'chullo', x: 8, y: 2, s: 30, c: 'var(--oro)', r: 8, m: true },
+  { t: 'mascara', x: 73, y: 4, s: 46, c: 'var(--rojo)', r: 8 },
+  { t: 'bombo', x: 67, y: 0, s: 34, c: 'var(--lago)', r: -6 },
+  { t: 'llama', x: 71, y: 32, s: 36, c: 'var(--com-03)', r: 0 },
+  { t: 'siku', x: 78, y: 48, s: 34, c: 'var(--oro)', r: 12 },
+  { t: 'chakana', x: 65, y: 45, s: 26, c: 'var(--rojo)', r: 0 },
+  { t: 'mascara', x: 94, y: 42, s: 40, c: 'var(--com-07)', r: -8, m: true },
+  { t: 'inti', x: 89, y: 2, s: 30, c: 'var(--com-06)', r: 0, m: true },
+  { t: 'quena', x: 42, y: 0, s: 26, c: 'var(--com-06)', r: 0, m: true },
+  { t: 'chullo', x: 57, y: 1, s: 24, c: 'var(--oro)', r: -6, m: true },
+  { t: 'llama', x: 35, y: 49, s: 28, c: 'var(--com-03)', r: 0 },
+  { t: 'charango', x: 60, y: 52, s: 32, c: 'var(--lago)', r: 14 },
+]
+
+// ---------- fotos sueltas a los costados del título ----------
+// las del cartel que no salen en el desfile, así no se repite ninguna
+const FOTOS_SUELTAS = [
+  { clase: 'izq-1', src: '/images/wall1.jpg', pos: '50% 50%' },
+  { clase: 'izq-2', src: '/images/wall2.jpg', pos: '45% 50%' },
+  { clase: 'der-1', src: '/images/wallpaper_puno.png', pos: '72% 70%' },
+  { clase: 'der-2', src: '/images/wall3.jpg', pos: '50% 35%' },
+]
+
+// ---------- pasacalle de la portada ----------
+// una foto por disciplina; la fila va dos veces para que el desfile no se corte
+const disciplinasDesfile = Object.entries(COMISIONES).map(([cod, c]) => ({ cod, ...c }))
+const desfile = [...disciplinasDesfile, ...disciplinasDesfile]
+
+// distinta a las de la portada: no repetir la misma foto dos veces en la página
+const fotoCandelaria = '/images/com-02.jpg'
 
 // ---------- acordeón de comisiones ----------
 // La hoja abierta va rotando sola; se detiene con el mouse encima o cuando
@@ -744,12 +802,7 @@ function girarAcordeon() {
   }, 3600)
 }
 
-function irA(id) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-}
-
 onBeforeUnmount(() => {
-  clearInterval(temporizador)
   clearInterval(acordeonTimer)
 })
 
@@ -766,7 +819,6 @@ onMounted(async () => {
   destacadas.value = data.destacadas
   artistas.value = data.artistas || []
   agrupaciones.value = data.agrupaciones || []
-  rotarFotos()
   await nextTick()
   girarAcordeon()
 })
@@ -866,104 +918,360 @@ onMounted(async () => {
 }
 
 /* ═══════════ ① PORTADA ═══════════ */
+/* "El pasacalle": título y buscador centrados sobre papel, y abajo las fotos
+   de las ocho disciplinas desfilando de lado a lado, alternando altura como el
+   paso de una comparsa. */
 .portada {
   position: relative;
-  min-height: calc(100vh - 66px);
-  min-height: calc(100svh - 66px);
-  display: flex;
-  align-items: center;
-  padding: clamp(64px, 8vw, 96px) var(--gutter) clamp(104px, 13vh, 150px);
-  /* antes "overflow: hidden": recortaba los paneles del buscador al desplegarse.
-     clip solo en horizontal (nada de scroll lateral) y el fondo se recorta aparte */
+  padding: clamp(44px, 7vh, 80px) 0 clamp(48px, 7vh, 80px);
+  background: var(--papel);
+  color: var(--tinta);
+  /* clip solo en horizontal: los paneles del buscador pueden salir hacia abajo */
   overflow-x: clip;
   /* por encima de las secciones siguientes: los paneles pueden pasar sobre ellas */
   z-index: 5;
 }
 
-.portada-fondo {
+.portada-cabeza {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  text-align: center;
+}
+
+.portada-titulo {
+  @include display(800);
+  margin: 0;
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 1.3rem + 4.2vw, 5.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  color: var(--tinta);
+  text-wrap: balance;
+}
+
+.portada-bajada {
+  margin: clamp(14px, 2vh, 20px) 0 clamp(24px, 3.4vh, 34px);
+  max-width: 46ch;
+  font-size: clamp(1rem, 0.94rem + 0.3vw, 1.15rem);
+  line-height: 1.55;
+  color: var(--tinta-suave);
+}
+
+/* el buscador conserva su forma de píldora; sobre papel lleva borde */
+.portada .buscador {
+  width: min(640px, 100%);
+  border: 1px solid var(--borde);
+  text-align: left;
+}
+
+/* celular: una sola cápsula (texto + lupa). La disciplina se elige en el
+   desfile de fotos de abajo, así que el selector se oculta aquí */
+@media (max-width: 760px) {
+  .portada .buscador {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px 6px 20px;
+    border-radius: var(--r-full);
+  }
+  .portada .segmento {
+    flex: 1 1 auto;
+    padding: 4px 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .portada .divisor,
+  .portada .segmento-select {
+    display: none;
+  }
+  .portada .buscador-btn {
+    flex: none;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+  }
+  .portada {
+    padding-top: 36px;
+  }
+  .portada-titulo {
+    font-size: clamp(2.3rem, 1.4rem + 4.4vw, 3rem);
+  }
+  .pasacalle {
+    margin-top: 32px;
+  }
+}
+
+/* ── PRUEBA: figuritas de fondo (cosas de Puno a línea) ── */
+.figuritas {
   position: absolute;
   inset: 0;
+  z-index: 0;
   overflow: hidden;
+  pointer-events: none;
+}
 
-  img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.fig {
+  position: absolute;
+  width: var(--tam);
+  height: var(--tam);
+  color: var(--color);
+  opacity: 0.7;
+  transform: rotate(var(--giro));
+  animation: figura 14s ease-in-out infinite;
+}
+
+.fig svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.fig path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes figura {
+  0%,
+  100% {
+    transform: rotate(var(--giro)) translateY(0);
+  }
+  50% {
+    transform: rotate(calc(var(--giro) + 10deg)) translateY(-9px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fig {
+    animation: none;
+  }
+}
+
+/* en celular el título ocupa casi todo el ancho: solo quedan las de las orillas */
+@media (max-width: 760px) {
+  .fig {
+    display: none;
+    opacity: 0.45;
+  }
+  .fig.en-movil {
     display: block;
   }
 }
 
-.portada-velo {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to right,
-      rgba(22, 32, 46, 0.9) 0%,
-      rgba(22, 32, 46, 0.68) 52%,
-      rgba(22, 32, 46, 0.35) 100%
-    ),
-    linear-gradient(to top, rgba(22, 32, 46, 0.62) 0%, transparent 42%);
+/* ── fotos sueltas a los costados ── */
+.sueltas {
+  display: none;
 }
 
-.fundido-enter-active,
-.fundido-leave-active {
-  transition: opacity 1.2s ease;
-}
+@media (min-width: 1240px) {
+  .sueltas {
+    display: block;
+    position: absolute;
+    inset: 0 0 auto;
+    z-index: 1;
+    height: clamp(440px, 52vh, 520px);
+    pointer-events: none;
+  }
 
-.fundido-enter-from,
-.fundido-leave-to {
-  opacity: 0;
-}
+  .suelta {
+    position: absolute;
+    object-fit: cover;
+    border: 6px solid #fff;
+    border-radius: 6px;
+    box-shadow:
+      0 2px 6px rgba(22, 32, 46, 0.08),
+      0 18px 40px rgba(22, 32, 46, 0.16);
+    animation: flotar-suelta 9s ease-in-out infinite;
+  }
 
-.portada-cuerpo {
-  position: relative;
-  width: 100%;
-  max-width: var(--ancho);
-  margin: 0 auto;
-}
-
-.portada-sello {
-  @include kicker(var(--oro-vivo));
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0 0 20px;
-}
-
-.sello-linea {
-  width: 34px;
-  height: 2px;
-  background: var(--oro-vivo);
-}
-
-.portada-titulo {
-  @include display(900);
-  font-size: var(--t-3xl);
-  line-height: 0.92;
-  letter-spacing: -0.01em;
-  color: var(--sobre-foto);
-  margin: 0 0 20px;
-  max-width: 15ch;
-  text-shadow: 0 2px 40px rgba(22, 32, 46, 0.35);
-
-  em {
-    font-style: italic;
-    color: var(--oro-vivo);
-    font-variation-settings:
-      'SOFT' 40,
-      'WONK' 1;
+  /* izquierda: una grande arriba y una chica que se le monta */
+  .izq-1 {
+    left: clamp(16px, 3vw, 72px);
+    top: 36px;
+    width: clamp(170px, 13vw, 250px);
+    aspect-ratio: 4 / 5;
+    --giro: -7deg;
+  }
+  .izq-2 {
+    left: clamp(110px, 10vw, 230px);
+    top: clamp(240px, 27vh, 300px);
+    width: clamp(140px, 10.5vw, 200px);
+    aspect-ratio: 1;
+    --giro: 5deg;
+    animation-delay: -3s;
+  }
+  /* derecha: en espejo */
+  .der-1 {
+    right: clamp(16px, 3vw, 72px);
+    top: 56px;
+    width: clamp(170px, 13vw, 250px);
+    aspect-ratio: 4 / 5;
+    --giro: 6deg;
+    animation-delay: -5s;
+  }
+  .der-2 {
+    right: clamp(110px, 10vw, 230px);
+    top: clamp(250px, 28vh, 310px);
+    width: clamp(140px, 10.5vw, 200px);
+    aspect-ratio: 1;
+    --giro: -4deg;
+    animation-delay: -1.5s;
   }
 }
 
-.portada-bajada {
-  color: rgba(253, 251, 247, 0.9);
-  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.25rem);
-  line-height: 1.6;
-  max-width: 46ch;
-  margin: 0 0 36px;
+/* flotan apenas, cada una a su ritmo */
+@keyframes flotar-suelta {
+  0%,
+  100% {
+    transform: rotate(var(--giro)) translateY(0);
+  }
+  50% {
+    transform: rotate(var(--giro)) translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .suelta {
+    animation: none;
+    transform: rotate(var(--giro));
+  }
+}
+
+/* ── el pasacalle ── */
+.pasacalle {
+  position: relative;
+  margin-top: clamp(40px, 6vh, 64px);
+  /* los bordes se desvanecen: las fotos entran y salen, no aparecen cortadas */
+  mask-image: linear-gradient(to right, transparent 0, #000 6%, #000 94%, transparent 100%);
+}
+
+.pista {
+  display: flex;
+  gap: clamp(12px, 1.4vw, 20px);
+  width: max-content;
+  margin: 0;
+  /* espacio para que las fotos que bajan no se corten */
+  padding: 0 0 36px;
+  list-style: none;
+  animation: desfile 70s linear infinite;
+
+  li {
+    flex: none;
+  }
+  /* el paso de la comparsa: una arriba, otra abajo */
+  li:nth-child(even) {
+    transform: translateY(36px);
+  }
+}
+
+/* con el mouse encima o navegando con el teclado, el desfile se detiene */
+.pasacalle:hover .pista,
+.pasacalle:focus-within .pista {
+  animation-play-state: paused;
+}
+
+@keyframes desfile {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* la pista es la fila dos veces: al llegar a la mitad vuelve a empezar igual */
+    transform: translateX(-50%);
+  }
+}
+
+.comparsa {
+  position: relative;
+  display: block;
+  width: clamp(170px, 16vw, 240px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--r-md);
+  background: var(--crema);
+  color: #fff;
+  text-decoration: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s ease;
+  }
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.62), transparent 45%);
+    pointer-events: none;
+  }
+
+  &:hover img {
+    transform: scale(1.06);
+  }
+  &:focus-visible {
+    @include foco;
+  }
+}
+
+.comparsa-nombre {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 var(--t-sm) var(--fuente-texto);
+  line-height: 1.2;
+
+  i {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--acento);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* menos movimiento: la fila queda quieta y se recorre deslizando */
+@media (prefers-reduced-motion: reduce) {
+  .pasacalle {
+    overflow-x: auto;
+    mask-image: none;
+  }
+  .pista {
+    animation: none;
+    padding-inline: var(--gutter);
+  }
+}
+
+@media (max-width: 760px) {
+  .comparsa {
+    width: 150px;
+  }
+  .pista {
+    padding-bottom: 24px;
+
+    li:nth-child(even) {
+      transform: translateY(24px);
+    }
+  }
+  .pasacalle {
+    mask-image: none;
+  }
 }
 
 /* ── buscador segmentado ── */
@@ -1367,77 +1675,6 @@ onMounted(async () => {
   transform: translateY(-6px);
 }
 
-.portada-scroll {
-  position: absolute;
-  left: 50%;
-  bottom: 52px;
-  transform: translateX(-50%);
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: rgba(253, 251, 247, 0.82);
-  font-family: var(--fuente-texto);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-
-  svg {
-    animation: flotar 2.2s ease-in-out infinite;
-  }
-
-  &:hover {
-    color: var(--oro-vivo);
-  }
-
-  &:focus-visible {
-    @include foco;
-  }
-}
-
-@keyframes flotar {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(5px);
-  }
-}
-
-.portada-puntos {
-  position: absolute;
-  right: var(--gutter);
-  bottom: 54px;
-  display: flex;
-  gap: 8px;
-  z-index: 2;
-
-  button {
-    width: 26px;
-    height: 4px;
-    padding: 0;
-    border: none;
-    border-radius: var(--r-full);
-    background: rgba(253, 251, 247, 0.4);
-    cursor: pointer;
-    transition: all var(--transicion);
-
-    &.activo {
-      background: var(--oro-vivo);
-      width: 42px;
-    }
-
-    &:focus-visible {
-      @include foco;
-    }
-  }
-}
-
 @media (max-width: 760px) {
   .buscador {
     flex-wrap: wrap;
@@ -1472,16 +1709,6 @@ onMounted(async () => {
     border-radius: var(--r-sm);
   }
 
-  .portada-puntos,
-  .portada-scroll {
-    display: none;
-  }
-}
-
-@media (max-height: 680px) {
-  .portada-scroll {
-    display: none;
-  }
 }
 
 /* ═══════════ ② FRANJA ═══════════ */
@@ -1526,10 +1753,6 @@ onMounted(async () => {
 
 @media (prefers-reduced-motion: reduce) {
   .franja-pista {
-    animation: none;
-  }
-
-  .portada-scroll svg {
     animation: none;
   }
 }
