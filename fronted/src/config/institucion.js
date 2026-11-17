@@ -8,8 +8,13 @@
 // ============================================================================
 
 export const INSTITUCION = {
-  // PENDIENTE: confirmar el nombre oficial y de qué entidad depende
-  nombre: 'RACC',
+  // mismo prefijo que el código de registro de la ficha (CPC0001)
+  nombre: 'CPC',
+  // logo del Consejo Provincial de Cultura de Puno (CPCP), versión web de 256 px.
+  // images/logo.png es el original con fondo blanco; images/logo-cpcp.png es el
+  // maestro recortado con fondo transparente, del que salen este, los favicons
+  // y el del PDF (backend/resources/images/logo-cpcp.png)
+  logo: '/images/logo-cpcp-256.png',
   entidad: 'Registro de Agentes Culturales del Consejo Provincial de Cultura',
   ciudad: 'Puno',
   region: 'Puno, Perú',

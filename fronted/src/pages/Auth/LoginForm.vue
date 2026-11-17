@@ -8,9 +8,9 @@
         </router-link>
 
         <div class="marca">
-          <span class="marca-logo"><Drama :size="22" /></span>
+          <img :src="INSTITUCION.logo" alt="" class="marca-logo" width="48" height="48" />
           <span class="marca-texto">
-            <span class="marca-nombre">CPC</span>
+            <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
             <span class="marca-bajada">Registro de agentes culturales · Puno</span>
           </span>
         </div>
@@ -124,7 +124,8 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
-import { ArrowLeft, Drama, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
+import { ArrowLeft, Mail, LockKeyhole, Eye, EyeOff } from 'lucide-vue-next'
+import { INSTITUCION } from '@/config/institucion'
 import { useUserStore } from '@/stores/user-store'
 import EventoService from '@/services/EventoService'
 import { cuandoTexto } from '@/utils/fechasAgenda'
@@ -244,13 +245,8 @@ const login = async () => {
 }
 
 .marca-logo {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  background: var(--panel-acento);
-  color: var(--panel-sobre-acento);
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
 }
 

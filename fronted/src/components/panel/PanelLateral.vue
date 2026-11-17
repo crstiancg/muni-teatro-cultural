@@ -1,9 +1,9 @@
 <template>
   <nav class="lateral" aria-label="Menú del panel">
     <router-link :to="{ name: 'Dashboard' }" class="marca">
-      <span class="marca-logo"><Drama :size="20" /></span>
+      <img :src="INSTITUCION.logo" alt="" class="marca-logo" width="40" height="40" />
       <span class="marca-texto">
-        <span class="marca-nombre">CPC</span>
+        <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
         <span class="marca-bajada">Gestión cultural · Puno</span>
       </span>
     </router-link>
@@ -41,7 +41,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Drama, ExternalLink } from 'lucide-vue-next'
+import { ExternalLink } from 'lucide-vue-next'
+import { INSTITUCION } from '@/config/institucion'
 
 defineProps({
   secciones: { type: Array, required: true },
@@ -81,13 +82,8 @@ function estaActivo(item) {
 }
 
 .marca-logo {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--panel-acento);
-  color: var(--panel-sobre-acento);
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
 }
 

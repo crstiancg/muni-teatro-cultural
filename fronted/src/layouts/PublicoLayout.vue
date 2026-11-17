@@ -5,9 +5,8 @@
     <header class="topbar">
       <div class="topbar-inner">
         <router-link :to="{ name: 'Inicio' }" class="brand">
-          <!-- monograma: las tres cañas del siku, que es el instrumento que
-               abre la Candelaria. Reemplazable por el escudo municipal. -->
-          <span class="brand-mark" aria-hidden="true"><i /><i /><i /></span>
+          <!-- alt vacío: el nombre ya está escrito al lado, el lector de pantalla no lo repite -->
+          <img :src="INSTITUCION.logo" alt="" class="brand-logo" width="44" height="44" />
           <span class="brand-text">
             <span class="brand-nombre">{{ INSTITUCION.nombre }}</span>
             <span class="brand-sub">{{ INSTITUCION.ciudad }} · registro de agentes culturales del consejo provincial de cultura</span>
@@ -76,6 +75,7 @@
 
       <div class="footbar-inner">
         <div class="foot-marca">
+          <img :src="INSTITUCION.logo" alt="" class="foot-logo" width="64" height="64" loading="lazy" />
           <div class="foot-nombre">{{ INSTITUCION.nombre }}</div>
           <p class="foot-lema">{{ INSTITUCION.lema }}</p>
           <p class="foot-texto">
@@ -185,39 +185,21 @@ onBeforeUnmount(() => document.documentElement.classList.remove('sin-barra-scrol
   }
 }
 
-/* tres cañas de siku, de distinto largo */
-.brand-mark {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  height: 26px;
-
-  i {
-    display: block;
-    width: 4px;
-    border-radius: 2px;
-    background: var(--oro);
-    transition: height var(--transicion);
-  }
-
-  i:nth-child(1) {
-    height: 14px;
-  }
-  i:nth-child(2) {
-    height: 26px;
-    background: var(--rojo);
-  }
-  i:nth-child(3) {
-    height: 20px;
-    background: var(--lago);
-  }
+.brand-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  transition: transform var(--transicion);
 }
 
-.brand:hover .brand-mark i:nth-child(1) {
-  height: 20px;
+.brand:hover .brand-logo {
+  transform: rotate(-6deg);
 }
-.brand:hover .brand-mark i:nth-child(3) {
-  height: 26px;
+
+@media (prefers-reduced-motion: reduce) {
+  .brand:hover .brand-logo {
+    transform: none;
+  }
 }
 
 .brand-text {
@@ -393,6 +375,13 @@ onBeforeUnmount(() => document.documentElement.classList.remove('sin-barra-scrol
     grid-template-columns: 1.6fr 1fr 1.2fr 1fr;
     gap: 40px;
   }
+}
+
+.foot-logo {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 12px;
 }
 
 .foot-nombre {
