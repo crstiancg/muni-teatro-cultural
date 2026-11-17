@@ -12,6 +12,12 @@ es un servicio MySQL aparte y `storage/` vive en un volumen persistente.
 En el proyecto de Dokploy: **Create Service → Database → MySQL** (8.x).
 Anotá el *Internal Host*, la base, el usuario y la contraseña: van en el paso 3.
 
+> **MySQL, no Postgres.** El código depende de MySQL: el backup diario usa
+> `SHOW TABLES`/`SHOW CREATE TABLE`, el dashboard suma booleanos
+> (`sum(estado = 'aprobado')`), el reintento del código CPC0001 ante dos
+> aprobaciones simultáneas sigue dentro de la transacción (en Postgres queda
+> abortada) y el arranque usa `mysqladmin`. Cambiar de motor implica reescribir eso.
+
 ## 2. Aplicación
 
 **Create Service → Application**, y en la pestaña *General*:
