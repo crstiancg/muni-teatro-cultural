@@ -19,36 +19,36 @@ class ComisionSeeder extends Seeder
         // ComisionController (grupo = cod_grupo+'00', familia = cod_grupo+cod_familia)
         $grupos = [
             '01' => [
-                'nombre' => 'Comision especializada de musica',
-                'familias' => ['Banda de musicos', 'Estudiantina', 'Orquesta tipica', 'Conjunto de sikuris'],
+                'nombre' => 'Comisión especializada de música',
+                'familias' => ['Banda de músicos', 'Estudiantina', 'Orquesta típica', 'Conjunto de sikuris'],
             ],
             '02' => [
-                'nombre' => 'Comision especializada de danza',
-                'familias' => ['Danza autoctona', 'Danza de luces', 'Danza mestiza'],
+                'nombre' => 'Comisión especializada de danza',
+                'familias' => ['Danza autóctona', 'Danza de luces', 'Danza mestiza'],
             ],
             '03' => [
-                'nombre' => 'Comision especializada de artes escenicas - teatro',
-                'familias' => ['Teatro', 'Titeres', 'Pasacalle teatral'],
+                'nombre' => 'Comisión especializada de artes escénicas - teatro',
+                'familias' => ['Teatro', 'Títeres', 'Pasacalle teatral'],
             ],
             '04' => [
-                'nombre' => 'Comision especializada de literatura y expresiones orales',
-                'familias' => ['Poesia', 'Narrativa oral', 'Cuento y leyenda'],
+                'nombre' => 'Comisión especializada de literatura y expresiones orales',
+                'familias' => ['Poesía', 'Narrativa oral', 'Cuento y leyenda'],
             ],
             '05' => [
-                'nombre' => 'Comision especializada de federacion regional de artistas bordadores, mascareros y trajes tipicos',
-                'familias' => ['Bordadores', 'Mascareros', 'Confeccion de trajes tipicos'],
+                'nombre' => 'Comisión especializada de la federación regional de artistas bordadores, mascareros y trajes típicos',
+                'familias' => ['Bordadores', 'Mascareros', 'Confección de trajes típicos'],
             ],
             '06' => [
-                'nombre' => 'Comision especializada de audiovisuales',
-                'familias' => ['Fotografia', 'Video documental', 'Cine y animacion'],
+                'nombre' => 'Comisión especializada de audiovisuales',
+                'familias' => ['Fotografía', 'Video documental', 'Cine y animación'],
             ],
             '07' => [
-                'nombre' => 'Comision especializada de artes plasticas',
-                'familias' => ['Pintura', 'Escultura', 'Artesania'],
+                'nombre' => 'Comisión especializada de artes plásticas',
+                'familias' => ['Pintura', 'Escultura', 'Artesanía'],
             ],
             '08' => [
-                'nombre' => 'Comision especializada de promocion, difusion y gestion cultural',
-                'familias' => ['Prensa y difusion', 'Gestion de eventos', 'Promocion turistica cultural'],
+                'nombre' => 'Comisión especializada de promoción, difusión y gestión cultural',
+                'familias' => ['Prensa y difusión', 'Gestión de eventos', 'Promoción turística cultural'],
             ],
         ];
 

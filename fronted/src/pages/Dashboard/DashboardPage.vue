@@ -2,7 +2,7 @@
   <div class="q-pa-md q-gutter-sm">
     <q-breadcrumbs>
       <q-breadcrumbs-el icon="home" />
-      <q-breadcrumbs-el label="DASHBOARD" icon="dashboard" />
+      <q-breadcrumbs-el label="Inicio" icon="dashboard" />
     </q-breadcrumbs>
   </div>
   <q-separator />

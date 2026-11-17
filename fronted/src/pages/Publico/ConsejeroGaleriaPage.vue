@@ -28,7 +28,8 @@
 
       <div v-else class="grid">
         <div v-for="act in persona.actividades" :key="act.id" class="tile" @click="verImagen(act)">
-          <img :src="act.imagen_url" class="tile-img" :alt="act.titulo || act.descripcion_texto || ''" loading="lazy" />
+          <img v-if="act.imagen_url" :src="act.imagen_url" class="tile-img" :alt="act.titulo || act.descripcion_texto || ''" loading="lazy" />
+          <span v-else class="tile-img sin-imagen" aria-hidden="true"><ImageOff :size="28" /></span>
           <div class="tile-overlay">
             <div class="tile-desc">{{ act.titulo || act.descripcion_texto }}</div>
           </div>
@@ -40,7 +41,7 @@
 
     <q-dialog v-model="mostrarImagen">
       <div class="lightbox">
-        <img :src="imagenSeleccionada?.imagen_url" class="lightbox-img" />
+        <img v-if="imagenSeleccionada?.imagen_url" :src="imagenSeleccionada.imagen_url" class="lightbox-img" alt="" />
         <div class="lightbox-desc">
           <strong v-if="imagenSeleccionada?.titulo">{{ imagenSeleccionada.titulo }}</strong>
           <!-- HTML sanitizado en el backend al guardar -->
@@ -54,7 +55,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ArrowLeft } from 'lucide-vue-next'
+import { ArrowLeft, ImageOff } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 
 const route = useRoute()

@@ -55,7 +55,7 @@ const SECCIONES = [
     titulo: 'Gestión',
     items: [
       {
-        label: 'Personas',
+        label: 'Agentes culturales',
         routeName: 'Personas',
         icon: Contact,
         permission: 'admin-personas-index',

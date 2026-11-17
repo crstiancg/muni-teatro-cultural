@@ -137,7 +137,9 @@ const urgente = (e) => ['En curso', 'Hoy', 'Mañana'].includes(cercania(e))
 .afiche {
   position: relative;
   display: block;
-  aspect-ratio: 16 / 10;
+  /* más cuadrado que 16:10: los afiches suelen ser cuadrados o verticales y
+     en un marco tan apaisado quedaban encajonados con franjas negras */
+  aspect-ratio: 4 / 3;
   overflow: hidden;
   /* sin afiche: el color de la disciplina */
   background: linear-gradient(135deg, var(--noche), color-mix(in srgb, var(--acento) 70%, var(--noche)));
@@ -148,7 +150,7 @@ const urgente = (e) => ['En curso', 'Hoy', 'Mañana'].includes(cercania(e))
     position: absolute;
     inset: -30px;
     background: var(--fondo, none) center / cover no-repeat;
-    filter: blur(26px) brightness(0.5) saturate(1.2);
+    filter: blur(26px) brightness(0.75) saturate(1.1);
   }
 
   /* absoluto + contain: entra siempre entero, sin depender de alturas en % */

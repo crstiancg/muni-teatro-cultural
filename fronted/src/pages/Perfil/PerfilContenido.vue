@@ -19,8 +19,10 @@
       <div class="text-h6 q-mt-sm">{{ nombreCompleto || formUsuario.usuario.name }}</div>
     </q-card-section>
 
-    <q-card-section>
-      <div class="text-subtitle1 text-weight-bold q-mb-xs">Información de Usuario</div>
+    <!-- en el pop up obligatorio solo van los datos personales: dos formularios
+         con dos "Guardar" en el mismo modal confundían sobre cuál cerraba el pop up -->
+    <q-card-section v-if="!obligatorio">
+      <div class="text-subtitle1 text-weight-bold q-mb-xs">Datos de la cuenta</div>
       <div class="text-caption text-grey-6 q-mb-sm">
         Puedes actualizar tu nombre de usuario y correo electrónico. Si cambias el correo, tendrás
         que volver a iniciar sesión con el nuevo.
@@ -63,7 +65,7 @@
             unelevated
             no-caps
             color="primary"
-            label="Guardar Cambios"
+            label="Guardar cambios"
             type="submit"
             :loading="formUsuario.processing"
           />
@@ -71,7 +73,7 @@
       </q-form>
     </q-card-section>
 
-    <template v-if="mostrarPassword"  class="q-ma-md">
+    <template v-if="mostrarPassword">
       <q-separator />
       <q-card-section>
         <div class="text-subtitle1 text-weight-bold q-mb-xs">Cambiar Contraseña</div>
@@ -177,7 +179,7 @@
               unelevated
               no-caps
               color="primary"
-              label="Guardar Cambios"
+              label="Guardar cambios"
               type="submit"
               :loading="formPassword.processing"
             />
@@ -187,11 +189,11 @@
     </template>
 
     <template v-if="tienePersona">
-      <q-separator />
+      <q-separator v-if="!obligatorio" />
 
       <q-form @submit.prevent="submit">
         <q-card-section class="q-pa-md">
-          <div class="text-subtitle1 text-weight-bold q-mb-xs">Información Personal</div>
+          <div class="text-subtitle1 text-weight-bold q-mb-xs">Datos personales</div>
           <div class="text-caption text-grey-6 q-mb-md">
             <q-icon name="info" size="14px" class="q-mr-xs" />
             <template v-if="obligatorio">
@@ -433,7 +435,7 @@
                 unelevated
                 no-caps
                 color="primary"
-                label="Guardar Cambios"
+                :label="obligatorio ? 'Guardar y continuar' : 'Guardar cambios'"
                 type="submit"
                 :loading="form.processing"
               />

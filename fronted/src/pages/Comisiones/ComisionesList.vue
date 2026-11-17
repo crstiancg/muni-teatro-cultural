@@ -23,7 +23,7 @@
         outline
         color="primary"
         :disable="loading"
-        label="Agregar Grupo"
+        label="Agregar grupo"
         icon-right="add"
         @click="abrirCrearGrupo"
       />
@@ -82,7 +82,7 @@
                 @click="toggleExpand(props)"
               />
             </q-td>
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               {{ col.value }}
             </q-td>
             <q-td auto-width>

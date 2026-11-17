@@ -5,7 +5,7 @@
         outline
         no-caps
         :color="mostrarAnulados ? 'primary' : 'grey-7'"
-        :label="mostrarAnulados ? 'Ocultar Anulados' : 'Mostrar Anulados'"
+        :label="mostrarAnulados ? 'Ocultar anulados' : 'Mostrar anulados'"
         @click="mostrarAnulados = !mostrarAnulados"
       />
       <q-space />
@@ -141,7 +141,6 @@ const itemsVisibles = computed(() =>
 )
 
 const columnas = [
-  { name: 'id', label: 'Id', field: 'id', align: 'left' },
   { name: 'tipo', label: 'Tipo / Nivel Alcanzado', field: 'tipo', align: 'left' },
   { name: 'profesion', label: 'Profesión / Centro de Estudio', field: 'profesion', align: 'left' },
   {

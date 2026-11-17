@@ -11,7 +11,7 @@
           <img :src="INSTITUCION.logo" alt="" class="marca-logo" width="48" height="48" />
           <span class="marca-texto">
             <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
-            <span class="marca-bajada">Registro de agentes culturales · Puno</span>
+            <span class="marca-bajada">Registro de agentes culturales · {{ INSTITUCION.ciudad }}</span>
           </span>
         </div>
 

@@ -137,8 +137,14 @@ php artisan route:cache
 APP_NAME="Registro Cultural de Puno"   # aparece en los títulos de Google
 APP_ENV=production
 APP_DEBUG=false                        # CRÍTICO: en true, un error muestra contraseñas y rutas
-APP_URL=https://tudominio
-FRONTEND_URL=https://tudominio         # igual que APP_URL (mismo dominio)
+APP_URL=https://tudominio             # ⚠ el dominio REAL (p. ej. https://racc.munipuno.gob.pe)
+FRONTEND_URL=https://tudominio         # igual que APP_URL (mismo dominio). Va en la canónica,
+                                       # el sitemap, robots.txt y Open Graph: con un valor de
+                                       # ejemplo Google indexa un dominio que no existe
+
+# identidad SEO (config/seo.php): perfiles oficiales separados por coma.
+# Google los usa para unir el sitio con esas cuentas como una misma entidad.
+SEO_REDES=https://www.facebook.com/...,https://www.youtube.com/...
 
 DB_CONNECTION=mysql
 DB_HOST=localhost
@@ -163,7 +169,9 @@ USUARIOS_OCULTOS=1
 # PUBLIC_DISK_EN_PUBLIC=true
 ```
 
-Opcionales: `SEO_CIUDAD` (por defecto `Puno`) y `SEO_DESCRIPCION` (descripción del sitio en Google).
+Opcionales: `SEO_MARCA` (por defecto `RACC Puno`, va al final de cada título), `SEO_NOMBRE` (por defecto `Registro de Agentes Culturales de Puno`), `SEO_CIUDAD` (por defecto `Puno`), `SEO_DESCRIPCION` (descripción del sitio en Google) y `SEO_MUNICIPALIDAD_URL`. Dirección, teléfono y correo de la organización están en `config/seo.php` (deben coincidir con los del footer, `fronted/src/config/institucion.js`).
+
+Después de publicar, verificar la identidad: `/` debe traer el JSON-LD `GovernmentOrganization` con el dominio real, y `/sitemap.xml`, `/robots.txt` y `/llms.txt` no deben mencionar `tudominio`. Dar de alta el sitio en Google Search Console y enviar `https://DOMINIO/sitemap.xml`.
 
 ## 3. Primera instalación en el servidor
 

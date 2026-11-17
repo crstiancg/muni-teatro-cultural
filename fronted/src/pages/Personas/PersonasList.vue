@@ -19,10 +19,10 @@
     <div class="q-pa-sm barra-personas">
       <q-btn
         v-if="userStore.hasPermission('admin-personas-crear')"
-        outline
+        unelevated
         color="primary"
         :disable="loading"
-        :label="$q.screen.lt.sm ? '' : 'Agregar'"
+        label="Agregar"
         icon-right="add"
         @click="abrirCrear"
       />
@@ -88,7 +88,7 @@
                 <template v-else>{{ inicial(props.row.nombre_completo) }}</template>
               </q-avatar>
             </q-td>
-            <q-td v-for="col in props.cols" :key="col.name" :props="props">
+            <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
               <q-chip
                 v-if="col.name === 'estado'"
                 dense

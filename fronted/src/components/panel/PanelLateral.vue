@@ -4,7 +4,7 @@
       <img :src="INSTITUCION.logo" alt="" class="marca-logo" width="40" height="40" />
       <span class="marca-texto">
         <span class="marca-nombre">{{ INSTITUCION.nombre }}</span>
-        <span class="marca-bajada">Gestión cultural · Puno</span>
+        <span class="marca-bajada">Registro cultural · {{ INSTITUCION.ciudad }}</span>
       </span>
     </router-link>
 

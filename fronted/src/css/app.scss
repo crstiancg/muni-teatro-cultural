@@ -100,3 +100,15 @@ html.sin-barra-scroll body::-webkit-scrollbar {
     transition: none;
   }
 }
+
+/* Placeholder para imágenes opcionales que no se subieron (actividades sin
+   foto): en vez del <img> roto con el alt subrayado, un bloque neutro */
+.sin-imagen {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  background: linear-gradient(135deg, var(--crema, #f3ece1), var(--borde, #e6dfd4));
+  color: var(--tinta-tenue, #8a94a3);
+}
