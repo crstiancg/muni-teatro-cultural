@@ -1,5 +1,7 @@
 # Deploy en cPanel
 
+> ¿Dokploy? La guía está en [`dokploy/README.md`](dokploy/README.md).
+
 Guía para publicar el sistema en un hosting cPanel **sin Node.js**. Front (Quasar) y API (Laravel) van en el **mismo dominio**: Laravel sirve la SPA y le escribe el `<head>` de cada página pública (título, descripción, Open Graph, JSON-LD) para que Google y WhatsApp vean el contenido.
 
 ```
@@ -134,7 +136,7 @@ php artisan route:cache
 ## 2. `.env` del backend en producción
 
 ```env
-APP_NAME="Registro Cultural de Puno"   # aparece en los títulos de Google
+APP_NAME="CPC Puno"                    # aparece en los títulos de Google
 APP_ENV=production
 APP_DEBUG=false                        # CRÍTICO: en true, un error muestra contraseñas y rutas
 APP_URL=https://tudominio             # ⚠ el dominio REAL (p. ej. https://racc.munipuno.gob.pe)
@@ -165,11 +167,14 @@ AGRUPACIONES_MAXIMO=2
 # superadministrador: oculto en la lista de usuarios, nadie más puede verlo ni borrarlo
 USUARIOS_OCULTOS=1
 
+# ficha de registro de agente cultural (config/registro.php): color del PDF
+REGISTRO_TEMA=negro                    # negro | azul (#004173)
+
 # solo si el hosting NO permite symlinks (ver paso 3.6)
 # PUBLIC_DISK_EN_PUBLIC=true
 ```
 
-Opcionales: `SEO_MARCA` (por defecto `RACC Puno`, va al final de cada título), `SEO_NOMBRE` (por defecto `Registro de Agentes Culturales de Puno`), `SEO_CIUDAD` (por defecto `Puno`), `SEO_DESCRIPCION` (descripción del sitio en Google) y `SEO_MUNICIPALIDAD_URL`. Dirección, teléfono y correo de la organización están en `config/seo.php` (deben coincidir con los del footer, `fronted/src/config/institucion.js`).
+Opcionales: `SEO_MARCA` (por defecto `CPC Puno`, va al final de cada título), `SEO_NOMBRE` (por defecto `Registro de Agentes Culturales de Puno`), `SEO_CIUDAD` (por defecto `Puno`), `SEO_DESCRIPCION` (descripción del sitio en Google) y `SEO_MUNICIPALIDAD_URL`. Dirección, teléfono y correo de la organización están en `config/seo.php` (deben coincidir con los del footer, `fronted/src/config/institucion.js`).
 
 Después de publicar, verificar la identidad: `/` debe traer el JSON-LD `GovernmentOrganization` con el dominio real, y `/sitemap.xml`, `/robots.txt` y `/llms.txt` no deben mencionar `tudominio`. Dar de alta el sitio en Google Search Console y enviar `https://DOMINIO/sitemap.xml`.
 

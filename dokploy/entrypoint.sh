@@ -8,8 +8,20 @@ DATOS=/opt/racc-dokploy/datos
 export MYSQL_PWD="$DB_PASSWORD"
 MYSQL="mysql -h$DB_HOST -P${DB_PORT:-3306} -u$DB_USERNAME $DB_DATABASE"
 
+# storage/fonts: caché de fuentes de dompdf (la ficha de registro en PDF).
+# El volumen arranca vacío: sin la carpeta, la primera ficha falla.
 mkdir -p storage/app/public storage/app/private storage/framework/cache/data \
-         storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+         storage/framework/sessions storage/framework/views storage/logs storage/fonts bootstrap/cache
+
+# El dominio público va impreso en el QR de cada ficha: un QR roto no se arregla
+# después de imprimir. Seo::base() ya cae al dominio del request si falta, pero
+# se avisa fuerte para que lo corrijan en Dokploy.
+case "${FRONTEND_URL:-}" in
+  ""|*localhost*|*127.0.0.1*|*tudominio*|*example.com*)
+    echo "!! ATENCION: FRONTEND_URL='${FRONTEND_URL:-}' no es el dominio público."
+    echo "!! Configuralo en Dokploy (Environment) igual que APP_URL, p. ej. https://cpc.munipuno.gob.pe"
+    ;;
+esac
 
 echo ">> Esperando a MySQL ($DB_HOST)..."
 until mysqladmin ping -h"$DB_HOST" -P"${DB_PORT:-3306}" -u"$DB_USERNAME" --silent >/dev/null 2>&1; do

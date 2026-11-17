@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
 use App\Support\Html;
+use App\Support\Seo;
 
 class Persona extends Model
 {
@@ -156,10 +157,13 @@ class Persona extends Model
         return $token;
     }
 
-    // URL absoluta: un celular que escanea "/v/ABC" solo muestra el texto
+    // URL absoluta: un celular que escanea "/v/ABC" solo muestra el texto.
+    // El dominio sale de Seo::base(), la misma fuente que la canónica y el sitemap:
+    // en producción, si FRONTEND_URL quedó sin configurar (127.0.0.1, tudominio),
+    // usa el dominio real del request. Las fichas se imprimen: un QR mal no se corrige.
     public function verificacionUrl(): string
     {
-        $base = config('registro.verificacion_url') ?: config('app.frontend_url') ?: config('app.url');
+        $base = config('registro.verificacion_url') ?: Seo::base();
 
         return rtrim((string) $base, '/') . '/v/' . $this->qr_token;
     }

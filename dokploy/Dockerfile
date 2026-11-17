@@ -36,8 +36,13 @@ WORKDIR /var/www/html
 COPY --from=vendor /app ./
 COPY --from=front /front/dist/spa /tmp/spa
 
-# el build del front dentro de Laravel (assets en public/, index.html como plantilla)
-RUN php artisan package:discover --ansi \
+# el build del front dentro de Laravel (assets en public/, index.html como plantilla).
+# .dockerignore deja afuera el contenido local de storage/: se recrea vacío
+# (storage/fonts es la caché de fuentes de dompdf, para la ficha en PDF)
+# Las carpetas van PRIMERO: package:discover ya arranca Laravel.
+RUN mkdir -p storage/app/public storage/app/private storage/framework/cache/data \
+             storage/framework/sessions storage/framework/views storage/logs storage/fonts \
+    && php artisan package:discover --ansi \
     && php artisan spa:publicar /tmp/spa \
     && rm -rf /tmp/spa \
     && rm -f public/storage \

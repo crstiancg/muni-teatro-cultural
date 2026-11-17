@@ -126,7 +126,7 @@ final class FichaRegistro
             'total_actividades' => $persona->actividades->count(),
             'trayectoria_desde' => self::trayectoriaDesde($persona),
 
-            'portafolio_url' => $vigente ? rtrim(config('app.frontend_url'), '/') . "/consejeros/{$persona->slug}" : null,
+            'portafolio_url' => $vigente ? Seo::url("/consejeros/{$persona->slug}") : null,
             'fecha_inscripcion' => $persona->registrado_en,
             'fecha_validacion' => $ultimaAprobacion?->created_at,
             'validado_por' => $ultimaAprobacion?->usuario?->name,

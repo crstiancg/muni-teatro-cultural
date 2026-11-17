@@ -196,4 +196,18 @@ class FichaRegistroTest extends TestCase
 
         $this->assertSame('https://cultura.example.test/v/ABC123defg', $persona->verificacionUrl());
     }
+
+    // Las fichas se imprimen: un QR que apunta a 127.0.0.1 no se arregla después.
+    // En producción, si FRONTEND_URL quedó sin configurar, se usa el dominio real
+    // del request (misma red de seguridad que la canónica y el sitemap: Seo::base).
+    public function test_en_produccion_el_qr_nunca_apunta_a_una_url_local(): void
+    {
+        $this->app['env'] = 'production';
+        config(['app.frontend_url' => 'http://127.0.0.1:9000', 'registro.verificacion_url' => null]);
+        $this->app->instance('request', \Illuminate\Http\Request::create('https://cpc.munipuno.gob.pe/api/mi-informacion/ficha-registro'));
+        $persona = new Persona;
+        $persona->qr_token = 'ABC123defg';
+
+        $this->assertSame('https://cpc.munipuno.gob.pe/v/ABC123defg', $persona->verificacionUrl());
+    }
 }

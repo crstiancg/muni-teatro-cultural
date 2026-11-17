@@ -1,0 +1,32 @@
+# Contexto del build (docker build -f dokploy/Dockerfile .). Dokploy construye
+# desde un clon de git, donde nada de esto existe; pero en un build local desde la
+# máquina de desarrollo, sin este archivo entrarían a la imagen el .env, las llaves
+# de Passport y los backups con la base completa (quedan en una capa para siempre).
+
+.git
+**/node_modules
+
+# secretos y configuración local
+**/.env
+**/.env.*
+!backend/.env.example
+backend/storage/*.key
+
+# datos locales: fotos subidas, backups con la base, paquetes de deploy, logs, caché
+backend/storage/app
+backend/storage/logs
+backend/storage/framework
+backend/storage/fonts
+backend/bootstrap/cache/*.php
+backend/public/storage
+
+# dependencias y builds: la imagen los genera en sus propias etapas
+backend/vendor
+fronted/dist
+fronted/.quasar
+
+# editores y notas
+.vscode
+.idea
+obsidian
+.obsidian
