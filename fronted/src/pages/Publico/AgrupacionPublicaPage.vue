@@ -158,7 +158,7 @@ import {
   Globe,
 } from 'lucide-vue-next'
 import AgrupacionService from '@/services/AgrupacionService'
-import { comisionDe } from '@/config/institucion'
+import { INSTITUCION, comisionDe, tituloPagina } from '@/config/institucion'
 
 const route = useRoute()
 const agrupacion = ref(null)
@@ -214,7 +214,7 @@ function navegar(paso) {
 onMounted(async () => {
   try {
     agrupacion.value = await AgrupacionService.publica(route.params.slug)
-    document.title = `${agrupacion.value.nombre} · Agrupación`
+    document.title = tituloPagina(`${agrupacion.value.nombre} · Agrupación cultural de ${INSTITUCION.ciudad}`)
   } catch {
     agrupacion.value = null
   } finally {

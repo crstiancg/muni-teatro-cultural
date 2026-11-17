@@ -45,7 +45,7 @@ return [
 
     // rutas relativas al dominio (archivos en fronted/public, copiados por spa:publicar)
     'logo' => '/icons/logo-512.png',
-    'imagen' => '/images/og-racc.jpg',
+    'imagen' => '/images/og-cpc.jpg',
     'imagen_ancho' => 1200,
     'imagen_alto' => 630,
     'imagen_alt' => 'CPC Puno · Registro de Agentes Culturales de Puno, Capital Folclórica del Perú',

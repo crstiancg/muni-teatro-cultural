@@ -300,7 +300,7 @@ import {
   Check,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, comisionDe, urlCompartirPerfil } from '@/config/institucion'
+import { INSTITUCION, comisionDe, urlCompartirPerfil, tituloPagina } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const route = useRoute()
@@ -403,7 +403,11 @@ async function cargar(slug) {
   persona.value = await PersonaPublicaService.get(slug)
   // al navegar dentro de la SPA el <head> no se recarga: el título se actualiza acá
   // (la carga directa ya llega con el título del servidor, ver SpaController)
-  document.title = `${persona.value.nombre_completo} · ${persona.value.comision || 'Registro cultural'}`
+  document.title = tituloPagina(
+    persona.value.comision
+      ? `${persona.value.nombre_completo} · ${persona.value.comision} en ${INSTITUCION.ciudad}`
+      : persona.value.nombre_completo,
+  )
   cargando.value = false
 
   if (persona.value?.cod_grupo) {

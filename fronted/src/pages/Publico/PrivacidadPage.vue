@@ -109,13 +109,13 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { INSTITUCION } from '@/config/institucion'
+import { INSTITUCION, tituloPagina } from '@/config/institucion'
 
 // cambiar cuando se modifique el texto
 const ACTUALIZADO = '1 de octubre de 2026'
 
 onMounted(() => {
-  document.title = `Política de privacidad · ${INSTITUCION.nombre}`
+  document.title = tituloPagina('Política de privacidad')
 })
 </script>
 

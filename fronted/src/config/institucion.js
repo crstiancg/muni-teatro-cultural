@@ -49,6 +49,15 @@ export const COMISIONES = {
   '08': { corto: 'Gestión cultural', color: 'var(--com-08)', foto: '/images/com-08.jpg' },
 }
 
+// Título de pestaña: "Algo | CPC Puno", el MISMO formato que el backend escribe
+// para Google (SpaController + config/seo.php 'marca'). Al navegar dentro de la
+// SPA el <head> no se recarga: si cada página inventa su formato, la marca
+// aparece de cinco maneras y Google no la reconoce como una sola entidad.
+export function tituloPagina(texto) {
+  const marca = `${INSTITUCION.nombre} ${INSTITUCION.ciudad}`
+  return texto ? `${texto} | ${marca}` : `Registro de Agentes Culturales de ${INSTITUCION.ciudad} | ${marca}`
+}
+
 export function comisionDe(codGrupo) {
   return COMISIONES[codGrupo] || { corto: 'Cultura', color: 'var(--oro)' }
 }

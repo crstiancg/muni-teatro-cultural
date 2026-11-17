@@ -81,7 +81,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Search, Users } from 'lucide-vue-next'
 import AgrupacionService from '@/services/AgrupacionService'
-import { INSTITUCION, COMISIONES, comisionDe } from '@/config/institucion'
+import { INSTITUCION, COMISIONES, comisionDe, tituloPagina } from '@/config/institucion'
 
 const route = useRoute()
 const router = useRouter()
@@ -127,7 +127,7 @@ function buscarConPausa() {
 }
 
 onMounted(() => {
-  document.title = 'Agrupaciones · Registro cultural'
+  document.title = tituloPagina(`Agrupaciones culturales de ${INSTITUCION.ciudad}`)
   cargar(1)
 })
 </script>

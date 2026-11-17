@@ -546,7 +546,7 @@ import {
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import EventoService from '@/services/EventoService'
-import { INSTITUCION, COMISIONES, comisionDe } from '@/config/institucion'
+import { INSTITUCION, COMISIONES, comisionDe, tituloPagina } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 import ProximosEventos from '@/components/agenda/ProximosEventos.vue'
 
@@ -807,6 +807,7 @@ onBeforeUnmount(() => {
 })
 
 onMounted(async () => {
+  document.title = tituloPagina()
   // en paralelo y aparte: si la agenda falla, la portada se ve igual (sin esa sección)
   EventoService.proximos(5)
     .then((r) => (proximos.value = r.data))

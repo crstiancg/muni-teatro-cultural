@@ -126,7 +126,7 @@ import {
   Megaphone,
 } from 'lucide-vue-next'
 import PersonaPublicaService from '@/services/PersonaPublicaService'
-import { INSTITUCION, comisionDe } from '@/config/institucion'
+import { INSTITUCION, comisionDe, tituloPagina } from '@/config/institucion'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 
 const router = useRouter()
@@ -206,6 +206,7 @@ function cargarMas() {
 }
 
 onMounted(async () => {
+  document.title = tituloPagina(`Artistas y agentes culturales de ${INSTITUCION.ciudad}`)
   const grupos = await PersonaPublicaService.getGrupos()
   opcionesGrupo.value = grupos.map((g) => ({
     label: comisionDe(g.cod_grupo).corto,

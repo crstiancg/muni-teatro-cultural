@@ -85,7 +85,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { BadgeCheck, ShieldAlert, SearchX, ArrowRight } from 'lucide-vue-next'
-import { INSTITUCION } from '@/config/institucion'
+import { INSTITUCION, tituloPagina } from '@/config/institucion'
 import FichaRegistroService from '@/services/FichaRegistroService'
 
 const route = useRoute()
@@ -103,7 +103,7 @@ function fecha(iso) {
 }
 
 onMounted(async () => {
-  document.title = `Verificación de registro · ${INSTITUCION.nombre}`
+  document.title = tituloPagina('Verificación de ficha de registro')
   try {
     registro.value = await FichaRegistroService.verificar(route.params.token)
   } catch (e) {

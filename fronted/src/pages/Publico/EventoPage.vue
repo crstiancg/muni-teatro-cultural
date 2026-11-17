@@ -230,7 +230,7 @@ import {
   X,
 } from 'lucide-vue-next'
 import EventoService from '@/services/EventoService'
-import { INSTITUCION, comisionDe } from '@/config/institucion'
+import { INSTITUCION, comisionDe, tituloPagina } from '@/config/institucion'
 import { cuandoTexto, hojaCalendario, hora, urlGoogleCalendar } from '@/utils/fechasAgenda'
 
 const route = useRoute()
@@ -305,7 +305,7 @@ async function cargar() {
     const r = await EventoService.publico(id)
     evento.value = r.data
     otros.value = r.otros
-    document.title = `${r.data.titulo} · Agenda cultural`
+    document.title = tituloPagina(`${r.data.titulo} · Agenda cultural de ${INSTITUCION.ciudad}`)
     // si el título cambió o el link vino solo con el id, se corrige la URL sin recargar
     if (route.params.evento !== r.data.ruta) {
       router.replace({ name: 'EventoPublico', params: { evento: r.data.ruta } })
@@ -313,7 +313,7 @@ async function cargar() {
   } catch {
     evento.value = null
     otros.value = []
-    document.title = 'Evento no disponible · Agenda cultural'
+    document.title = tituloPagina('Evento no disponible')
   } finally {
     cargando.value = false
   }

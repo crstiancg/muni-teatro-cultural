@@ -46,7 +46,7 @@ class SeoIdentidadTest extends TestCase
         // el build minificado trae name=description sin comillas: no debe quedar duplicada
         $this->assertSame(1, preg_match_all('/<meta\s+name=["\']?description/i', $html));
         $this->assertStringContainsString('<html lang="es-PE">', $html);
-        $this->assertStringContainsString('/images/og-racc.jpg', $html);
+        $this->assertStringContainsString('/images/og-cpc.jpg', $html);
         $this->assertStringContainsString('<meta property="og:image:width" content="1200">', $html);
     }
 

@@ -195,7 +195,7 @@ import {
 } from 'lucide-vue-next'
 import EventoService from '@/services/EventoService'
 import MiniCalendario from '@/components/agenda/MiniCalendario.vue'
-import { INSTITUCION, COMISIONES, comisionDe } from '@/config/institucion'
+import { INSTITUCION, COMISIONES, comisionDe, tituloPagina } from '@/config/institucion'
 import {
   aFecha,
   cercania,
@@ -400,7 +400,7 @@ onMounted(() => {
     return
   }
 
-  document.title = `Agenda cultural de ${INSTITUCION.ciudad} | ${INSTITUCION.nombre} ${INSTITUCION.ciudad}`
+  document.title = tituloPagina(`Agenda cultural de ${INSTITUCION.ciudad}: eventos, conciertos y festivales`)
   cargar()
 })
 </script>

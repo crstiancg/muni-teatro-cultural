@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Agrupacion;
 use App\Models\Evento;
 use App\Models\Persona;
+use App\Support\FichaRegistro;
 use App\Support\Html;
 use App\Support\Seo;
 use Illuminate\Http\Request;
@@ -91,7 +92,8 @@ class SpaController extends Controller
     {
         $persona = Persona::publicado()
             ->where('slug', $slug)
-            ->with(['comision:codigo,nombre', 'foto'])
+            // cod_grupo: para llegar a la comisión principal (Persona::comisionPrincipal)
+            ->with(['comision:codigo,cod_grupo,nombre', 'foto'])
             ->first();
 
         if (! $persona || ($subpagina && $subpagina !== 'galeria')) {
@@ -124,8 +126,19 @@ class SpaController extends Controller
                     'url' => $url,
                     'image' => $persona->foto?->url,
                     'description' => $descripcion,
-                    'knowsAbout' => $comision,
+                    // especialidad + comisión principal con el nombre corto de la ficha ("Música")
+                    'knowsAbout' => array_values(array_unique(array_filter([
+                        $comision,
+                        FichaRegistro::nombreComision($persona->comisionPrincipal()),
+                    ]))) ?: null,
                     'jobTitle' => $comision,
+                    // el mismo código que la ficha impresa: Google y la ficha dicen lo mismo
+                    'identifier' => $persona->codigo_registro ? [
+                        '@type' => 'PropertyValue',
+                        'propertyID' => config('registro.prefijo'),
+                        'name' => 'Código de registro de agente cultural',
+                        'value' => $persona->codigo_registro,
+                    ] : null,
                     'homeLocation' => [
                         '@type' => 'Place',
                         'name' => $ciudad,

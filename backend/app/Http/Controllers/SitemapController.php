@@ -6,6 +6,7 @@ use App\Models\Agrupacion;
 use App\Models\Comision;
 use App\Models\Evento;
 use App\Models\Persona;
+use App\Support\FichaRegistro;
 use App\Support\Seo;
 
 // sitemap.xml, robots.txt y llms.txt: le dicen a Google (y a los buscadores
@@ -73,8 +74,13 @@ class SitemapController extends Controller
         $ciudad = config('seo.ciudad');
         $org = config('seo.organizacion');
 
-        $comisiones = Comision::where('tipo', 'grupo')->orderBy('codigo')->pluck('nombre')
-            ->map(fn ($n) => "- {$n}")->implode("\n");
+        // "Música (Comisión especializada de música)": el nombre corto que usan el
+        // portal y la ficha, con el oficial entre paréntesis para quien lo busque así
+        $comisiones = Comision::where('tipo', 'grupo')->orderBy('codigo')->get()
+            ->map(fn ($c) => '- ' . FichaRegistro::nombreComision($c)
+                . ($c->nombre !== FichaRegistro::nombreComision($c) ? " ({$c->nombre})" : ''))
+            ->implode("\n");
+        $codigo = fn (int $n) => config('registro.prefijo') . str_pad((string) $n, config('registro.digitos'), '0', STR_PAD_LEFT);
 
         $texto = '# ' . config('seo.nombre_largo') . ' (' . config('seo.marca') . ")\n\n"
             . '> ' . config('seo.descripcion') . "\n\n"
@@ -87,6 +93,10 @@ class SitemapController extends Controller
             . "- [Agenda cultural]({$base}/agenda): eventos, conciertos y festividades en {$ciudad}\n"
             . "- [Política de privacidad]({$base}/privacidad)\n\n"
             . "## Comisiones especializadas\n\n{$comisiones}\n\n"
+            . "## Código de registro y verificación\n\n"
+            . "Cada agente cultural aprobado recibe un código correlativo ({$codigo(1)}, {$codigo(2)}...) "
+            . "y una ficha de registro con un código QR. Al escanearlo se abre una página del portal que confirma "
+            . "si la inscripción está vigente; el estado del sistema prevalece sobre el de la ficha impresa.\n\n"
             . "## Contacto\n\n"
             . "- {$org['direccion']}, {$org['localidad']}, Perú\n"
             . "- Teléfono: {$org['telefono']}\n"
