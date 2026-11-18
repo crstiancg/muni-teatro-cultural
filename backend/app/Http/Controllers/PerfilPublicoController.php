@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StorePerfilPublicoRequest;
 use App\Http\Requests\StoreRegistrosRequest;
 use App\Models\Persona;
@@ -17,11 +18,14 @@ class PerfilPublicoController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
-        return static::permisos('personas', [
-            // updateMio y enviarRevision son del propio artista: no llevan permiso
-            'editar' => ['update'],
-            'aprobar' => ['aprobar', 'observar'],
-        ]);
+        return [
+            ...static::permisos('personas', [
+                'editar' => ['update'],
+                'aprobar' => ['aprobar', 'observar'],
+            ]),
+            // los del propio artista: permiso del rol Artista
+            new Middleware('permission:artista-perfil', only: ['updateMio', 'enviarRevision', 'updateRegistros']),
+        ];
     }
 
     // --- el propio artista ---

@@ -17,9 +17,12 @@ import {
 import { useUserStore } from '@/stores/user-store'
 
 // Menú lateral del panel, agrupado por secciones. Cada ítem puede llevar:
-//   permission  → solo se muestra con ese permiso
-//   hideForRole → se oculta para ese rol (las secciones del artista no son del admin)
-//   contador    → clave de /api/panel/contadores: cuántos pendientes hay en la sección
+//   permission → solo se muestra con ese permiso. TODO el menú se decide así,
+//                también "Mi espacio" (permisos artista-* del rol Artista).
+//                NUNCA por el nombre del rol: antes se ocultaba con el rol
+//                "Administrador" escrito a mano y el rol nuevo "Administrador de
+//                la Gerencia" veía "Mi espacio" sin ser artista.
+//   contador   → clave de /api/panel/contadores: cuántos pendientes hay en la sección
 // Una sección sin ítems visibles no se muestra.
 const SECCIONES = [
   {
@@ -30,24 +33,24 @@ const SECCIONES = [
     titulo: 'Mi espacio',
     items: [
       // el admin llega a su perfil desde el menú de la cuenta (avatar)
-      { label: 'Mi perfil', routeName: 'Perfil', icon: UserRound, hideForRole: 'Administrador' },
+      { label: 'Mi perfil', routeName: 'Perfil', icon: UserRound, permission: 'artista-perfil' },
       {
         label: 'Curriculum Vitae',
         routeName: 'CurriculumVitae',
         icon: GraduationCap,
-        hideForRole: 'Administrador',
+        permission: 'artista-perfil',
       },
       {
         label: 'Mis agrupaciones',
         routeName: 'MisAgrupaciones',
         icon: UsersRound,
-        hideForRole: 'Administrador',
+        permission: 'artista-agrupaciones',
       },
       {
         label: 'Mis eventos',
         routeName: 'MisEventos',
         icon: CalendarDays,
-        hideForRole: 'Administrador',
+        permission: 'artista-eventos',
       },
     ],
   },
@@ -124,9 +127,7 @@ const SECCIONES = [
 export function useMenu() {
   const auth = useUserStore()
 
-  const visible = (item) =>
-    (!item.permission || auth.hasPermission(item.permission)) &&
-    !(item.hideForRole && auth.roles?.includes(item.hideForRole))
+  const visible = (item) => !item.permission || auth.hasPermission(item.permission)
 
   const secciones = computed(() =>
     SECCIONES.map((s) => ({ ...s, items: s.items.filter(visible) })).filter((s) => s.items.length),

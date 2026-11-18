@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 use App\Support\Html;
 use App\Support\Seo;
 
@@ -294,6 +295,15 @@ class Persona extends Model
             AgrupacionIntegrante::where('dni', $persona->dni)
                 ->whereNull('persona_id')
                 ->update(['persona_id' => $persona->id]);
+
+            // tener ficha = ser artista: su cuenta recibe el rol (permisos de "Mi
+            // espacio"). En el modelo y no en el controller: vale para el admin, los
+            // seeders y cualquier vía futura. Si el rol todavía no existe (base a medio
+            // migrar), lo asigna permisos:sincronizar al crearlo.
+            $rol = Role::where('name', config('permisos.rol_artista'))->where('guard_name', config('permisos.guard'))->first();
+            if ($rol && $persona->user) {
+                $persona->user->assignRole($rol);
+            }
         });
     }
 

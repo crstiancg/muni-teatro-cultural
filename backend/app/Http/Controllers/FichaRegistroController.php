@@ -7,6 +7,7 @@ use App\Support\FichaRegistro;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use Symfony\Component\HttpFoundation\Response;
 
 // Ficha de Registro de Agente Cultural: existe desde la primera aprobación del
@@ -15,9 +16,11 @@ class FichaRegistroController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
-        // mia() y verificar() no llevan permiso: la primera es del propio artista,
-        // la segunda es pública
-        return static::permisos('personas', ['index' => ['show']]);
+        // mia(): la del propio artista (rol Artista); verificar(): pública, sin login
+        return [
+            ...static::permisos('personas', ['index' => ['show']]),
+            new Middleware('permission:artista-perfil', only: ['mia']),
+        ];
     }
 
     public function mia(Request $request): Response

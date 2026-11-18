@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StoreActividadRequest;
 use App\Http\Requests\StoreCapacitacionRequest;
 use App\Http\Requests\StoreFormacionAcademicaRequest;
@@ -16,8 +18,15 @@ use App\Models\FormacionAcademica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
-class MiInformacionController extends Controller
+class MiInformacionController extends Controller implements HasMiddleware
 {
+    // Permiso del rol Artista (formación, capacitaciones, actividades y foto del artista. Los datos de cuenta (show/update/usuario/contraseña) quedan abiertos: el admin los usa desde su avatar).
+    // Quitárselo desde el panel corta el acceso de verdad, no solo el menú.
+    public static function middleware(): array
+    {
+        return [new Middleware('permission:artista-perfil', except: ['show', 'update', 'updateUsuario', 'updatePassword'])];
+    }
+
     private const CAMPOS = [
         'dni', 'nombre', 'apellido_paterno', 'apellido_materno', 'genero',
         'fecha_nacimiento', 'direccion', 'estado_civil', 'celular',

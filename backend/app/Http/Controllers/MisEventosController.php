@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StoreEventoRequest;
 use App\Models\Agrupacion;
 use App\Models\Evento;
@@ -12,8 +14,15 @@ use Illuminate\Http\Request;
 // representa) y ve en qué estado está cada uno. Todo entra pendiente y lo revisa
 // el admin (EventoController@aprobar/observar). Igual que en Mis agrupaciones,
 // solo hace falta ficha de persona: cada acción verifica que el evento sea suyo.
-class MisEventosController extends Controller
+class MisEventosController extends Controller implements HasMiddleware
 {
+    // Permiso del rol Artista (los eventos que propone el artista).
+    // Quitárselo desde el panel corta el acceso de verdad, no solo el menú.
+    public static function middleware(): array
+    {
+        return [new Middleware('permission:artista-eventos')];
+    }
+
     public function index(Request $request)
     {
         $persona = $this->miPersona($request);

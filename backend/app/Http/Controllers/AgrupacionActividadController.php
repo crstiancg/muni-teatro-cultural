@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StoreActividadRequest;
 use App\Models\Agrupacion;
 use App\Models\AgrupacionActividad;
@@ -11,8 +13,15 @@ use Illuminate\Http\Request;
 // Actividades de la agrupación, gestionadas por su representante. Mismos
 // endpoints y payload que las actividades del artista (ActividadController),
 // así el front reutiliza ActividadGallery y ActividadForm sin cambios.
-class AgrupacionActividadController extends Controller
+class AgrupacionActividadController extends Controller implements HasMiddleware
 {
+    // Permiso del rol Artista (actividades de las agrupaciones del artista).
+    // Quitárselo desde el panel corta el acceso de verdad, no solo el menú.
+    public static function middleware(): array
+    {
+        return [new Middleware('permission:artista-agrupaciones')];
+    }
+
     public function store(StoreActividadRequest $request, Agrupacion $agrupacion)
     {
         $this->soloRepresentante($request, $agrupacion);

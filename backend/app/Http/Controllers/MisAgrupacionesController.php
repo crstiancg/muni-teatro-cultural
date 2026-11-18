@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StoreAgrupacionRequest;
 use App\Http\Requests\StoreIntegranteRequest;
 use App\Http\Requests\StorePersonaFotoRequest;
@@ -17,8 +19,15 @@ use Illuminate\Http\Request;
 // su gestión completa (datos, logo, integrantes y envío a revisión).
 // Solo hace falta estar logueado con ficha de persona: cada acción de gestión
 // verifica que sea representante de ESA agrupación.
-class MisAgrupacionesController extends Controller
+class MisAgrupacionesController extends Controller implements HasMiddleware
 {
+    // Permiso del rol Artista (las agrupaciones del artista: además, cada acción verifica que sea representante).
+    // Quitárselo desde el panel corta el acceso de verdad, no solo el menú.
+    public static function middleware(): array
+    {
+        return [new Middleware('permission:artista-agrupaciones')];
+    }
+
     public function index(Request $request)
     {
         $persona = $this->miPersona($request);

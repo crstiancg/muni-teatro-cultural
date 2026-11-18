@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -41,8 +42,14 @@ class SincronizarPermisos extends Command
             $permiso->save();
         }
 
-        // el Administrador tiene todo lo declarado (aditivo: no le quita nada)
-        $admin->givePermissionTo(array_keys($declarados));
+        // el Administrador tiene todo lo del panel (aditivo: no le quita nada),
+        // MENOS lo del artista: con eso vería "Mi espacio" sin tener ficha
+        $deArtista = array_keys(config('permisos.artista', []));
+        $admin->givePermissionTo(array_values(array_diff(array_keys($declarados), $deArtista)));
+        $sobranAlAdmin = array_values(array_intersect($deArtista, $admin->permissions->pluck('name')->all()));
+        if ($sobranAlAdmin) {
+            $admin->revokePermissionTo($sobranAlAdmin);
+        }
 
         // los demás roles se crean con sus permisos SOLO la primera vez: después
         // se administran desde el panel y un deploy no les devuelve lo quitado
@@ -51,6 +58,13 @@ class SincronizarPermisos extends Command
             if ($rol->wasRecentlyCreated) {
                 $rol->syncPermissions(array_values(array_intersect($permisosDelRol, array_keys($declarados))));
                 $this->info("Rol creado: {$nombre}");
+
+                // rol Artista recién creado: lo reciben las cuentas que ya tenían ficha
+                if ($nombre === config('permisos.rol_artista')) {
+                    $cuentas = User::whereHas('persona')->get();
+                    $cuentas->each->assignRole($rol);
+                    $this->info("Rol {$nombre} asignado a {$cuentas->count()} cuentas con ficha de persona.");
+                }
             }
         }
         $registro->forgetCachedPermissions();
@@ -79,6 +93,6 @@ class SincronizarPermisos extends Command
             }
         }
 
-        return [...$permisos, ...config('permisos.extra')];
+        return [...$permisos, ...config('permisos.extra'), ...config('permisos.artista', [])];
     }
 }
