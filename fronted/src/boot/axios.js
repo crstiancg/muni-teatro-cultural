@@ -29,19 +29,23 @@ export default defineBoot(({ app, router }) => {
     (response) => response,
     (error) => {
       const userStore = useUserStore()
+      // la cuenta fue dada de baja: el backend manda el motivo real (no "sesión expirada")
+      const deBaja = error.response?.data?.cuenta_de_baja === true
+
       if (error.response && (error.response.status === 401 || error.response.status === 419)) {
         Notify.create({
           type: 'negative',
-          message: 'Tu sesión ha expirado. Por favor vuelve a iniciar sesión.',
+          message: deBaja ? error.response.data.message : 'Tu sesión ha expirado. Por favor vuelve a iniciar sesión.',
           position: 'top',
           progress: true,
-          timeout: 4000,
+          timeout: deBaja ? 8000 : 4000,
         })
         userStore.logout()
         router.push({ name: 'Login' })
       }
 
-      if (error.response && error.response.status === 403) {
+      // el login con cuenta de baja responde 403: ese aviso lo muestra el formulario
+      if (error.response && error.response.status === 403 && !deBaja) {
         Notify.create({
           type: 'warning',
           message: 'No tienes permisos para realizar esta acción.',

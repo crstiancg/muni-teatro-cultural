@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         // la ruta de Passport no es nuestra: se engancha global y filtra por path
         $middleware->append(\App\Http\Middleware\LimitarIntentosLogin::class);
+        // una cuenta dada de baja no entra aunque le quede un token vivo
+        $middleware->api(append: [\App\Http\Middleware\CuentaActiva::class]);
         $middleware->redirectGuestsTo(fn (Request $request) => $request->is('api/*') ? null : route('login'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {

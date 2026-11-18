@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -11,7 +12,30 @@ class UserController extends Controller implements HasMiddleware
 {
     public static function middleware(): array
     {
-        return static::permisos('usuarios');
+        return [
+            ...static::permisos('usuarios'),
+            new Middleware('permission:admin-usuarios-baja', only: ['baja', 'reactivar']),
+        ];
+    }
+
+    // Saca al usuario de todos los dispositivos y le bloquea el login. Un usuario
+    // oculto ya da 404 antes de llegar acá (User::resolveRouteBinding).
+    public function baja(Request $request, User $usuario)
+    {
+        // darse de baja a uno mismo = quedarse afuera sin nadie que lo reactive
+        abort_if($usuario->is($request->user()), 422, 'No puedes darte de baja a ti mismo.');
+        $datos = $request->validate(['motivo' => 'required|string|max:500']);
+
+        $usuario->darDeBaja($request->user(), $datos['motivo']);
+
+        return response()->json($usuario->fresh());
+    }
+
+    public function reactivar(User $usuario)
+    {
+        $usuario->reactivar();
+
+        return response()->json($usuario->fresh());
     }
 
     public function index(Request $request)

@@ -70,10 +70,21 @@
         <template v-slot:body="props">
           <q-tr :props="props">
             <q-td v-for="col in props.cols" :key="col.name" :props="props" :data-label="col.label">
-              {{ col.value }}
+              <template v-if="col.name === 'estado'">
+                <q-chip v-if="props.row.de_baja" dense square color="grey-7">
+                  De baja
+                  <q-tooltip>{{ props.row.baja_motivo }}</q-tooltip>
+                </q-chip>
+                <q-chip v-else dense square color="positive">Activo</q-chip>
+              </template>
+              <template v-else>{{ col.value }}</template>
             </q-td>
             <q-td auto-width>
               <BotonAccion tipo="editar" @click="editar(props.row.id)" />
+              <template v-if="puedeDarDeBaja && props.row.id !== userStore.getId">
+                <BotonAccion v-if="props.row.de_baja" tipo="reactivar" @click="reactivar(props.row)" />
+                <BotonAccion v-else tipo="baja" @click="darDeBaja(props.row)" />
+              </template>
               <BotonAccion tipo="eliminar" @click="eliminar(props.row.id)" />
             </q-td>
           </q-tr>
@@ -89,11 +100,16 @@ import { useQuasar } from 'quasar'
 import UserService from '@/services/UserService'
 import UsuariosForm from '@/pages/Usuarios/UsuariosForm.vue'
 import BotonAccion from '@/components/panel/BotonAccion.vue'
+import { useUserStore } from '@/stores/user-store'
 
 const $q = useQuasar()
+const userStore = useUserStore()
+// uno no puede darse de baja a sí mismo (se quedaría afuera): el botón no se muestra
+const puedeDarDeBaja = userStore.hasPermission('admin-usuarios-baja')
 const columns = [
   { name: 'name', label: 'USUARIO', align: 'left', field: (row) => row.name, sortable: true },
   { name: 'email', label: 'EMAIL', align: 'left', field: (row) => row.email, sortable: true },
+  { name: 'estado', label: 'ESTADO', align: 'left', field: (row) => (row.de_baja ? 'De baja' : 'Activo') },
 ]
 
 const tableRef = ref()
@@ -167,6 +183,45 @@ async function editar(id) {
     permisosSelected: row.permisosSelected,
   })
   usuariosFormRef.value.setPermisoObjects(row.permissionsData ?? [])
+}
+
+// La baja cierra la sesión del usuario en TODOS sus dispositivos al instante y
+// le bloquea el login. No borra nada: se puede reactivar. El motivo queda guardado.
+function darDeBaja(usuario) {
+  $q.dialog({
+    title: `Dar de baja a ${usuario.name}`,
+    message:
+      'Se cerrará su sesión en todos los dispositivos y no podrá volver a ingresar hasta que lo reactives. No se borra nada.',
+    prompt: {
+      model: '',
+      type: 'textarea',
+      label: 'Motivo (obligatorio)',
+      counter: true,
+      maxlength: 500,
+      isValid: (motivo) => motivo.trim().length >= 3,
+    },
+    ok: { label: 'Dar de baja', color: 'negative', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    persistent: true,
+  }).onOk(async (motivo) => {
+    await UserService.darDeBaja(usuario.id, motivo.trim())
+    tableRef.value.requestServerInteraction()
+    $q.notify({ type: 'positive', message: `${usuario.name} fue dado de baja y su sesión se cerró en todos sus dispositivos.`, position: 'top-right' })
+  })
+}
+
+function reactivar(usuario) {
+  $q.dialog({
+    title: `Reactivar a ${usuario.name}`,
+    message: 'Podrá volver a ingresar con su correo y contraseña.',
+    ok: { label: 'Reactivar', color: 'primary', unelevated: true, noCaps: true },
+    cancel: { label: 'Cancelar', flat: true, noCaps: true },
+    persistent: true,
+  }).onOk(async () => {
+    await UserService.reactivar(usuario.id)
+    tableRef.value.requestServerInteraction()
+    $q.notify({ type: 'positive', message: `${usuario.name} fue reactivado.`, position: 'top-right' })
+  })
 }
 
 async function eliminar(id) {

@@ -16,20 +16,23 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Pencil, Trash2, UserMinus } from 'lucide-vue-next'
+import { Pencil, Trash2, UserMinus, UserX, UserCheck } from 'lucide-vue-next'
 
 const TIPOS = {
   editar: { etiqueta: 'Editar', icono: Pencil, variante: 'neutra' },
   eliminar: { etiqueta: 'Eliminar', icono: Trash2, variante: 'peligro' },
   // sacar a alguien de un grupo: no borra a la persona, pero igual es destructivo
   quitar: { etiqueta: 'Quitar', icono: UserMinus, variante: 'peligro' },
+  // dar de baja una cuenta: la saca de todos sus dispositivos (se puede revertir)
+  baja: { etiqueta: 'Dar de baja', icono: UserX, variante: 'peligro' },
+  reactivar: { etiqueta: 'Reactivar', icono: UserCheck, variante: 'neutra' },
 }
 
 const props = defineProps({
   tipo: {
     type: String,
     required: true, // la lista va literal: defineProps se compila fuera del setup y no ve TIPOS
-    validator: (v) => ['editar', 'eliminar', 'quitar'].includes(v),
+    validator: (v) => ['editar', 'eliminar', 'quitar', 'baja', 'reactivar'].includes(v),
   },
   // texto propio si "Editar"/"Eliminar" no alcanza (p. ej. "Editar permiso")
   etiqueta: { type: String, default: '' },

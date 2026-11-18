@@ -186,12 +186,15 @@ const login = async () => {
     $q.notify({
       position: 'top',
       type: 'negative',
-      // 429: LimitarIntentosLogin bloqueó por demasiados intentos fallidos
+      // 429: LimitarIntentosLogin bloqueó por demasiados intentos fallidos.
+      // cuenta_de_baja: un admin la dio de baja (el backend solo lo dice si la
+      // contraseña era correcta, así no revela qué cuentas existen)
       message: !e.response
         ? 'Sin conexión con el servidor'
-        : e.response.status === 429
+        : e.response.status === 429 || e.response.data?.cuenta_de_baja
           ? e.response.data.message
           : 'Correo o contraseña incorrectos',
+      timeout: e.response?.data?.cuenta_de_baja ? 8000 : 5000,
     })
   } finally {
     loading.value = false

@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\Passport;
+use Laravel\Passport\RefreshToken;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -34,7 +36,51 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'preferencias' => 'array',
+            'baja_en' => 'datetime',
         ];
+    }
+
+    // ---------- baja de la cuenta ----------
+
+    protected $appends = ['de_baja'];
+
+    public function getDeBajaAttribute(): bool
+    {
+        return $this->baja_en !== null;
+    }
+
+    // La cuenta deja de entrar y se cierra en TODOS los dispositivos al instante.
+    // No se borra: queda su historial y se puede reactivar.
+    public function darDeBaja(User $por, string $motivo): void
+    {
+        $this->forceFill(['baja_en' => now(), 'baja_motivo' => $motivo, 'baja_por' => $por->id])->save();
+        $this->cerrarTodasLasSesiones();
+    }
+
+    public function reactivar(): void
+    {
+        $this->forceFill(['baja_en' => null, 'baja_motivo' => null, 'baja_por' => null])->save();
+    }
+
+    // Revoca los tokens de acceso Y los de refresco: con un refresh token vivo el
+    // dispositivo podría pedir un token nuevo sin volver a escribir la contraseña.
+    // Los tokens de Passport duran un año: sin esto, la baja no sacaría a nadie.
+    // OJO: por user_id directo y NO con $this->tokens(): esa relación de Passport
+    // filtra por cliente válido y provider, y un token de un cliente borrado o mal
+    // configurado quedaría vivo. Acá se revocan TODOS, sin excepción.
+    public function cerrarTodasLasSesiones(): void
+    {
+        $tokens = Passport::token()->where('user_id', $this->getKey());
+        $ids = (clone $tokens)->pluck('id');
+        $tokens->update(['revoked' => true]);
+        RefreshToken::whereIn('access_token_id', $ids)->update(['revoked' => true]);
+    }
+
+    // Passport (password grant) busca al usuario con esto: uno dado de baja "no
+    // existe" para el login, aunque la contraseña sea correcta.
+    public function findForPassport(string $usuario): ?User
+    {
+        return static::where('email', $usuario)->whereNull('baja_en')->first();
     }
 
     // Tema del panel (config/panel.php). Siempre devuelve las tres claves; un valor

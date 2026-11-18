@@ -89,6 +89,9 @@ Route::middleware('auth:api')->group(function () {
     Route::apiResource('roles', RolController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::apiResource('permisos', PermisoController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::apiResource('usuarios', UserController::class)->middleware([HandlePrecognitiveRequests::class]);
+    // baja: cierra sus sesiones en todos los dispositivos y le bloquea el login
+    Route::put('usuarios/{usuario}/baja', [UserController::class, 'baja']);
+    Route::put('usuarios/{usuario}/reactivar', [UserController::class, 'reactivar']);
     Route::apiResource('personas', PersonaController::class)->middleware([HandlePrecognitiveRequests::class]);
     Route::get('ubigeos', [UbigeoController::class, 'index']);
     Route::get('ubigeos/{codigo}', [UbigeoController::class, 'show']);

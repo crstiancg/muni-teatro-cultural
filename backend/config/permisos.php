@@ -69,6 +69,8 @@ return [
 
     // permisos fuera del CRUD
     'extra' => [
+        // cerrar la sesión de alguien en todos sus dispositivos y bloquearle el login
+        'admin-usuarios-baja' => 'Dar de baja y reactivar usuarios',
         // agrupaciones: las crean los artistas; el admin solo las ve y las revisa
         'admin-agrupaciones-index' => 'Ver lista de Agrupaciones',
         'admin-agrupaciones-aprobar' => 'Aprobar agrupaciones',
