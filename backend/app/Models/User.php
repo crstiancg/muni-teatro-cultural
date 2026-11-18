@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,6 +64,17 @@ class User extends Authenticatable
     public static function esOculto(?int $id): bool
     {
         return $id !== null && in_array($id, config('acceso.usuarios_ocultos'), true);
+    }
+
+    // El NOMBRE de un oculto también se esconde: aparece cargado en el historial de
+    // revisiones (revisiones.usuario:id,name), en la ficha PDF ("Validado por") y
+    // en lo que se agregue mañana. Un solo lugar en vez de parchear cada consulta.
+    // Solo para leer: al guardar se usa el valor real. El oculto ve su nombre.
+    protected function name(): Attribute
+    {
+        return Attribute::get(fn (?string $nombre) => static::esOculto($this->id) && ! static::esOculto(auth()->id())
+            ? config('acceso.nombre_publico')
+            : $nombre);
     }
 
     // quien no es oculto no ve a los ocultos
