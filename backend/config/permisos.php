@@ -13,6 +13,24 @@ return [
 
     'rol_admin' => 'Administrador',
 
+    // Otros roles del panel. Se CREAN con estos permisos la primera vez (en el
+    // migrate de cada deploy); después se administran desde el panel (Roles):
+    // un deploy nunca les devuelve un permiso que se les quitó a mano.
+    'roles' => [
+        // Admins de la Gerencia que no son el superadministrador. Gestionan el día
+        // a día pero NO tocan usuarios, roles ni permisos (podrían darse el rol
+        // Administrador a sí mismos) y NO borran nada (eso queda para el Administrador).
+        'Administrador de la Gerencia' => [
+            'admin-personas-index', 'admin-personas-crear', 'admin-personas-editar', 'admin-personas-aprobar',
+            'admin-agrupaciones-index', 'admin-agrupaciones-aprobar',
+            'admin-eventos-index', 'admin-eventos-crear', 'admin-eventos-editar', 'admin-eventos-aprobar',
+            'admin-comisiones-index', 'admin-comisiones-crear', 'admin-comisiones-editar',
+            'admin-profesiones-index', 'admin-profesiones-crear', 'admin-profesiones-editar',
+            'admin-universidades-index', 'admin-universidades-crear', 'admin-universidades-editar',
+            'admin-carreras-index', 'admin-carreras-crear', 'admin-carreras-editar',
+        ],
+    ],
+
     'guard' => 'api',
 
     // módulos con CRUD completo: genera admin-{modulo}-{accion}

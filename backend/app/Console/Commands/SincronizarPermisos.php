@@ -43,6 +43,16 @@ class SincronizarPermisos extends Command
 
         // el Administrador tiene todo lo declarado (aditivo: no le quita nada)
         $admin->givePermissionTo(array_keys($declarados));
+
+        // los demás roles se crean con sus permisos SOLO la primera vez: después
+        // se administran desde el panel y un deploy no les devuelve lo quitado
+        foreach (config('permisos.roles', []) as $nombre => $permisosDelRol) {
+            $rol = Role::firstOrCreate(['name' => $nombre, 'guard_name' => $guard]);
+            if ($rol->wasRecentlyCreated) {
+                $rol->syncPermissions(array_values(array_intersect($permisosDelRol, array_keys($declarados))));
+                $this->info("Rol creado: {$nombre}");
+            }
+        }
         $registro->forgetCachedPermissions();
 
         $this->info($nuevos
