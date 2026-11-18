@@ -101,12 +101,12 @@ class Seo
             'url' => self::base() . '/',
             'inLanguage' => 'es-PE',
             'publisher' => ['@id' => self::idOrganizacion()],
-            // cuadro de búsqueda del sitio: Google sabe que /consejeros?buscar= busca artistas
+            // cuadro de búsqueda del sitio: Google sabe que /artistas?buscar= busca artistas
             'potentialAction' => [
                 '@type' => 'SearchAction',
                 'target' => [
                     '@type' => 'EntryPoint',
-                    'urlTemplate' => self::base() . '/consejeros?buscar={search_term_string}',
+                    'urlTemplate' => self::base() . '/artistas?buscar={search_term_string}',
                 ],
                 'query-input' => 'required name=search_term_string',
             ],

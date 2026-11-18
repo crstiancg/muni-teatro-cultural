@@ -36,7 +36,7 @@ class SeoIdentidadTest extends TestCase
 
         $sitio = $nodos['WebSite'];
         $this->assertSame(['@id' => $org['@id']], $sitio['publisher']);
-        $this->assertStringContainsString('/consejeros?buscar={search_term_string}', $sitio['potentialAction']['target']['urlTemplate']);
+        $this->assertStringContainsString('/artistas?buscar={search_term_string}', $sitio['potentialAction']['target']['urlTemplate']);
     }
 
     public function test_cada_pagina_tiene_una_sola_descripcion_idioma_e_imagen_para_compartir(): void

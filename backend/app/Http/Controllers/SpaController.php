@@ -57,11 +57,11 @@ class SpaController extends Controller
                     '@graph' => [Seo::organizacion(), Seo::sitio()],
                 ]],
             ], 200],
-            $ruta === 'consejeros' => [[
+            $ruta === 'artistas' => [[
                 'titulo' => "Artistas y agentes culturales de {$ciudad} | {$marca}",
                 'descripcion' => "Directorio de artistas y agentes culturales de {$ciudad}: músicos, danzantes, sikuris, bordadores, teatro, artes plásticas y más.",
-                'canonica' => "{$base}/consejeros",
-                'jsonld' => [$this->coleccion("Artistas y agentes culturales de {$ciudad}", "{$base}/consejeros")],
+                'canonica' => "{$base}/artistas",
+                'jsonld' => [$this->coleccion("Artistas y agentes culturales de {$ciudad}", "{$base}/artistas")],
             ], 200],
             $ruta === 'consejo' => [[
                 'titulo' => "Consejo Provincial de Cultura y Gerencia de Cultura y Turismo | {$marca}",
@@ -86,7 +86,7 @@ class SpaController extends Controller
                 'canonica' => "{$base}/agenda",
                 'jsonld' => [$this->coleccion("Agenda cultural de {$ciudad}", "{$base}/agenda")],
             ], 200],
-            count($segmentos) >= 2 && $segmentos[0] === 'consejeros' => $this->metaPersona($segmentos[1], $segmentos[2] ?? null),
+            count($segmentos) >= 2 && $segmentos[0] === 'artistas' => $this->metaPersona($segmentos[1], $segmentos[2] ?? null),
             count($segmentos) === 2 && $segmentos[0] === 'agrupaciones' => $this->metaAgrupacion($segmentos[1]),
             count($segmentos) === 2 && $segmentos[0] === 'agenda' => $this->metaEvento($segmentos[1]),
             // cualquier otra URL: la SPA muestra su "no encontrado" y el estado es 404
@@ -107,7 +107,7 @@ class SpaController extends Controller
         }
 
         $base = $this->base();
-        $url = "{$base}/consejeros/{$persona->slug}";
+        $url = "{$base}/artistas/{$persona->slug}";
         $comision = $persona->comision?->nombre;
         $portada = $persona->actividades()->where('flag_activo', true)->where('flag_publico', true)->latest()->first();
         $agrupaciones = $persona->agrupaciones()->publicado()->get(['agrupaciones.nombre', 'agrupaciones.slug']);
@@ -159,7 +159,7 @@ class SpaController extends Controller
                         'url' => "{$base}/agrupaciones/{$a->slug}",
                     ])->all() ?: null,
                 ]),
-                $this->migas([['Artistas', "{$base}/consejeros"], [$persona->nombre_completo, $url]]),
+                $this->migas([['Artistas', "{$base}/artistas"], [$persona->nombre_completo, $url]]),
             ],
         ], 200];
     }
@@ -236,7 +236,7 @@ class SpaController extends Controller
         $org = $evento->organizador();
         $organizador = match ($org['tipo']) {
             'persona' => array_filter(['@type' => 'Person', 'name' => $org['nombre'],
-                'url' => $org['slug'] ? "{$base}/consejeros/{$org['slug']}" : null]),
+                'url' => $org['slug'] ? "{$base}/artistas/{$org['slug']}" : null]),
             'agrupacion' => array_filter(['@type' => 'PerformingGroup', 'name' => $org['nombre'],
                 'url' => $org['slug'] ? "{$base}/agrupaciones/{$org['slug']}" : null]),
             default => ['@id' => Seo::idOrganizacion()],

@@ -19,14 +19,14 @@ class SitemapController extends Controller
 
         $urls = collect([
             ['loc' => "{$base}/", 'prioridad' => '1.0', 'frecuencia' => 'daily'],
-            ['loc' => "{$base}/consejeros", 'prioridad' => '0.9', 'frecuencia' => 'daily'],
+            ['loc' => "{$base}/artistas", 'prioridad' => '0.9', 'frecuencia' => 'daily'],
             ['loc' => "{$base}/agrupaciones", 'prioridad' => '0.9', 'frecuencia' => 'weekly'],
             ['loc' => "{$base}/agenda", 'prioridad' => '0.9', 'frecuencia' => 'daily'],
             ['loc' => "{$base}/consejo", 'prioridad' => '0.6', 'frecuencia' => 'monthly'],
             ['loc' => "{$base}/privacidad", 'prioridad' => '0.2', 'frecuencia' => 'yearly'],
         ])
             ->merge(Persona::publicado()->get(['slug', 'updated_at'])->map(fn ($p) => [
-                'loc' => "{$base}/consejeros/{$p->slug}",
+                'loc' => "{$base}/artistas/{$p->slug}",
                 'lastmod' => $p->updated_at?->toAtomString(),
                 'prioridad' => '0.8',
                 'frecuencia' => 'monthly',
@@ -89,7 +89,7 @@ class SitemapController extends Controller
             . "Reúne a los artistas, agrupaciones y agentes culturales de la provincia de {$ciudad}, Perú, "
             . "organizados en comisiones especializadas. Solo se publica lo que la municipalidad revisó y aprobó.\n\n"
             . "## Secciones\n\n"
-            . "- [Artistas y agentes culturales]({$base}/consejeros): directorio con perfil, disciplina y actividades de cada artista\n"
+            . "- [Artistas y agentes culturales]({$base}/artistas): directorio con perfil, disciplina y actividades de cada artista\n"
             . "- [Agrupaciones]({$base}/agrupaciones): conjuntos, bandas, comparsas y elencos\n"
             . "- [Agenda cultural]({$base}/agenda): eventos, conciertos y festividades en {$ciudad}\n"
             . "- [El Consejo]({$base}/consejo): qué es el Consejo Provincial de Cultura, sus gestiones, la Gerencia de Cultura y Turismo y sus resoluciones y ordenanzas\n"

@@ -16,11 +16,11 @@ class CompartirPerfilController extends Controller
 {
     public function __invoke(Request $request, Persona $persona)
     {
-        $urlPerfil = Seo::base() . '/consejeros/' . $persona->slug;
+        $urlPerfil = Seo::base() . '/artistas/' . $persona->slug;
 
         // un perfil no publicado no se previsualiza: se manda al portal
         if ($persona->estado !== 'aprobado' || ! $persona->codigo_comision) {
-            return redirect()->away(Seo::base() . '/consejeros');
+            return redirect()->away(Seo::base() . '/artistas');
         }
 
         if (! UserAgent::esBot($request->userAgent())) {

@@ -156,8 +156,15 @@ const routes = [
     ],
   },
 
+  // antes /consejeros: los links viejos redirigen (el backend también, con 301).
+  // Los nombres de ruta (ConsejerosPublico...) no cambian: los router-link siguen igual.
   {
-    path: '/consejeros',
+    path: '/consejeros/:resto(.*)*',
+    redirect: (to) => ({ path: `/artistas/${[].concat(to.params.resto || []).join('/')}`.replace(/\/$/, ''), query: to.query }),
+  },
+
+  {
+    path: '/artistas',
     component: () => import('@/layouts/PublicoLayout.vue'),
     children: [
       { path: '', name: 'ConsejerosPublico', component: () => import('@/pages/Publico/ConsejerosPage.vue') },

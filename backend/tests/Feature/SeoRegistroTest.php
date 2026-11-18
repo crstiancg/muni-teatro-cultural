@@ -55,7 +55,7 @@ class SeoRegistroTest extends TestCase
     {
         $persona = $this->inscrita();
 
-        $html = $this->get("/consejeros/{$persona->slug}")->assertOk()->getContent();
+        $html = $this->get("/artistas/{$persona->slug}")->assertOk()->getContent();
         $artista = collect($this->jsonLd($html))->firstWhere('@type', 'Person');
 
         $this->assertSame([
