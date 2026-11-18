@@ -112,6 +112,7 @@ class EventoPublicoController extends Controller
             'organizador' => $e->organizador(),
             'imagen_url' => $e->imagen_url,
             'imagen_miniatura_url' => $e->imagen_miniatura_url,
+            'imagen_media_url' => $e->imagen_media_url,
             'flag_destacado' => $e->flag_destacado,
         ];
     }

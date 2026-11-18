@@ -443,7 +443,7 @@ const login = async () => {
   inset: 0;
   background:
     linear-gradient(180deg, rgba(12, 10, 9, 0.15), rgba(12, 10, 9, 0.85)),
-    url('/images/wallpaper_puno.png') center / cover;
+    url('/images/wallpaper_puno.webp') center / cover;
 }
 
 .lema {

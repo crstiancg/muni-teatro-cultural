@@ -9,10 +9,18 @@
     >
       <span
         class="afiche"
-        :style="principal.imagen_url ? { '--fondo': `url('${principal.imagen_url}')` } : null"
+        :style="principal.imagen_url ? { '--fondo': `url('${principal.imagen_miniatura_url || principal.imagen_url}')` } : null"
       >
-        <!-- el afiche ENTERO (contain): suele traer la información escrita -->
-        <img v-if="principal.imagen_url" :src="principal.imagen_url" :alt="`Afiche: ${principal.titulo}`" loading="lazy" />
+        <!-- el afiche ENTERO (contain): suele traer la información escrita.
+             WebP de 1200 px en pantallas 2x (se lee el texto), 600 px en el resto -->
+        <img
+          v-if="principal.imagen_url"
+          :src="principal.imagen_media_url || principal.imagen_url"
+          :srcset="srcsetWebp(principal.imagen_miniatura_url, principal.imagen_media_url)"
+          sizes="(max-width: 700px) 92vw, 510px"
+          :alt="`Afiche: ${principal.titulo}`"
+          loading="lazy"
+        />
         <!-- solo si es urgente: un "Miércoles" suelto confunde cuando falta más de una semana -->
         <span v-if="urgente(principal)" class="urgente">{{ cercania(principal) }}</span>
       </span>
@@ -75,6 +83,7 @@
 import { computed } from 'vue'
 import { ArrowRight, MapPin, Star } from 'lucide-vue-next'
 import { comisionDe } from '@/config/institucion'
+import { srcsetWebp } from '@/utils/imagenes'
 import { cercania, cuandoTexto, hojaCalendario, hora } from '@/utils/fechasAgenda'
 
 const props = defineProps({

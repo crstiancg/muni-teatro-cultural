@@ -57,6 +57,12 @@ class Actividad extends Model
         return $this->adjunto?->miniatura_url;
     }
 
+    // 1200 px en WebP: tarjetas grandes de la portada (sin ella, el original)
+    public function getImagenMediaUrlAttribute(): ?string
+    {
+        return $this->adjunto?->media_url;
+    }
+
     // la descripción sin HTML: para alt de imágenes y vistas previas cortas
     public function getDescripcionTextoAttribute(): string
     {

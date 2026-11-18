@@ -185,6 +185,8 @@ class PersonaPublicaController extends Controller
             'titulo' => $a->titulo,
             'descripcion' => $a->descripcion_texto,
             'imagen_url' => $a->imagen_url,
+            'imagen_miniatura_url' => $a->imagen_miniatura_url,
+            'imagen_media_url' => $a->imagen_media_url,
             'persona_slug' => $a->persona->slug,
             'persona_nombre' => $a->persona->nombre_completo,
         ]));
@@ -302,6 +304,7 @@ class PersonaPublicaController extends Controller
             ->map(fn (Persona $persona) => [
                 ...$this->datosPublicos($persona),
                 'imagen_url' => $persona->actividades->first()?->imagen_miniatura_url,
+                'imagen_media_url' => $persona->actividades->first()?->imagen_media_url,
                 'miniaturas' => $persona->actividades->skip(1)->take(3)
                     ->pluck('imagen_miniatura_url')->values(),
                 'total_actividades' => $persona->actividades_count

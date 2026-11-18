@@ -19,18 +19,24 @@ class Archivo extends Model
     // una foto por debajo de esto no se recomprime (cada pasada JPEG pierde algo)
     private const MAX_BYTES_SIN_TOCAR = 1_500_000;
 
-    // la compresión fuerte va solo en la miniatura de los listados
+    // Versiones WebP para la web (el original no se toca: ficha PDF, descargas,
+    // vista previa en redes). Miniatura para listados; media para las tarjetas
+    // grandes de la portada en pantallas 2x. Medido con fotos reales: la media
+    // pesa ~67 % menos que el original y se ve igual a ese tamaño.
     private const MAX_LADO_MINIATURA = 600;
 
-    private const CALIDAD_MINIATURA = 82;
+    private const MAX_LADO_MEDIA = 1200;
 
-    protected $appends = ['url', 'miniatura_url'];
+    private const CALIDAD_WEBP = 80;
+
+    protected $appends = ['url', 'miniatura_url', 'media_url'];
 
     protected $fillable = [
         'coleccion',
         'disco',
         'path',
         'path_miniatura',
+        'path_media',
         'nombre_original',
         'mime_type',
         'tamano',
@@ -42,7 +48,7 @@ class Archivo extends Model
     {
         static::deleting(function (Archivo $archivo) {
             if (! static::esExterna($archivo->path)) {
-                Storage::disk($archivo->disco)->delete(array_filter([$archivo->path, $archivo->path_miniatura]));
+                Storage::disk($archivo->disco)->delete(array_filter([$archivo->path, $archivo->path_miniatura, $archivo->path_media]));
             }
         });
     }
@@ -92,18 +98,68 @@ class Archivo extends Model
             $tamano = strlen((string) $codificada);
         }
 
-        $miniatura = $imagenes->read($archivo->getRealPath())
-            ->scaleDown(self::MAX_LADO_MINIATURA, self::MAX_LADO_MINIATURA)
-            ->toJpeg(self::CALIDAD_MINIATURA);
-        Storage::disk('public')->put("{$base}-min.jpg", (string) $miniatura);
+        $bytes = file_get_contents($archivo->getRealPath());
+        Storage::disk('public')->put("{$base}-min.webp", static::versionWebp($bytes, self::MAX_LADO_MINIATURA));
+        Storage::disk('public')->put("{$base}-med.webp", static::versionWebp($bytes, self::MAX_LADO_MEDIA));
 
         return [
             ...$datos,
             'path' => $path,
-            'path_miniatura' => "{$base}-min.jpg",
+            'path_miniatura' => "{$base}-min.webp",
+            'path_media' => "{$base}-med.webp",
             'mime_type' => $mime,
             'tamano' => $tamano,
         ];
+    }
+
+    // ÚNICO lugar donde se arma una versión WebP (subida nueva y comando
+    // imagenes:miniaturas): nunca más grande que el original.
+    public static function versionWebp(string $bytes, int $lado): string
+    {
+        return (string) ImageManager::gd(autoOrientation: true)
+            ->read($bytes)
+            ->scaleDown($lado, $lado)
+            ->toWebp(self::CALIDAD_WEBP);
+    }
+
+    // Completa las versiones WebP de una imagen ya guardada. Las que ya están se
+    // respetan; una miniatura vieja en JPEG se reemplaza (se deriva del original,
+    // que no se toca). false si no es imagen, el archivo no está o está dañado.
+    public function generarVersiones(): bool
+    {
+        if (! str_starts_with((string) $this->mime_type, 'image/') || static::esExterna($this->path)) {
+            return false;
+        }
+
+        $disco = Storage::disk($this->disco);
+        if (! $disco->exists($this->path)) {
+            return false;
+        }
+
+        $base = preg_replace('/\.[^.\/]+$/', '', $this->path);
+        $cambios = [];
+
+        try {
+            $original = $disco->get($this->path);
+            if (! str_ends_with((string) $this->path_miniatura, '.webp')) {
+                $disco->put("{$base}-min.webp", static::versionWebp($original, self::MAX_LADO_MINIATURA));
+                $cambios['path_miniatura'] = "{$base}-min.webp";
+            }
+            if (! $this->path_media) {
+                $disco->put("{$base}-med.webp", static::versionWebp($original, self::MAX_LADO_MEDIA));
+                $cambios['path_media'] = "{$base}-med.webp";
+            }
+        } catch (\Throwable) {
+            return false; // imagen dañada: queda como estaba
+        }
+
+        $vieja = $this->path_miniatura;
+        $this->update($cambios);
+        if (isset($cambios['path_miniatura']) && $vieja && ! static::esExterna($vieja)) {
+            $disco->delete($vieja);
+        }
+
+        return true;
     }
 
     public function archivable()
@@ -120,6 +176,12 @@ class Archivo extends Model
     public function getMiniaturaUrlAttribute(): ?string
     {
         return $this->resolverUrl($this->path_miniatura) ?? $this->url;
+    }
+
+    // versión de 1200 px para tarjetas grandes; sin ella, el original
+    public function getMediaUrlAttribute(): ?string
+    {
+        return $this->resolverUrl($this->path_media) ?? $this->url;
     }
 
     private function resolverUrl(?string $path): ?string

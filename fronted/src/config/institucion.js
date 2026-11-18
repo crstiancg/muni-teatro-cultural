@@ -14,7 +14,7 @@ export const INSTITUCION = {
   // images/logo.png es el original con fondo blanco; images/logo-cpcp.png es el
   // maestro recortado con fondo transparente, del que salen este, los favicons
   // y el del PDF (backend/resources/images/logo-cpcp.png)
-  logo: '/images/logo-cpcp-256.png',
+  logo: '/images/logo-cpcp-256.webp',
   entidad: 'Registro de Agentes Culturales del Consejo Provincial de Cultura',
   ciudad: 'Puno',
   region: 'Puno, Perú',
@@ -51,14 +51,14 @@ export const INSTITUCION = {
 // "Comision especializada de artes escenicas - teatro", que en una tarjeta
 // ocupa tres líneas y se repite idéntico en las ocho.
 export const COMISIONES = {
-  '01': { corto: 'Música', color: 'var(--com-01)', foto: '/images/com-01.jpg' },
-  '02': { corto: 'Danza', color: 'var(--com-02)', foto: '/images/com-02.jpg' },
-  '03': { corto: 'Artes escénicas', color: 'var(--com-03)', foto: '/images/com-03.jpg' },
-  '04': { corto: 'Literatura y oralidad', color: 'var(--com-04)', foto: '/images/com-04.jpg' },
-  '05': { corto: 'Bordado y trajes típicos', color: 'var(--com-05)', foto: '/images/com-05.jpg' },
-  '06': { corto: 'Audiovisuales', color: 'var(--com-06)', foto: '/images/com-06.jpg' },
-  '07': { corto: 'Artes plásticas', color: 'var(--com-07)', foto: '/images/com-07.jpg' },
-  '08': { corto: 'Gestión cultural', color: 'var(--com-08)', foto: '/images/com-08.jpg' },
+  '01': { corto: 'Música', color: 'var(--com-01)', foto: '/images/com-01.webp' },
+  '02': { corto: 'Danza', color: 'var(--com-02)', foto: '/images/com-02.webp' },
+  '03': { corto: 'Artes escénicas', color: 'var(--com-03)', foto: '/images/com-03.webp' },
+  '04': { corto: 'Literatura y oralidad', color: 'var(--com-04)', foto: '/images/com-04.webp' },
+  '05': { corto: 'Bordado y trajes típicos', color: 'var(--com-05)', foto: '/images/com-05.webp' },
+  '06': { corto: 'Audiovisuales', color: 'var(--com-06)', foto: '/images/com-06.webp' },
+  '07': { corto: 'Artes plásticas', color: 'var(--com-07)', foto: '/images/com-07.webp' },
+  '08': { corto: 'Gestión cultural', color: 'var(--com-08)', foto: '/images/com-08.webp' },
 }
 
 // Título de pestaña: "Algo | CPC Puno", el MISMO formato que el backend escribe

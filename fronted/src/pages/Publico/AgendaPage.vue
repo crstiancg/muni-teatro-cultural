@@ -318,7 +318,7 @@ const totalSiguiente = computed(
 )
 
 // sin afiche propio se usa la foto de su disciplina
-const imagenDe = (e) => e.imagen_url || e.imagen_miniatura_url || comisionDe(e.cod_grupo).foto || '/images/com-01.jpg'
+const imagenDe = (e) => e.imagen_url || e.imagen_miniatura_url || comisionDe(e.cod_grupo).foto || '/images/com-01.webp'
 
 // "Sábado · 16:00", "Hoy · 19:30" o "Del 15 al 18 de noviembre"
 function cuandoCorto(e) {

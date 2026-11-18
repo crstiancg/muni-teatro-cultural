@@ -362,7 +362,14 @@
             class="destacado"
             :style="{ '--acento': comisionDe(destacado.cod_grupo).color }"
           >
-            <img v-if="destacado.imagen_url" :src="destacado.imagen_url" alt="" loading="lazy" />
+            <img
+              v-if="destacado.imagen_url"
+              :src="destacado.imagen_media_url || destacado.imagen_url"
+              :srcset="srcsetWebp(destacado.imagen_url, destacado.imagen_media_url)"
+              sizes="(max-width: 700px) 92vw, 470px"
+              alt=""
+              loading="lazy"
+            />
             <span class="destacado-velo" />
             <div class="destacado-texto">
               <span class="destacado-etiqueta">{{ comisionDe(destacado.cod_grupo).corto }}</span>
@@ -498,7 +505,15 @@
             class="mosaico-item"
             :class="`m-${i}`"
           >
-            <img v-if="act.imagen_url" :src="act.imagen_url" :alt="act.titulo || act.descripcion || ''" loading="lazy" />
+            <!-- la primera celda del mosaico es la grande; las demás, chicas -->
+            <img
+              v-if="act.imagen_url"
+              :src="act.imagen_media_url || act.imagen_url"
+              :srcset="srcsetWebp(act.imagen_miniatura_url, act.imagen_media_url)"
+              :sizes="i === 0 ? '(max-width: 700px) 92vw, 560px' : '(max-width: 700px) 46vw, 280px'"
+              :alt="act.titulo || act.descripcion || ''"
+              loading="lazy"
+            />
             <span v-else class="sin-imagen" aria-hidden="true"><ImageOff :size="28" /></span>
             <span class="mosaico-pie">{{ act.persona_nombre }}</span>
           </router-link>
@@ -508,7 +523,7 @@
 
     <!-- ══════════ ⑦ CIERRE ══════════ -->
     <section class="cierre">
-      <img src="/images/wall3.jpg" alt="" loading="lazy" />
+      <img src="/images/wall3.webp" alt="" loading="lazy" />
       <span class="cierre-velo" />
 
       <div v-revelar class="cierre-texto">
@@ -554,6 +569,7 @@ import {
 import PersonaPublicaService from '@/services/PersonaPublicaService'
 import EventoService from '@/services/EventoService'
 import { INSTITUCION, COMISIONES, comisionDe, tituloPagina } from '@/config/institucion'
+import { srcsetWebp } from '@/utils/imagenes'
 import ArtistaTarjeta from '@/components/ArtistaTarjeta.vue'
 import ProximosEventos from '@/components/agenda/ProximosEventos.vue'
 
@@ -778,10 +794,10 @@ const FIGURITAS = [
 // ---------- fotos sueltas a los costados del título ----------
 // las del cartel que no salen en el desfile, así no se repite ninguna
 const FOTOS_SUELTAS = [
-  { clase: 'izq-1', src: '/images/wall1.jpg', pos: '50% 50%' },
-  { clase: 'izq-2', src: '/images/wall2.jpg', pos: '45% 50%' },
-  { clase: 'der-1', src: '/images/wallpaper_puno.png', pos: '72% 70%' },
-  { clase: 'der-2', src: '/images/wall3.jpg', pos: '50% 35%' },
+  { clase: 'izq-1', src: '/images/wall1.webp', pos: '50% 50%' },
+  { clase: 'izq-2', src: '/images/wall2.webp', pos: '45% 50%' },
+  { clase: 'der-1', src: '/images/wallpaper_puno.webp', pos: '72% 70%' },
+  { clase: 'der-2', src: '/images/wall3.webp', pos: '50% 35%' },
 ]
 
 // ---------- pasacalle de la portada ----------
@@ -790,7 +806,7 @@ const disciplinasDesfile = Object.entries(COMISIONES).map(([cod, c]) => ({ cod, 
 const desfile = [...disciplinasDesfile, ...disciplinasDesfile]
 
 // distinta a las de la portada: no repetir la misma foto dos veces en la página
-const fotoCandelaria = '/images/com-02.jpg'
+const fotoCandelaria = '/images/com-02.webp'
 
 // ---------- acordeón de comisiones ----------
 // La hoja abierta va rotando sola; se detiene con el mouse encima o cuando

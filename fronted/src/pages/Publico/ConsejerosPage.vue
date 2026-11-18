@@ -3,7 +3,7 @@
     <!-- ══════════ CABECERA ══════════ -->
     <header class="cabecera">
       <div class="cabecera-fondo">
-        <img src="/images/wall2.jpg" alt="" />
+        <img src="/images/wall2.webp" alt="" />
         <div class="cabecera-velo" />
       </div>
 

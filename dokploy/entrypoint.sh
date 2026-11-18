@@ -57,6 +57,12 @@ php artisan route:cache || echo "!! route:cache falló: sigue sin caché de ruta
 php artisan view:cache || true
 php artisan migrate --force
 
+# miniaturas en WebP de las imágenes subidas (idempotente: lo que ya está se saltea).
+# Corre como root: después se devuelven los archivos a www-data, si no PHP no
+# puede borrarlos cuando alguien cambia su foto.
+php artisan imagenes:miniaturas || echo "!! imagenes:miniaturas falló: el sitio sigue con las miniaturas que haya"
+chown -R www-data:www-data storage/app/public
+
 # base sin datos: el admin inicial (password@gmail.com / password, cambiarla)
 if [ "$BASE_NUEVA" = "1" ]; then
   php artisan db:seed --class=PermissionSeeder --force
