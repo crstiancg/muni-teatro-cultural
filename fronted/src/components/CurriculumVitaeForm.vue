@@ -87,7 +87,7 @@
           <div class="col-12" v-if="previewUrl">
             <div class="text-caption text-grey-7 q-mb-xs">Vista previa</div>
             <div class="preview-box">
-              <VuePdfEmbed v-if="esPdf" :source="previewUrl" :page="1" />
+              <VuePdfEmbed v-if="esPdf" :source="fuentePreview" :page="1" />
               <img v-else :src="previewUrl" class="preview-img" />
             </div>
           </div>
@@ -115,6 +115,7 @@ import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useForm } from 'laravel-precognition-vue'
 import { X, Paperclip } from 'lucide-vue-next'
 import VuePdfEmbed from 'vue-pdf-embed'
+import { fuentePdf } from '@/utils/pdf'
 
 const props = defineProps({
   basePath: { type: String, required: true },
@@ -194,6 +195,9 @@ const esPdf = computed(() => {
     return form.formacion.archivo.type === 'application/pdf'
   return !!previewUrl.value && previewUrl.value.toLowerCase().endsWith('.pdf')
 })
+
+// con wasmUrl: sin él, los PDF escaneados salen en blanco (ver src/utils/pdf.js)
+const fuentePreview = computed(() => fuentePdf(previewUrl.value))
 </script>
 
 <style scoped>

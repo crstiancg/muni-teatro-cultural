@@ -94,6 +94,7 @@
           <router-link :to="{ name: 'Inicio' }">Inicio</router-link>
           <router-link :to="{ name: 'ConsejerosPublico' }">Artistas</router-link>
           <router-link :to="{ name: 'AgrupacionesPublico' }">Agrupaciones</router-link>
+          <router-link :to="{ name: 'ConsejoPublico' }">El Consejo</router-link>
           <router-link :to="{ name: 'Privacidad' }">Privacidad</router-link>
           <router-link :to="{ name: 'Inicio', hash: '#comisiones' }">Comisiones</router-link>
           <router-link :to="{ name: 'AgendaPublica' }">Calendario</router-link>
@@ -103,12 +104,19 @@
 
         <div class="foot-col">
           <h2>Contacto</h2>
-          <p>{{ INSTITUCION.contacto.direccion.join(', ') }}</p>
-          <p v-for="tel in INSTITUCION.contacto.telefono" :key="tel">
-            Teléfono: <a :href="`tel:${tel.replace(/[^\d+]/g, '')}`">{{ tel }}</a>
+          <p class="foot-oficina">{{ INSTITUCION.atencion.nombre }}</p>
+          <p>
+            {{ INSTITUCION.atencion.direccion }}, {{ INSTITUCION.ciudad }}
+            <span class="foot-referencia">{{ INSTITUCION.atencion.referencia }}</span>
           </p>
-          <p v-for="mail in INSTITUCION.contacto.correo" :key="mail">
-            <a :href="`mailto:${mail}`">{{ mail }}</a>
+          <p>
+            Teléfono:
+            <a :href="`tel:${INSTITUCION.atencion.telefono.replace(/[^\d+]/g, '')}`">{{ INSTITUCION.atencion.telefono }}</a>
+          </p>
+          <p>
+            <a :href="INSTITUCION.atencion.facebook" target="_blank" rel="noopener" class="foot-red">
+              <Facebook :size="15" aria-hidden="true" /> Facebook de la Gerencia
+            </a>
           </p>
         </div>
 
@@ -129,7 +137,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { Menu, X } from 'lucide-vue-next'
+import { Menu, X, Facebook } from 'lucide-vue-next'
 import { INSTITUCION } from '@/config/institucion'
 
 const anio = new Date().getFullYear()
@@ -422,6 +430,25 @@ onBeforeUnmount(() => document.documentElement.classList.remove('sin-barra-scrol
   max-width: 42ch;
   margin: 0;
   color: rgba(253, 251, 247, 0.62);
+}
+
+/* contacto de la Gerencia: oficina destacada, referencia más tenue */
+.foot-col .foot-oficina {
+  color: var(--sobre-foto);
+  font-weight: 700;
+}
+
+.foot-referencia {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--t-xs);
+  opacity: 0.7;
+}
+
+.foot-col .foot-red {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .foot-col {

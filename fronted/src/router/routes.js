@@ -125,6 +125,13 @@ const routes = [
   },
 
   {
+    // el Consejo y la Gerencia: textos institucionales y sus resoluciones/ordenanzas
+    path: '/consejo',
+    component: () => import('@/layouts/PublicoLayout.vue'),
+    children: [{ path: '', name: 'ConsejoPublico', component: () => import('@/pages/Publico/ConsejoPage.vue') }],
+  },
+
+  {
     path: '/privacidad',
     component: () => import('@/layouts/PublicoLayout.vue'),
     children: [{ path: '', name: 'Privacidad', component: () => import('@/pages/Publico/PrivacidadPage.vue') }],

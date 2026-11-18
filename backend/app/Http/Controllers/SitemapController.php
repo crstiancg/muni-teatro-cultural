@@ -22,6 +22,7 @@ class SitemapController extends Controller
             ['loc' => "{$base}/consejeros", 'prioridad' => '0.9', 'frecuencia' => 'daily'],
             ['loc' => "{$base}/agrupaciones", 'prioridad' => '0.9', 'frecuencia' => 'weekly'],
             ['loc' => "{$base}/agenda", 'prioridad' => '0.9', 'frecuencia' => 'daily'],
+            ['loc' => "{$base}/consejo", 'prioridad' => '0.6', 'frecuencia' => 'monthly'],
             ['loc' => "{$base}/privacidad", 'prioridad' => '0.2', 'frecuencia' => 'yearly'],
         ])
             ->merge(Persona::publicado()->get(['slug', 'updated_at'])->map(fn ($p) => [
@@ -91,6 +92,7 @@ class SitemapController extends Controller
             . "- [Artistas y agentes culturales]({$base}/consejeros): directorio con perfil, disciplina y actividades de cada artista\n"
             . "- [Agrupaciones]({$base}/agrupaciones): conjuntos, bandas, comparsas y elencos\n"
             . "- [Agenda cultural]({$base}/agenda): eventos, conciertos y festividades en {$ciudad}\n"
+            . "- [El Consejo]({$base}/consejo): qué es el Consejo Provincial de Cultura, sus gestiones, la Gerencia de Cultura y Turismo y sus resoluciones y ordenanzas\n"
             . "- [Política de privacidad]({$base}/privacidad)\n\n"
             . "## Comisiones especializadas\n\n{$comisiones}\n\n"
             . "## Código de registro y verificación\n\n"

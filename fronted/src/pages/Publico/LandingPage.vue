@@ -454,9 +454,15 @@
             </div>
           </dl>
 
-          <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-rojo">
-            Conocer a la comunidad <ArrowRight :size="17" />
-          </router-link>
+          <div class="candelaria-acciones">
+            <router-link :to="{ name: 'ConsejerosPublico' }" class="btn-rojo">
+              Conocer a la comunidad <ArrowRight :size="17" />
+            </router-link>
+            <!-- el Consejo, sus gestiones, la Gerencia y las resoluciones -->
+            <router-link :to="{ name: 'ConsejoPublico' }" class="btn-linea">
+              <Plus :size="17" /> Más información
+            </router-link>
+          </div>
         </div>
 
         <figure v-revelar="120" class="candelaria-foto">
@@ -530,6 +536,7 @@ import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ArrowRight,
+  Plus,
   ChevronDown,
   Check,
   Search,
@@ -2317,6 +2324,13 @@ onMounted(async () => {
   .candelaria-inner {
     grid-template-columns: 1fr 1fr;
   }
+}
+
+/* principal + "Más información": en celular bajan uno debajo del otro */
+.candelaria-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .candelaria-texto {

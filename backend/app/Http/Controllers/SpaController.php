@@ -63,6 +63,12 @@ class SpaController extends Controller
                 'canonica' => "{$base}/consejeros",
                 'jsonld' => [$this->coleccion("Artistas y agentes culturales de {$ciudad}", "{$base}/consejeros")],
             ], 200],
+            $ruta === 'consejo' => [[
+                'titulo' => "Consejo Provincial de Cultura y Gerencia de Cultura y Turismo | {$marca}",
+                'descripcion' => "Qué es el Consejo Provincial de Cultura de {$ciudad}, sus gestiones, la Gerencia de Cultura y Turismo y las resoluciones y ordenanzas que los respaldan.",
+                'canonica' => "{$base}/consejo",
+                'jsonld' => [$this->migas([['El Consejo', "{$base}/consejo"]])],
+            ], 200],
             $ruta === 'privacidad' => [[
                 'titulo' => "Política de privacidad | {$marca}",
                 'descripcion' => 'Cómo tratamos los datos personales de artistas, agentes culturales e integrantes de agrupaciones (Ley N.° 29733).',

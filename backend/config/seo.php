@@ -31,16 +31,22 @@ return [
         'nombre' => 'Consejo Provincial de Cultura de Puno',
         'madre' => 'Municipalidad Provincial de Puno',
         'madre_url' => env('SEO_MUNICIPALIDAD_URL', 'https://www.munipuno.gob.pe'),
-        'direccion' => 'Jr. Deustua N.° 458',
+        // atención al público: la Gerencia de Cultura y Turismo. Igual que el footer
+        // (fronted/src/config/institucion.js → atencion). El domicilio legal de la
+        // municipalidad (Jr. Deustua 458) sigue en la política de privacidad.
+        'direccion' => 'Pasaje Ramis N.° 359',
         'localidad' => 'Puno',
         'region' => 'Puno',
         'codigo_postal' => '21001',
         'pais' => 'PE',
-        'telefono' => '+51 51 601000',
+        'telefono' => '+51 931 342 560',
         'correo' => 'alcaldia@munipuno.gob.pe',
         // perfiles oficiales (Facebook, Instagram, YouTube…), separados por coma.
         // Google los usa para confirmar que el sitio y esas cuentas son la misma entidad.
-        'redes' => array_values(array_filter(array_map('trim', explode(',', (string) env('SEO_REDES', ''))))),
+        // ?: y no el default de env(): en Dokploy la variable existe pero vacía
+        'redes' => array_values(array_filter(array_map('trim', explode(',',
+            (string) (env('SEO_REDES') ?: 'https://www.facebook.com/share/1G4VLHidc4/')
+        )))),
     ],
 
     // rutas relativas al dominio (archivos en fronted/public, copiados por spa:publicar)

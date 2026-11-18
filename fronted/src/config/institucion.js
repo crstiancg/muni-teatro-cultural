@@ -33,6 +33,18 @@ export const INSTITUCION = {
     horario: ['Lunes a viernes: 8:00 – 16:00'],
     // horario: ['Lunes a viernes: 8:00 – 16:00', 'Sábado: 8:00 – 12:00'],
   },
+
+  // Atención al público (footer): la Gerencia de Cultura y Turismo.
+  // `contacto` de arriba es el domicilio LEGAL de la municipalidad, que usa la
+  // política de privacidad (responsable de los datos, Ley 29733): no mezclarlos.
+  // Debe coincidir con backend/config/seo.php → organizacion (Google lo cruza).
+  atencion: {
+    nombre: 'Gerencia de Cultura y Turismo',
+    direccion: 'Pasaje Ramis N.° 359',
+    referencia: 'Primer y tercer piso, frente al jardín del Anexo del G.C.N. "San Carlos"',
+    telefono: '+51 931 342 560',
+    facebook: 'https://www.facebook.com/share/1G4VLHidc4/',
+  },
 }
 
 // Nombre corto y color de cada comisión. El backend las devuelve como

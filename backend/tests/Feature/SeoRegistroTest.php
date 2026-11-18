@@ -68,6 +68,35 @@ class SeoRegistroTest extends TestCase
         $this->assertSame(['Conjunto de sikuris', 'Música'], $artista['knowsAbout']);
     }
 
+    // mismo contacto que el footer (fronted/src/config/institucion.js → atencion):
+    // Google cruza dirección y teléfono para confirmar que es la misma entidad
+    public function test_la_organizacion_publica_el_contacto_de_la_gerencia_de_cultura(): void
+    {
+        config(['seo.organizacion.redes' => []]);
+        $html = $this->get('/')->assertOk()->getContent();
+        $org = collect($this->jsonLd($html))->firstWhere('@type', 'GovernmentOrganization');
+
+        $this->assertSame('Pasaje Ramis N.° 359', $org['address']['streetAddress']);
+        $this->assertSame('+51 931 342 560', $org['telephone']);
+    }
+
+    public function test_sin_redes_configuradas_usa_el_facebook_oficial_de_la_gerencia(): void
+    {
+        $org = collect($this->jsonLd($this->get('/')->getContent()))->firstWhere('@type', 'GovernmentOrganization');
+
+        $this->assertContains('https://www.facebook.com/share/1G4VLHidc4/', $org['sameAs']);
+    }
+
+    public function test_la_pagina_del_consejo_tiene_su_titulo_y_esta_en_el_sitemap_y_llms(): void
+    {
+        $html = $this->get('/consejo')->assertOk()->getContent();
+        $this->assertStringContainsString('<title>Consejo Provincial de Cultura y Gerencia de Cultura y Turismo | CPC Puno</title>', $html);
+        $this->assertStringContainsString('/consejo"', $html); // canónica
+
+        $this->assertStringContainsString('/consejo</loc>', $this->get('/sitemap.xml')->getContent());
+        $this->assertStringContainsString('/consejo)', $this->get('/llms.txt')->getContent());
+    }
+
     public function test_la_imagen_para_compartir_es_la_de_la_marca_cpc(): void
     {
         $html = $this->get('/agenda')->assertOk()->getContent();

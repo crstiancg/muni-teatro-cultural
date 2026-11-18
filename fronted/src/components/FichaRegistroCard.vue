@@ -42,7 +42,7 @@
 
         <div class="col hoja-fondo">
           <div class="hoja">
-            <VuePdfEmbed v-if="url" :source="url" :page="1" @rendered="renderizando = false" />
+            <VuePdfEmbed v-if="url" :source="fuentePreview" :page="1" @rendered="renderizando = false" />
             <div v-if="renderizando" class="absolute-center"><q-spinner size="32px" /></div>
           </div>
         </div>
@@ -56,6 +56,7 @@ import { ref, computed, onBeforeUnmount } from 'vue'
 import { useQuasar } from 'quasar'
 import { FileText, FileDown, Printer, X } from 'lucide-vue-next'
 import VuePdfEmbed from 'vue-pdf-embed'
+import { fuentePdf } from '@/utils/pdf'
 import FichaRegistroService from '@/services/FichaRegistroService'
 
 // personaId: vista del admin (la de esa persona). Sin él: la propia.
@@ -121,6 +122,9 @@ function liberar() {
 }
 
 onBeforeUnmount(liberar)
+
+// con wasmUrl: sin él, los PDF escaneados salen en blanco (ver src/utils/pdf.js)
+const fuentePreview = computed(() => fuentePdf(url.value))
 </script>
 
 <style scoped>

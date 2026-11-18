@@ -2,6 +2,7 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app'
+import { pdfjsWasm } from './build-plugins/pdfjs-wasm.js'
 
 export default defineConfig((ctx) => {
   return {
@@ -55,7 +56,10 @@ export default defineConfig((ctx) => {
       // minify: false,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      // decodificadores WASM de pdf.js (ver build-plugins/pdfjs-wasm.js y src/utils/pdf.js)
+      extendViteConf(viteConf) {
+        viteConf.plugins = [...(viteConf.plugins || []), pdfjsWasm()]
+      },
       // viteVuePluginOptions: {},
 
       // to write components with JSX/TSX:

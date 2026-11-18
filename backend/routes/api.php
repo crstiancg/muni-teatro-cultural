@@ -17,6 +17,7 @@ use App\Http\Controllers\PermisoController;
 use App\Http\Controllers\ConsultaDniController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventoController;
+use App\Http\Controllers\DocumentoPublicoController;
 use App\Http\Controllers\EventoPublicoController;
 use App\Http\Controllers\FichaRegistroController;
 use App\Http\Controllers\NotificacionController;
@@ -53,6 +54,12 @@ Route::get('publico/agrupaciones/{agrupacion:slug}', [AgrupacionPublicaControlle
 Route::get('publico/eventos', [EventoPublicoController::class, 'index'])->middleware('throttle:60,1');
 Route::get('publico/eventos/proximos', [EventoPublicoController::class, 'proximos']);
 Route::get('publico/eventos/{id}', [EventoPublicoController::class, 'show'])->whereNumber('id');
+
+// resoluciones y ordenanzas del Consejo (lista blanca en config/documentos.php)
+Route::get('publico/documentos', [DocumentoPublicoController::class, 'index']);
+Route::get('publico/documentos/{slug}', [DocumentoPublicoController::class, 'show'])
+    ->where('slug', '[a-z0-9-]+')
+    ->middleware('throttle:30,1');
 
 // verificación pública de la ficha de registro desde su QR (sin login)
 Route::get('publico/verificar/{token}', [FichaRegistroController::class, 'verificar'])
