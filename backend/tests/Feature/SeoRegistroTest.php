@@ -77,7 +77,7 @@ class SeoRegistroTest extends TestCase
         $org = collect($this->jsonLd($html))->firstWhere('@type', 'GovernmentOrganization');
 
         $this->assertSame('Pasaje Ramis N.° 359', $org['address']['streetAddress']);
-        $this->assertSame('+51 931 342 560', $org['telephone']);
+        $this->assertSame('+51 987 296 258', $org['telephone']);
     }
 
     public function test_sin_redes_configuradas_usa_el_facebook_oficial_de_la_gerencia(): void

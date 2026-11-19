@@ -41,8 +41,8 @@ export const INSTITUCION = {
   atencion: {
     nombre: 'Gerencia de Cultura y Turismo',
     direccion: 'Pasaje Ramis N.° 359',
-    referencia: 'Primer y tercer piso, frente al jardín del Anexo del G.C.N. "San Carlos"',
-    telefono: '+51 931 342 560',
+    referencia: 'Primer piso, frente al jardín del Anexo del G.C.N. "San Carlos"',
+    telefono: '+51 987 296 258',
     facebook: 'https://www.facebook.com/share/1G4VLHidc4/',
   },
 }

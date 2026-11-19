@@ -39,7 +39,7 @@ return [
         'region' => 'Puno',
         'codigo_postal' => '21001',
         'pais' => 'PE',
-        'telefono' => '+51 931 342 560',
+        'telefono' => '+51 987 296 258',
         'correo' => 'alcaldia@munipuno.gob.pe',
         // perfiles oficiales (Facebook, Instagram, YouTube…), separados por coma.
         // Google los usa para confirmar que el sitio y esas cuentas son la misma entidad.
