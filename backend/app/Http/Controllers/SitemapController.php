@@ -61,8 +61,15 @@ class SitemapController extends Controller
         $base = Seo::base();
         $privadas = collect(config('seo.rutas_privadas'))->map(fn ($r) => "Disallow: /{$r}")->implode("\n");
 
+        // El portal es una SPA: arma cada página con /api/publico/*. Si Google no
+        // puede leerla, indexa el esqueleto sin artistas ni eventos, así que esa
+        // parte de la API queda abierta (gana la regla más larga). El resto de la
+        // API (panel), el buscador (combinaciones infinitas) y la verificación de
+        // fichas (tokens) siguen cerrados.
         // /compartir/ redirige al perfil: indexarlo duplicaría cada página de artista
-        $texto = "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /compartir/\n{$privadas}\n\nSitemap: {$base}/sitemap.xml\n";
+        $texto = "User-agent: *\nAllow: /\nAllow: /api/publico/\nDisallow: /api/\n"
+            . "Disallow: /api/publico/buscar\nDisallow: /api/publico/verificar/\n"
+            . "Disallow: /compartir/\n{$privadas}\n\nSitemap: {$base}/sitemap.xml\n";
 
         return response($texto, 200)->header('Content-Type', 'text/plain; charset=UTF-8');
     }

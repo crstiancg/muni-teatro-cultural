@@ -96,6 +96,18 @@ class SeoIdentidadTest extends TestCase
             ->assertSee('Municipalidad Provincial de Puno');
     }
 
+    public function test_robots_deja_a_google_leer_la_api_publica_que_arma_el_portal(): void
+    {
+        // Search Console: "robots.txt bloquea el robot de Google" en /api/publico/portada
+        // -> Google indexaba la portada sin artistas ni eventos
+        $robots = $this->get('/robots.txt')->assertOk()->getContent();
+
+        $this->assertStringContainsString("Allow: /api/publico/\n", $robots);
+        $this->assertStringContainsString("Disallow: /api/\n", $robots);
+        $this->assertStringContainsString("Disallow: /api/publico/buscar\n", $robots);
+        $this->assertStringContainsString("Disallow: /api/publico/verificar/\n", $robots);
+    }
+
     public function test_en_produccion_un_dominio_de_ejemplo_se_reemplaza_por_el_real(): void
     {
         // pasó en el primer despliegue: FRONTEND_URL=https://tudominio
